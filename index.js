@@ -1,15 +1,15 @@
-const canvas = document.getElementById('canvas')
-const ctx = canvas.getContext('2d')
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-ctx.fillStyle = 'black'
-ctx.strokeStyle = 'white'
+ctx.fillStyle = "black";
+ctx.strokeStyle = "white";
 
 function run() {
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Animation code
+  // Animation code
 
-    requestAnimationFrame(run)
+  requestAnimationFrame(run);
 }
 
-run()
+run();
