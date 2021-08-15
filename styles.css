@@ -9,6 +9,20 @@ input[type="number"] {
   width: 8rem;
 }
 
+input[type="color"] {
+  -webkit-appearance: none;
+  border: none;
+  width: 8rem;
+  height: 30px;
+  padding: 0;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+}
+
 .overlay-button {
   position: absolute;
   left: 0.5rem;
