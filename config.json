@@ -9,7 +9,7 @@
         "id": "example_range",
         "label": "Example Range",
         "type": "range",
-        "default": "5",
+        "default": 5,
         "attrs": {
             "min": 1,
             "max": 10,
