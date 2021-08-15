@@ -1,0 +1,43 @@
+html,
+body {
+  height: 100%;
+  color: black;
+  margin: 0;
+}
+
+input[type="number"] {
+  width: 8rem;
+}
+
+.overlay-button {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  margin-bottom: 0.25rem !important;
+}
+
+.config-item {
+  display: block;
+  width: 100%;
+  padding: 0.25rem 1.5rem;
+  clear: both;
+  font-weight: 400;
+  text-align: inherit;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+}
+.config-item input {
+  margin-left: 1rem;
+  float: right;
+}
+
+#canvas {
+  width: 100%;
+  height: calc(100% - 6px);
+  image-rendering: pixelated;
+}
+
+.menu-offset {
+  margin-bottom: 0.4rem !important;
+}

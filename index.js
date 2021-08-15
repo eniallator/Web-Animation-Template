@@ -1,19 +1,18 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const aspectRatio = 16 / 9;
+const paramConfig = new ParamConfig(
+  "./config.json",
+  window.location.search,
+  $("#cfg-outer")
+);
+paramConfig.addCopyToClipboardHandler("#share-btn");
 
-const noScrollbarOffset = 3;
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-if (canvas.width / canvas.height > aspectRatio) {
-  canvas.width -= canvas.width - canvas.height * aspectRatio;
-} else if (canvas.width / canvas.height < aspectRatio) {
-  canvas.height -= canvas.height - canvas.width * aspectRatio;
-}
-
-canvas.width -= noScrollbarOffset;
-canvas.height -= noScrollbarOffset;
+window.onresize = (evt) => {
+  canvas.width = $("#canvas").width();
+  canvas.height = $("#canvas").height();
+};
+window.onresize();
 
 ctx.fillStyle = "black";
 ctx.strokeStyle = "white";
@@ -26,4 +25,4 @@ function run() {
   requestAnimationFrame(run);
 }
 
-run();
+paramConfig.onLoad(run);
