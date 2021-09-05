@@ -70,8 +70,8 @@ class Vector {
 
   lerp(other, t) {
     return new Vector(
-      this.x + (this.x - other.x) * t,
-      this.y + (this.y - other.y) * t
+      this.x - (this.x - other.x) * t,
+      this.y - (this.y - other.y) * t
     );
   }
 
