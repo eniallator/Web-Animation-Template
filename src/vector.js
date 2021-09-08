@@ -168,12 +168,24 @@ class Vector {
   toString() {
     return `x:${this.x},y:${this.y}`;
   }
+
+  static get ZERO() {
+    return new Vector(0, 0);
+  }
+  static get ONE() {
+    return new Vector(1, 1);
+  }
+
+  static get RIGHT() {
+    return new Vector(1, 0);
+  }
+  static get LEFT() {
+    return new Vector(-1, 0);
+  }
+  static get DOWN() {
+    return new Vector(0, 1);
+  }
+  static get UP() {
+    return new Vector(0, -1);
+  }
 }
-
-Vector.ZERO = new Vector(0, 0);
-Vector.ONE = new Vector(1, 1);
-
-Vector.RIGHT = new Vector(1, 0);
-Vector.LEFT = new Vector(-1, 0);
-Vector.DOWN = new Vector(0, 1);
-Vector.UP = new Vector(0, -1);

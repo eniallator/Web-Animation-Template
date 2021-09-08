@@ -7,8 +7,8 @@ class Mouse {
   constructor(element) {
     this.#down = false;
     this.#clicked = false;
-    this.#relativePos = Vector.ZERO.copy();
-    this.#pos = Vector.ZERO.copy();
+    this.#relativePos = Vector.ZERO;
+    this.#pos = Vector.ZERO;
 
     this.#initListeners(element);
   }
