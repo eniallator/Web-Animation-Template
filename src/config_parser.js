@@ -41,6 +41,7 @@ class ParamConfig {
     this.listeners = [];
     this.updates = [];
     const initialValues = this.parseUrlParams(rawUrlParams);
+    this.extra = initialValues.extra;
 
     fetch(configLocation)
       .then((resp) => resp.json())
@@ -187,7 +188,7 @@ class ParamConfig {
     return true;
   }
 
-  serialiseToURLParams() {
+  serialiseToURLParams(extra) {
     let params = "";
     for (let key in this.state) {
       if (
@@ -202,19 +203,37 @@ class ParamConfig {
       }
       params += key + "=" + this.state[key].serialise(this.state[key].tag);
     }
+    if (extra) {
+      if (params !== "") {
+        params += "&";
+      }
+      params += "extra=" + extra;
+    }
     return params;
   }
 
-  addCopyToClipboardHandler(selector) {
+  addCopyToClipboardHandler(selector, extraData) {
+    const extraDataFunc =
+      extraData !== undefined && typeof extraData !== "function"
+        ? () => extraData
+        : extraData;
     new ClipboardJS(selector, {
       text: (trigger) => {
+        const stateCopy = {};
+        if (extraDataFunc !== undefined) {
+          for (let key in this.state) {
+            stateCopy[key] = this.state[key].val;
+          }
+        }
         return (
           location.protocol +
           "//" +
           location.host +
           location.pathname +
           "?" +
-          this.serialiseToURLParams()
+          this.serialiseToURLParams(
+            extraData !== undefined ? extraDataFunc(stateCopy) : null
+          )
         );
       },
     }).on("success", (evt) => alert("Copied share link to clipboard"));
