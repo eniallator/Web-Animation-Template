@@ -18,7 +18,7 @@ function intToBase64(n) {
   return base64Str;
 }
 
-function base64ToPosInt(str, p) {
+function base64ToPosInt(str) {
   let n = 0;
   for (let char of str) {
     n = n * 64 + BASE64CHARS.indexOf(char);
@@ -64,13 +64,15 @@ const paramTypes = {
 };
 
 class ParamConfig {
+  #shortUrl;
+
   constructor(configLocation, rawUrlParams, baseEl, shortUrl = false) {
     this.state = {};
     this.listeners = [];
     this.updates = [];
     const initialValues = this.parseUrlParams(rawUrlParams);
     this.extra = initialValues.extra;
-    this.shortUrl = shortUrl;
+    this.#shortUrl = shortUrl;
 
     fetch(configLocation)
       .then((resp) => resp.json())
@@ -153,13 +155,13 @@ class ParamConfig {
       }
 
       if (typeCfg.setVal) {
-        const key = this.shortUrl
+        const key = this.#shortUrl
           ? intToBase64(this.#hashString(cfgData.id))
           : cfgData.id;
         typeCfg.setVal(
           inpTag,
           initialValues[key] !== undefined
-            ? typeCfg.deserialise(initialValues[key], this.shortUrl)
+            ? typeCfg.deserialise(initialValues[key], this.#shortUrl)
             : cfgData.default
         );
       }
@@ -245,11 +247,13 @@ class ParamConfig {
       if (params !== "") {
         params += "&";
       }
-      const paramKey = this.shortUrl ? intToBase64(this.#hashString(key)) : key;
+      const paramKey = this.#shortUrl
+        ? intToBase64(this.#hashString(key))
+        : key;
       params +=
         paramKey +
         "=" +
-        this.state[key].serialise(this.state[key].tag, this.shortUrl);
+        this.state[key].serialise(this.state[key].tag, this.#shortUrl);
     }
     if (extra) {
       if (params !== "") {
