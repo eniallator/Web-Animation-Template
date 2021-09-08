@@ -7,10 +7,31 @@ const numberParam = {
   },
 };
 
+const BASE64CHARS =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
+function intToBase64(n) {
+  let base64Str = "";
+  while (n) {
+    base64Str = BASE64CHARS[((n % 64) + 64) % 64] + base64Str;
+    n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
+  }
+  return base64Str;
+}
+
+function base64ToPosInt(str, p) {
+  let n = 0;
+  for (let char of str) {
+    n = n * 64 + BASE64CHARS.indexOf(char);
+  }
+  return n;
+}
+
 const paramTypes = {
   checkbox: {
-    serialise: (tag) => String(tag.prop("checked")),
-    deserialise: (val) => val.toLowerCase() === "true",
+    serialise: (tag, shortUrl) =>
+      String(shortUrl ? +tag.prop("checked") : tag.prop("checked")),
+    deserialise: (val, shortUrl) =>
+      val.toLowerCase() === (shortUrl ? "1" : "true"),
     setVal: (tag, val) => {
       tag.prop("checked", val);
     },
@@ -24,8 +45,15 @@ const paramTypes = {
     clickable: true,
   },
   color: {
-    serialise: (tag) => String(tag.val().substr(1).toUpperCase()),
-    deserialise: (val) => val.toUpperCase(),
+    serialise: (tag, shortUrl) => {
+      const col = String(tag.val().substr(1).toUpperCase());
+      if (shortUrl) return intToBase64(parseInt(col, 16));
+      return col;
+    },
+    deserialise: (val, shortUrl) => {
+      if (shortUrl) return base64ToPosInt(val).toString(16);
+      return val.toUpperCase();
+    },
     setVal: (tag, val) => {
       tag.val("#" + val);
     },
@@ -34,9 +62,6 @@ const paramTypes = {
     },
   },
 };
-
-const BASE64CHARS =
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
 
 class ParamConfig {
   constructor(configLocation, rawUrlParams, baseEl, shortUrl = false) {
@@ -65,15 +90,6 @@ class ParamConfig {
       hash = hash & hash; // Convert to 32bit integer
     }
     return hash;
-  }
-
-  #intToBase64(n) {
-    let base64Str = "";
-    while (n) {
-      base64Str = BASE64CHARS[((n % 64) + 64) % 64] + base64Str;
-      n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
-    }
-    return base64Str;
   }
 
   #loadConfigHtml(baseEl, parameterConfig, initialValues) {
@@ -138,12 +154,12 @@ class ParamConfig {
 
       if (typeCfg.setVal) {
         const key = this.shortUrl
-          ? this.#intToBase64(this.#hashString(cfgData.id))
+          ? intToBase64(this.#hashString(cfgData.id))
           : cfgData.id;
         typeCfg.setVal(
           inpTag,
           initialValues[key] !== undefined
-            ? typeCfg.deserialise(initialValues[key])
+            ? typeCfg.deserialise(initialValues[key], this.shortUrl)
             : cfgData.default
         );
       }
@@ -229,10 +245,11 @@ class ParamConfig {
       if (params !== "") {
         params += "&";
       }
-      const paramKey = this.shortUrl
-        ? this.#intToBase64(this.#hashString(key))
-        : key;
-      params += paramKey + "=" + this.state[key].serialise(this.state[key].tag);
+      const paramKey = this.shortUrl ? intToBase64(this.#hashString(key)) : key;
+      params +=
+        paramKey +
+        "=" +
+        this.state[key].serialise(this.state[key].tag, this.shortUrl);
     }
     if (extra) {
       if (params !== "") {
