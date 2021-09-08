@@ -35,13 +35,17 @@ const paramTypes = {
   },
 };
 
+const BASE64CHARS =
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
+
 class ParamConfig {
-  constructor(configLocation, rawUrlParams, baseEl) {
+  constructor(configLocation, rawUrlParams, baseEl, shortUrl = false) {
     this.state = {};
     this.listeners = [];
     this.updates = [];
     const initialValues = this.parseUrlParams(rawUrlParams);
     this.extra = initialValues.extra;
+    this.shortUrl = shortUrl;
 
     fetch(configLocation)
       .then((resp) => resp.json())
@@ -49,6 +53,27 @@ class ParamConfig {
         this.#loadConfigHtml(baseEl, parameterConfig, initialValues)
       )
       .catch((err) => console.error(err));
+  }
+
+  // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
+  #hashString(str) {
+    let hash = 0;
+    if (str.length == 0) return hash;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+  }
+
+  #intToBase64(n) {
+    let base64Str = "";
+    while (n) {
+      base64Str = BASE64CHARS[((n % 64) + 64) % 64] + base64Str;
+      n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
+    }
+    return base64Str;
   }
 
   #loadConfigHtml(baseEl, parameterConfig, initialValues) {
@@ -112,10 +137,13 @@ class ParamConfig {
       }
 
       if (typeCfg.setVal) {
+        const key = this.shortUrl
+          ? this.#intToBase64(this.#hashString(cfgData.id))
+          : cfgData.id;
         typeCfg.setVal(
           inpTag,
-          initialValues[cfgData.id] !== undefined
-            ? typeCfg.deserialise(initialValues[cfgData.id])
+          initialValues[key] !== undefined
+            ? typeCfg.deserialise(initialValues[key])
             : cfgData.default
         );
       }
@@ -201,7 +229,10 @@ class ParamConfig {
       if (params !== "") {
         params += "&";
       }
-      params += key + "=" + this.state[key].serialise(this.state[key].tag);
+      const paramKey = this.shortUrl
+        ? this.#intToBase64(this.#hashString(key))
+        : key;
+      params += paramKey + "=" + this.state[key].serialise(this.state[key].tag);
     }
     if (extra) {
       if (params !== "") {
