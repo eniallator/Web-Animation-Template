@@ -2,11 +2,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 const mouse = new Mouse(canvas);
-const paramConfig = new ParamConfig(
-  "./config.json",
-  window.location.search,
-  $("#cfg-outer")
-);
+const paramConfig = new ParamConfig("./config.json", $("#cfg-outer"));
 paramConfig.addCopyToClipboardHandler("#share-btn");
 
 window.onresize = (evt) => {

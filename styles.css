@@ -5,14 +5,13 @@ body {
   margin: 0;
 }
 
-input[type="number"] {
+input:not([type="checkbox"]) {
   width: 8rem;
 }
 
 input[type="color"] {
   -webkit-appearance: none;
   border: none;
-  width: 8rem;
   height: 30px;
   padding: 0;
 }

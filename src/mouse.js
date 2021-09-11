@@ -40,8 +40,7 @@ class Mouse {
       }
     };
     element.onmouseup = element.ontouchend = () => {
-      this.#clicked = false;
-      this.#down = false;
+      this.#clicked = this.#down = false;
     };
   }
 

@@ -1,12 +1,12 @@
 [
     {
-        "id": "example_checkbox",
+        "id": "example-checkbox",
         "label": "Example Checkbox",
         "type": "checkbox",
         "default": true
     },
     {
-        "id": "example_range",
+        "id": "example-range",
         "label": "Example Range",
         "type": "range",
         "default": 5,
@@ -17,7 +17,7 @@
         }
     },
     {
-        "id": "example_number",
+        "id": "example-number",
         "label": "Example Number",
         "type": "number",
         "default": 5,
@@ -27,14 +27,23 @@
         }
     },
     {
-        "id": "example_colour",
+        "id": "example-colour",
         "label": "Example Colour",
         "type": "color",
         "default": "FF5A5F"
     },
     {
-        "id": "example_button",
+        "id": "example-button",
         "text": "Example Button",
         "type": "button"
+    },
+    {
+        "id": "example-text",
+        "label": "Example Text",
+        "type": "text",
+        "default": "Hello",
+        "attrs": {
+            "placeholder": "World!"
+        }
     }
 ]

@@ -87,7 +87,7 @@ class Vector {
   }
 
   setHead(xOrVec, y) {
-    if (y > 0 || y <= 0) {
+    if (xOrVec > 0 || xOrVec <= 0 || y > 0 || y <= 0) {
       this.x = xOrVec;
       this.y = y;
     } else {
@@ -167,6 +167,13 @@ class Vector {
 
   toString() {
     return `x:${this.x},y:${this.y}`;
+  }
+
+  static parseString(str) {
+    const tokens = /^x:([^,]+),y:(.+)$/.exec(str);
+    if (tokens) {
+      return new Vector(Number(tokens[1]), Number(tokens[2]));
+    }
   }
 
   static get ZERO() {

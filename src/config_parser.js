@@ -61,24 +61,42 @@ const paramTypes = {
       stateObj[key].val = $(evt.target).val().substr(1).toUpperCase();
     },
   },
+  text: {
+    serialise: (tag) => escape(tag.val()),
+    deserialise: (val) => unescape(val),
+    setVal: (tag, val) => tag.val(val),
+    change: (key, stateObj) => (evt) => {
+      stateObj[key].val = $(evt.target).val();
+    },
+  },
 };
 
 class ParamConfig {
   #shortUrl;
+  #state;
+  #initialValues;
+  #listeners;
+  #updates;
+  #loadListener;
+  #loaded;
 
-  constructor(configLocation, rawUrlParams, baseEl, shortUrl = false) {
-    this.state = {};
-    this.listeners = [];
-    this.updates = [];
-    const initialValues = this.parseUrlParams(rawUrlParams);
-    this.extra = initialValues.extra;
+  get loaded() {
+    return this.#loaded;
+  }
+  get extra() {
+    return this.#shortUrl ? this.#initialValues.e : this.#initialValues.extra;
+  }
+
+  constructor(configLocation, baseEl, shortUrl = false) {
+    this.#state = {};
+    this.#listeners = [];
+    this.#updates = [];
+    this.#initialValues = this.parseUrlParams(document.location.search);
     this.#shortUrl = shortUrl;
 
     fetch(configLocation)
       .then((resp) => resp.json())
-      .then((parameterConfig) =>
-        this.#loadConfigHtml(baseEl, parameterConfig, initialValues)
-      )
+      .then((parameterConfig) => this.#loadConfigHtml(baseEl, parameterConfig))
       .catch((err) => console.error(err));
   }
 
@@ -94,7 +112,7 @@ class ParamConfig {
     return hash;
   }
 
-  #loadConfigHtml(baseEl, parameterConfig, initialValues) {
+  #loadConfigHtml(baseEl, parameterConfig) {
     for (let cfgData of parameterConfig) {
       let inpTag;
       if (cfgData.type === "button") {
@@ -126,30 +144,30 @@ class ParamConfig {
       );
 
       const typeCfg = paramTypes[cfgData.type];
-      this.state[cfgData.id] = {
+      this.#state[cfgData.id] = {
         tag: inpTag,
         serialise: typeCfg.serialise,
         default: cfgData.default,
       };
       if (typeCfg.change) {
-        const inpTagChange = typeCfg.change(cfgData.id, this.state);
+        const inpTagChange = typeCfg.change(cfgData.id, this.#state);
         inpTag.change((evt) => {
-          this.updates.push(cfgData.id);
+          this.#updates.push(cfgData.id);
           inpTagChange(evt);
           this.tellListeners();
         });
       }
       if (typeCfg.input) {
-        const inpTagChange = typeCfg.input(cfgData.id, this.state);
+        const inpTagInput = typeCfg.input(cfgData.id, this.#state);
         inpTag.on("input", (evt) => {
-          this.updates.push(cfgData.id);
-          inpTagChange(evt);
+          this.#updates.push(cfgData.id);
+          inpTagInput(evt);
           this.tellListeners();
         });
       }
       if (typeCfg.clickable) {
         inpTag.click(() => {
-          this.state[cfgData.id].clicked = true;
+          this.#state[cfgData.id].clicked = true;
           this.tellListeners();
         });
       }
@@ -160,58 +178,58 @@ class ParamConfig {
           : cfgData.id;
         typeCfg.setVal(
           inpTag,
-          initialValues[key] !== undefined
-            ? typeCfg.deserialise(initialValues[key], this.#shortUrl)
+          this.#initialValues[key] !== undefined
+            ? typeCfg.deserialise(this.#initialValues[key], this.#shortUrl)
             : cfgData.default
         );
       }
       inpTag.trigger("change");
       inpTag.trigger("input");
     }
-    this.loaded = true;
-    if (this.loadListener) {
-      this.loadListener(this);
+    this.#loaded = true;
+    if (this.#loadListener) {
+      this.#loadListener(this);
     }
   }
 
   onLoad(listener) {
-    if (this.loaded) {
+    if (this.#loaded) {
       listener(this);
     } else {
-      this.loadListener = listener;
+      this.#loadListener = listener;
     }
   }
 
   addListener(listener, updateSubscriptions = undefined) {
     const cleanedUpdates = (
-      updateSubscriptions || Object.keys(this.state)
-    ).filter((update) => this.state[update] !== undefined);
+      updateSubscriptions || Object.keys(this.#state)
+    ).filter((update) => this.#state[update] !== undefined);
 
-    this.listeners.push({ listener: listener, updates: cleanedUpdates });
+    this.#listeners.push({ listener: listener, updates: cleanedUpdates });
     this.tellListeners();
   }
 
   tellListeners(force = false) {
-    if (!force && this.updates === []) {
+    if (!force && this.#updates === []) {
       return;
     }
 
-    this.listeners.forEach((item) => {
+    this.#listeners.forEach((item) => {
       let relevantUpdates = item.updates.filter((update) =>
-        this.updates.includes(update)
+        this.#updates.includes(update)
       );
 
       if (force || relevantUpdates.length > 0) {
         const stateCopy = {};
-        for (let key in this.state) {
-          stateCopy[key] = this.state[key].val;
+        for (let key in this.#state) {
+          stateCopy[key] = this.#state[key].val;
         }
 
         item.listener(stateCopy, relevantUpdates);
       }
     });
 
-    this.updates = [];
+    this.#updates = [];
   }
 
   parseUrlParams(rawUrlParams) {
@@ -225,21 +243,21 @@ class ParamConfig {
   }
 
   getVal(id) {
-    return this.state[id].val;
+    return this.#state[id].val;
   }
 
   clicked(id) {
-    if (!this.state[id].clicked) return false;
-    this.state[id].clicked = false;
+    if (!this.#state[id].clicked) return false;
+    this.#state[id].clicked = false;
     return true;
   }
 
   serialiseToURLParams(extra) {
     let params = "";
-    for (let key in this.state) {
+    for (let key in this.#state) {
       if (
-        this.state[key].default === this.state[key].val ||
-        this.state[key].serialise === undefined
+        this.#state[key].default === this.#state[key].val ||
+        this.#state[key].serialise === undefined
       ) {
         continue;
       }
@@ -253,13 +271,13 @@ class ParamConfig {
       params +=
         paramKey +
         "=" +
-        this.state[key].serialise(this.state[key].tag, this.#shortUrl);
+        this.#state[key].serialise(this.#state[key].tag, this.#shortUrl);
     }
     if (extra) {
       if (params !== "") {
         params += "&";
       }
-      params += "extra=" + extra;
+      params += (this.shortUrl ? "e=" : "extra=") + extra;
     }
     return params;
   }
@@ -273,8 +291,8 @@ class ParamConfig {
       text: (trigger) => {
         const stateCopy = {};
         if (extraDataFunc !== undefined) {
-          for (let key in this.state) {
-            stateCopy[key] = this.state[key].val;
+          for (let key in this.#state) {
+            stateCopy[key] = this.#state[key].val;
           }
         }
         return (
