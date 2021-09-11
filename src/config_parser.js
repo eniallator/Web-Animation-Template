@@ -93,7 +93,7 @@ class ParamConfig {
     this.#listeners = [];
     this.#updates = [];
     this.#unloadedSubscriptionListeners = [];
-    this.#initialValues = this.parseUrlParams(document.location.search);
+    this.#initialValues = this.#parseUrlParams(location.search);
     this.#shortUrl = shortUrl;
 
     fetch(configLocation)
@@ -206,7 +206,6 @@ class ParamConfig {
   #addSubscriptionListeners() {
     if (!this.#loaded) return;
     for (let args of this.#unloadedSubscriptionListeners) {
-      console.log(args);
       this.addListener(...args);
     }
   }
@@ -249,8 +248,8 @@ class ParamConfig {
     this.#updates = [];
   }
 
-  parseUrlParams(rawUrlParams) {
-    const paramRegex = /[?&]?([^=]+)=([^&]*)/g;
+  #parseUrlParams(rawUrlParams) {
+    const paramRegex = /[?&]?([^=&]+)=?([^&]*)/g;
     const parsed = {};
     let tokens;
     while ((tokens = paramRegex.exec(rawUrlParams))) {
