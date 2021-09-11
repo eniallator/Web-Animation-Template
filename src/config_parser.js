@@ -79,6 +79,7 @@ class ParamConfig {
   #updates;
   #loadListener;
   #loaded;
+  #unloadedSubscriptionListeners;
 
   get loaded() {
     return this.#loaded;
@@ -91,6 +92,7 @@ class ParamConfig {
     this.#state = {};
     this.#listeners = [];
     this.#updates = [];
+    this.#unloadedSubscriptionListeners = [];
     this.#initialValues = this.parseUrlParams(document.location.search);
     this.#shortUrl = shortUrl;
 
@@ -187,6 +189,7 @@ class ParamConfig {
       inpTag.trigger("input");
     }
     this.#loaded = true;
+    this.#addSubscriptionListeners();
     if (this.#loadListener) {
       this.#loadListener(this);
     }
@@ -200,24 +203,38 @@ class ParamConfig {
     }
   }
 
+  #addSubscriptionListeners() {
+    if (!this.#loaded) return;
+    for (let args of this.#unloadedSubscriptionListeners) {
+      console.log(args);
+      this.addListener(...args);
+    }
+  }
+
   addListener(listener, updateSubscriptions = undefined) {
-    const cleanedUpdates = (
-      updateSubscriptions || Object.keys(this.#state)
-    ).filter((update) => this.#state[update] !== undefined);
+    if (!this.#loaded && updateSubscriptions) {
+      this.#unloadedSubscriptionListeners.push(arguments);
+      return;
+    }
+    const cleanedUpdates =
+      updateSubscriptions !== undefined &&
+      (updateSubscriptions || Object.keys(this.#state)).filter(
+        (update) => this.#state[update] !== undefined
+      );
 
     this.#listeners.push({ listener: listener, updates: cleanedUpdates });
     this.tellListeners();
   }
 
   tellListeners(force = false) {
-    if (!force && this.#updates === []) {
+    if (!force && this.#updates.length === 0) {
       return;
     }
 
     this.#listeners.forEach((item) => {
-      let relevantUpdates = item.updates.filter((update) =>
-        this.#updates.includes(update)
-      );
+      let relevantUpdates = item.updates
+        ? item.updates.filter((update) => this.#updates.includes(update))
+        : [...this.#updates];
 
       if (force || relevantUpdates.length > 0) {
         const stateCopy = {};
