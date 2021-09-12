@@ -196,3 +196,5 @@ class Vector {
     return new Vector(0, -1);
   }
 }
+
+TimeAnalysis.registerClassMethods(Vector);
