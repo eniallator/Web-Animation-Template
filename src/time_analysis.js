@@ -46,6 +46,9 @@ class TimeAudit {
 class TimeAnalysis {
   static #methods = [];
   static #mode = document.currentScript.getAttribute("mode");
+  static #defaultDebugLevel = Number(
+    document.currentScript.getAttribute("default-debug-level") || NaN
+  );
   #methodTimes = {};
 
   static registerClassMethods(target, methodNames = null, minDebugLevel = 1) {
@@ -57,13 +60,18 @@ class TimeAnalysis {
     this.#methods.push({ target, methodNames, minDebugLevel });
   }
 
-  constructor(debugLevel = Infinity) {
+  constructor(debugLevel) {
     if (TimeAnalysis.#mode !== "debug") {
       throw Error(
         `TimeAnalysis script tag's mode is set to "${
           TimeAnalysis.#mode
         }"! Please add a mode="debug" attribute to its script tag`
       );
+    }
+    if (debugLevel === undefined) {
+      debugLevel = isNaN(TimeAnalysis.#defaultDebugLevel)
+        ? Infinity
+        : TimeAnalysis.#defaultDebugLevel;
     }
     TimeAnalysis.#methods
       .filter((item) => item.minDebugLevel < debugLevel)
