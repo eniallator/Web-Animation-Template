@@ -5,7 +5,13 @@ class Vector {
    * @param {number} [y] Y component of the given coordinates
    */
   constructor(xOrVec, y) {
-    this.setHead(xOrVec, y);
+    if (xOrVec > 0 || xOrVec <= 0 || y > 0 || y <= 0) {
+      this.x = xOrVec;
+      this.y = y;
+    } else {
+      this.x = xOrVec.x;
+      this.y = xOrVec.y;
+    }
   }
 
   /**
@@ -166,7 +172,7 @@ class Vector {
    * @returns {number} Magnitude of this vector
    */
   getMagnitude() {
-    return Math.sqrt(this.getSquaredMagnitude());
+    return Math.sqrt(this.x * this.x + this.y * this.y);
   }
 
   /**
@@ -175,7 +181,7 @@ class Vector {
    * @returns {this} this
    */
   setMagnitude(mag) {
-    const magRatio = mag / this.getMagnitude();
+    const magRatio = mag / Math.sqrt(this.x * this.x + this.y * this.y);
     this.x *= magRatio;
     this.y *= magRatio;
 
@@ -187,7 +193,7 @@ class Vector {
    * @returns {Vector} Normalised vector
    */
   getNorm() {
-    const magnitude = this.getMagnitude();
+    const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
     return new Vector(this.x / magnitude, this.y / magnitude);
   }
 
@@ -196,8 +202,9 @@ class Vector {
    * @returns {this} this
    */
   normalise() {
-    const magnitude = this.getMagnitude();
-    this.setHead(this.x / magnitude, this.y / magnitude);
+    const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
+    this.x /= magnitude;
+    this.y /= magnitude;
     return this;
   }
 
@@ -228,13 +235,10 @@ class Vector {
   getAngle() {
     const x = this.x ? this.x : 0;
     const y = this.y ? this.y : 0;
-    const quadrants = {
-      "x:1,y:1": () => (!y ? 0 : Math.atan(y / x)),
-      "x:-1,y:1": () => (!x ? Math.PI / 2 : Math.PI - Math.atan(y / -x)),
-      "x:-1,y:-1": () => (!y ? Math.PI : (Math.PI * 3) / 2 - Math.atan(x / y)),
-      "x:1,y:-1": () => (!y ? 0 : (Math.PI * 3) / 2 + Math.atan(x / -y)),
-    };
-    return quadrants[this.getSign().toString()]();
+    if (x >= 0 && y >= 0) return Math.atan(y / x);
+    else if (x >= 0) return (Math.PI * 3) / 2 + Math.atan(x / -y);
+    else if (y >= 0) return Math.PI - Math.atan(y / -x);
+    else return (Math.PI * 3) / 2 - Math.atan(x / y);
   }
 
   /**
@@ -243,7 +247,7 @@ class Vector {
    * @returns {this} this
    */
   setAngle(angle) {
-    const magnitude = this.getMagnitude();
+    const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
     this.x = magnitude * Math.cos(angle);
     this.y = magnitude * Math.sin(angle);
 
@@ -304,5 +308,4 @@ class Vector {
   }
 }
 
-TimeAnalysis.registerClassMethods(Vector, null, 100);
-TimeAnalysis.registerClassMethods(Vector, ["getAngle", "setAngle"], 0);
+TimeAnalysis.registerClassMethods(Vector);
