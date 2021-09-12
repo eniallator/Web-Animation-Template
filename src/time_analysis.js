@@ -76,21 +76,26 @@ class TimeAudit {
   toString() {
     let auditString = "";
     for (let target of this.targets()) {
+      let targetAudit = `===== ${target} =====\n`;
       if (auditString !== "") {
-        auditString += "\n\n";
+        targetAudit = "\n\n" + targetAudit;
       }
-      auditString += `===== ${target} =====\n`;
+      let hasValues = false;
       for (let methodName of this.methodNames(target)) {
         const currStats = this.#stats[target][methodName];
         if (currStats.calls === 0) continue;
 
-        auditString += `  - ${methodName} Calls: ${
+        hasValues = true;
+        targetAudit += `  - ${methodName} Calls: ${
           currStats.calls
         } Total Execution Time: ${
           currStats.totalExecutionTime
         }ms Average Execution Time ${
           currStats.totalExecutionTime / currStats.calls
         }ms\n`;
+      }
+      if (hasValues) {
+        auditString += targetAudit;
       }
     }
     return auditString;
@@ -104,6 +109,7 @@ class TimeAnalysis {
 
   #recordedStats;
   #debugLevel;
+  #auditting;
 
   /**
    * Registers a class for analyzing execution time
@@ -225,14 +231,43 @@ class TimeAnalysis {
   }
 
   /**
-   * Perform an audit
+   * Perform an audit for a given length of time
    * @param {number} timeToWait Measured in milliseconds
    * @returns {Promise<TimeAudit>} Resolved when the time is up
    */
   audit(timeToWait) {
+    if (this.#auditting) {
+      throw Error(
+        "Cannot do two audits with the same instance! Wait until the first is finished or create another instance"
+      );
+    }
+    this.#auditting = true;
     this.#recordCurrentStats();
     return new Promise((resolve, reject) =>
-      setTimeout(() => resolve(new TimeAudit(this.#stats)), timeToWait)
+      setTimeout(() => {
+        const stats = this.#stats;
+        this.#auditting = false;
+        return resolve(new TimeAudit(stats));
+      }, timeToWait)
     );
+  }
+
+  /**
+   * Performs an audit on a given function
+   * @param {function} func Runs the function and then gets the stats for the function
+   * @returns {TimeAudit} Result of the audit
+   */
+  auditFunc(func) {
+    if (this.#auditting) {
+      throw Error(
+        "Cannot do two audits with the same instance! Wait until the first is finished or create another instance"
+      );
+    }
+    this.#auditting = true;
+    this.#recordCurrentStats();
+    func();
+    const stats = this.#stats;
+    this.#auditting = false;
+    return new TimeAudit(stats);
   }
 }
