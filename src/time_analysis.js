@@ -21,11 +21,11 @@ class TimeAnalysis {
    * @param {number} [minDebugLevel=1] The minimum debug level of these methods, where the lower it is, the higher priority it is to be included.
    *  If called multiple times with the same method, the lower of the two debug levels is taken.
    */
-  static registerClassMethods(target, methodNames = null, minDebugLevel = 1) {
+  static registerMethods(target, methodNames = null, minDebugLevel = 1) {
     if (!methodNames) {
-      methodNames = Object.getOwnPropertyNames(target.prototype).filter(
-        (name) => name !== "constructor"
-      );
+      methodNames = Object.getOwnPropertyNames(
+        target.prototype || target
+      ).filter((name) => name !== "constructor");
     }
     this.#methods.push({ target, methodNames, minDebugLevel });
   }
@@ -56,35 +56,42 @@ class TimeAnalysis {
             item.minDebugLevel
           );
           if (patchedMethod) {
-            item.target.prototype[methodName] = patchedMethod;
+            if (item.target.prototype) {
+              item.target.prototype[methodName] = patchedMethod;
+            } else {
+              item.target[methodName] = patchedMethod;
+            }
           }
         })
       );
   }
 
   #timeMethod(target, methodName, minDebugLevel) {
-    const oldMethod = target.prototype[methodName];
-    if (!TimeAnalysis.#methodTimes[target.name]) {
-      TimeAnalysis.#methodTimes[target.name] = {};
+    const targetName = target.name || "Anonymous";
+    const oldMethod = target.prototype
+      ? target.prototype[methodName]
+      : target[methodName];
+    if (!TimeAnalysis.#methodTimes[targetName]) {
+      TimeAnalysis.#methodTimes[targetName] = {};
     }
-    if (!TimeAnalysis.#methodTimes[target.name][methodName]) {
-      TimeAnalysis.#methodTimes[target.name][methodName] = {
+    if (!TimeAnalysis.#methodTimes[targetName][methodName]) {
+      TimeAnalysis.#methodTimes[targetName][methodName] = {
         calls: 0,
         totalExecutionTime: 0,
         minDebugLevel: minDebugLevel,
       };
     } else if (
       minDebugLevel <
-      TimeAnalysis.#methodTimes[target.name][methodName].minDebugLevel
+      TimeAnalysis.#methodTimes[targetName][methodName].minDebugLevel
     ) {
-      TimeAnalysis.#methodTimes[target.name][methodName].minDebugLevel =
+      TimeAnalysis.#methodTimes[targetName][methodName].minDebugLevel =
         minDebugLevel;
     }
 
-    if (TimeAnalysis.#methodTimes[target.name][methodName].setup) return;
-    TimeAnalysis.#methodTimes[target.name][methodName].setup = true;
+    if (TimeAnalysis.#methodTimes[targetName][methodName].setup) return;
+    TimeAnalysis.#methodTimes[targetName][methodName].setup = true;
 
-    const currTimes = TimeAnalysis.#methodTimes[target.name][methodName];
+    const currTimes = TimeAnalysis.#methodTimes[targetName][methodName];
     return function () {
       const startTime = performance.now();
       const ret = oldMethod.apply(this, arguments);

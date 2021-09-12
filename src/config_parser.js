@@ -73,13 +73,13 @@ const paramTypes = {
 
 class ParamConfig {
   #shortUrl;
-  #state;
+  #state = {};
   #initialValues;
-  #listeners;
-  #updates;
+  #listeners = [];
+  #updates = [];
   #loadCallback;
   #loaded;
-  #unloadedSubscriptionListeners;
+  #unloadedSubscriptionListeners = [];
 
   get loaded() {
     return this.#loaded;
@@ -95,10 +95,6 @@ class ParamConfig {
    * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
    */
   constructor(configLocation, baseEl, shortUrl = false) {
-    this.#state = {};
-    this.#listeners = [];
-    this.#updates = [];
-    this.#unloadedSubscriptionListeners = [];
     this.#initialValues = this.#parseUrlParams(location.search);
     this.#shortUrl = shortUrl;
 

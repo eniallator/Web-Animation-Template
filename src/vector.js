@@ -308,4 +308,4 @@ class Vector {
   }
 }
 
-TimeAnalysis.registerClassMethods(Vector);
+TimeAnalysis.registerMethods(Vector);
