@@ -1,3 +1,10 @@
+class AuditError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "AuditError";
+  }
+}
+
 class TimeAnalysis {
   static #methods = [];
   static #methodTimes = {};
@@ -5,7 +12,7 @@ class TimeAnalysis {
 
   #recordedStats;
   #debugLevel;
-  #auditting;
+  #auditting = false;
 
   /**
    * Registers a class for analyzing execution time
@@ -130,10 +137,11 @@ class TimeAnalysis {
    * Perform an audit for a given length of time
    * @param {number} timeToWait Measured in milliseconds
    * @returns {Promise<TimeAudit>} Resolved when the time is up
+   * @throws {AuditError} If there is an audit already going on
    */
   audit(timeToWait) {
     if (this.#auditting) {
-      throw Error(
+      throw new AuditError(
         "Cannot do two audits with the same instance! Wait until the first is finished or create another instance"
       );
     }
@@ -143,7 +151,7 @@ class TimeAnalysis {
       setTimeout(() => {
         const stats = this.#stats;
         this.#auditting = false;
-        return resolve(new this.#TimeAudit(stats));
+        resolve(new this.#TimeAudit(stats));
       }, timeToWait)
     );
   }
@@ -152,10 +160,11 @@ class TimeAnalysis {
    * Performs an audit on a given function
    * @param {function} func Runs the function and then gets the stats for the function
    * @returns {TimeAudit} Result of the audit
+   * @throws {AuditError} If there is an audit already going on
    */
   auditFunc(func) {
     if (this.#auditting) {
-      throw Error(
+      throw new AuditError(
         "Cannot do two audits with the same instance! Wait until the first is finished or create another instance"
       );
     }
@@ -170,6 +179,7 @@ class TimeAnalysis {
   get #TimeAudit() {
     return class TimeAudit {
       #stats;
+
       constructor(stats) {
         this.#stats = stats;
       }
@@ -231,7 +241,7 @@ class TimeAnalysis {
         for (let target of this.targets()) {
           for (let methodName of this.methodNames(target)) {
             callbackFn(
-              Object.assign(this.#stats[target][methodName], {}),
+              { ...this.#stats[target][methodName] },
               target,
               methodName
             );
