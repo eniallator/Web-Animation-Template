@@ -4,30 +4,75 @@ class TimeAudit {
     this.#stats = stats;
   }
 
+  /**
+   * Get a specific call count for a given target/methodName pair
+   * @param {String} target
+   * @param {String} methodName
+   * @returns {number}
+   */
   calls(target, methodName) {
     return this.#stats[target][methodName].calls;
   }
 
+  /**
+   * Get a specific totalExecutionTime for a given target/methodName pair
+   * @param {String} target
+   * @param {String} methodName
+   * @returns {number}
+   */
   totalExecutionTime(target, methodName) {
-    return this.#stats[target][methodName].accTime;
+    return this.#stats[target][methodName].totalExecutionTime;
   }
 
+  /**
+   * Get a specific minDebugLevel for a given target/methodName pair
+   * @param {String} target
+   * @param {String} methodName
+   * @returns {number}
+   */
   minDebugLevel(target, methodName) {
     return this.#stats[target][methodName].minDebugLevel;
   }
 
+  /**
+   * Generator which iterates over all the targets inside the stats
+   */
   *targets() {
     for (let target of Object.keys(this.#stats)) {
       yield target;
     }
   }
 
+  /**
+   * Generator which iterates over the target's methodNames
+   * @param {String} target
+   */
   *methodNames(target) {
     for (let methodName of Object.keys(this.#stats[target])) {
       yield methodName;
     }
   }
 
+  /**
+   * Iterates over the auditted stats
+   * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, String, String)} callbackFn
+   */
+  forEach(callbackFn) {
+    for (let target of this.targets()) {
+      for (let methodName of this.methodNames(target)) {
+        callbackFn(
+          Object.assign(this.#stats[target][methodName], {}),
+          target,
+          methodName
+        );
+      }
+    }
+  }
+
+  /**
+   * Prettifies the time audit so you can log it out
+   * @returns {String}
+   */
   toString() {
     let auditString = "";
     for (let target of this.targets()) {
@@ -41,8 +86,10 @@ class TimeAudit {
 
         auditString += `  - ${methodName} Calls: ${
           currStats.calls
-        } Total Execution Time: ${currStats.accTime}ms Average Execution Time ${
-          currStats.accTime / currStats.calls
+        } Total Execution Time: ${
+          currStats.totalExecutionTime
+        }ms Average Execution Time ${
+          currStats.totalExecutionTime / currStats.calls
         }ms\n`;
       }
     }
@@ -54,13 +101,17 @@ class TimeAnalysis {
   static #methods = [];
   static #methodTimes = {};
   static #mode = document.currentScript.getAttribute("mode");
-  static #defaultDebugLevel = Number(
-    document.currentScript.getAttribute("default-debug-level") || NaN
-  );
 
   #recordedStats;
   #debugLevel;
 
+  /**
+   * Registers a class for analyzing execution time
+   * @param {class} target The class/object to analyze
+   * @param {string[]} [methodNames] The method names of the class/object to analyze. Defaults to all except the constructor.
+   * @param {number} [minDebugLevel=1] The minimum debug level of these methods, where the lower it is, the higher priority it is to be included.
+   *  If called multiple times with the same method, the lower of the two debug levels is taken.
+   */
   static registerClassMethods(target, methodNames = null, minDebugLevel = 1) {
     if (!methodNames) {
       methodNames = Object.getOwnPropertyNames(target.prototype).filter(
@@ -70,6 +121,10 @@ class TimeAnalysis {
     this.#methods.push({ target, methodNames, minDebugLevel });
   }
 
+  /**
+   * TimeAnalysis class constructor
+   * @param {number} [debugLevel=Infinity] Debug level to analyze at
+   */
   constructor(debugLevel) {
     if (TimeAnalysis.#mode !== "debug") {
       throw Error(
@@ -79,20 +134,21 @@ class TimeAnalysis {
       );
     }
     if (debugLevel === undefined) {
-      debugLevel = isNaN(TimeAnalysis.#defaultDebugLevel)
-        ? Infinity
-        : TimeAnalysis.#defaultDebugLevel;
+      debugLevel = Infinity;
     }
     this.#debugLevel = debugLevel;
     TimeAnalysis.#methods
       .filter((item) => item.minDebugLevel < debugLevel)
       .forEach((item) =>
         item.methodNames.forEach((methodName) => {
-          item.target.prototype[methodName] = this.#timeMethod(
+          const patchedMethod = this.#timeMethod(
             item.target,
             methodName,
             item.minDebugLevel
           );
+          if (patchedMethod) {
+            item.target.prototype[methodName] = patchedMethod;
+          }
         })
       );
   }
@@ -105,11 +161,11 @@ class TimeAnalysis {
     if (!TimeAnalysis.#methodTimes[target.name][methodName]) {
       TimeAnalysis.#methodTimes[target.name][methodName] = {
         calls: 0,
-        accTime: 0,
+        totalExecutionTime: 0,
         minDebugLevel: minDebugLevel,
       };
     } else if (
-      minDebugLevel >
+      minDebugLevel <
       TimeAnalysis.#methodTimes[target.name][methodName].minDebugLevel
     ) {
       TimeAnalysis.#methodTimes[target.name][methodName].minDebugLevel =
@@ -123,7 +179,7 @@ class TimeAnalysis {
     return function () {
       const startTime = performance.now();
       const ret = oldMethod.apply(this, arguments);
-      currTimes.accTime += performance.now() - startTime;
+      currTimes.totalExecutionTime += performance.now() - startTime;
       currTimes.calls++;
       return ret;
     };
@@ -140,7 +196,8 @@ class TimeAnalysis {
         ) {
           this.#recordedStats[target][methodName] = {
             calls: TimeAnalysis.#methodTimes[target][methodName].calls,
-            accTime: TimeAnalysis.#methodTimes[target][methodName].accTime,
+            totalExecutionTime:
+              TimeAnalysis.#methodTimes[target][methodName].totalExecutionTime,
           };
         }
       }
@@ -156,9 +213,9 @@ class TimeAnalysis {
           calls:
             TimeAnalysis.#methodTimes[target][methodName].calls -
             this.#recordedStats[target][methodName].calls,
-          accTime:
-            TimeAnalysis.#methodTimes[target][methodName].accTime -
-            this.#recordedStats[target][methodName].accTime,
+          totalExecutionTime:
+            TimeAnalysis.#methodTimes[target][methodName].totalExecutionTime -
+            this.#recordedStats[target][methodName].totalExecutionTime,
           minDebugLevel:
             TimeAnalysis.#methodTimes[target][methodName].minDebugLevel,
         };
@@ -167,6 +224,11 @@ class TimeAnalysis {
     return stats;
   }
 
+  /**
+   * Perform an audit
+   * @param {number} timeToWait Measured in milliseconds
+   * @returns {Promise<TimeAudit>} Resolved when the time is up
+   */
   audit(timeToWait) {
     this.#recordCurrentStats();
     return new Promise((resolve, reject) =>
