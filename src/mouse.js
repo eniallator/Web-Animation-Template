@@ -6,7 +6,7 @@ class Mouse {
 
   /**
    * Tracks mouse events for a given DOM element
-   * @param {DOMElement} element Element to track
+   * @param {HTMLElement} element Element to track
    */
   constructor(element) {
     this.#down = false;

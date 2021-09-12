@@ -77,7 +77,7 @@ class ParamConfig {
   #initialValues;
   #listeners;
   #updates;
-  #loadListener;
+  #loadCallback;
   #loaded;
   #unloadedSubscriptionListeners;
 
@@ -88,6 +88,12 @@ class ParamConfig {
     return this.#shortUrl ? this.#initialValues.e : this.#initialValues.extra;
   }
 
+  /**
+   * Config parsing to/from URL parameters and an interactive page element
+   * @param {string} configLocation Path to the config json file
+   * @param {HTMLElement} baseEl The element to put all the config HTML code
+   * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
+   */
   constructor(configLocation, baseEl, shortUrl = false) {
     this.#state = {};
     this.#listeners = [];
@@ -98,7 +104,9 @@ class ParamConfig {
 
     fetch(configLocation)
       .then((resp) => resp.json())
-      .then((parameterConfig) => this.#loadConfigHtml(baseEl, parameterConfig))
+      .then((parameterConfig) =>
+        this.#loadConfigHtml($(baseEl), parameterConfig)
+      )
       .catch((err) => console.error(err));
   }
 
@@ -190,16 +198,20 @@ class ParamConfig {
     }
     this.#loaded = true;
     this.#addSubscriptionListeners();
-    if (this.#loadListener) {
-      this.#loadListener(this);
+    if (this.#loadCallback) {
+      this.#loadCallback(this);
     }
   }
 
-  onLoad(listener) {
+  /**
+   * Executes a function when the config has been loaded
+   * @param {function(this)} callbackFn Callback to execute when loaded
+   */
+  onLoad(callbackFn) {
     if (this.#loaded) {
-      listener(this);
+      callbackFn(this);
     } else {
-      this.#loadListener = listener;
+      this.#loadCallback = callbackFn;
     }
   }
 
@@ -210,6 +222,11 @@ class ParamConfig {
     }
   }
 
+  /**
+   * Adds an event listener to listen to when a config item changes
+   * @param {function(Object.<string,any>, string[])} listener Listener function
+   * @param {string[]} [updateSubscriptions] IDs of the config items to listen to. Defaults to all config items
+   */
   addListener(listener, updateSubscriptions = undefined) {
     if (!this.#loaded && updateSubscriptions) {
       this.#unloadedSubscriptionListeners.push(arguments);
@@ -258,16 +275,31 @@ class ParamConfig {
     return parsed;
   }
 
+  /**
+   * Gets the current value of a given config item ID
+   * @param {string} id Config Item ID
+   * @returns Current value of the config item
+   */
   getVal(id) {
     return this.#state[id].val;
   }
 
+  /**
+   * Checks if a config button has been clicked or not.
+   * @param {string} id ID of the config button type
+   * @returns {boolean} If the config button was clicked yet
+   */
   clicked(id) {
     if (!this.#state[id].clicked) return false;
     this.#state[id].clicked = false;
     return true;
   }
 
+  /**
+   * Serialises the current values of all config items. If a config item hasn't been changed from it's default, it is not included
+   * @param {string} [extra] Extra data to also include. If falsy, it is not included.
+   * @returns {string} Serialised URL parameters
+   */
   serialiseToURLParams(extra) {
     let params = "";
     for (let key in this.#state) {
@@ -298,6 +330,13 @@ class ParamConfig {
     return params;
   }
 
+  /**
+   * Adds a copy to clipboard handler to a given element selector
+   * @param {string} selector Selector of the share button in the format of querySelector selectors
+   * @param {(any|function():string)} [extraData] If given a function, it is executed when the user clicks,
+   *  and if it's return value added to the URL parameters. If it is not a function, it is included in the URL parameters.
+   *  If the extra data is falsy, it is not included.
+   */
   addCopyToClipboardHandler(selector, extraData) {
     const extraDataFunc =
       extraData !== undefined && typeof extraData !== "function"
