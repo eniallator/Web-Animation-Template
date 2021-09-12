@@ -1,107 +1,3 @@
-class TimeAudit {
-  #stats;
-  constructor(stats) {
-    this.#stats = stats;
-  }
-
-  /**
-   * Get a specific call count for a given target/methodName pair
-   * @param {String} target
-   * @param {String} methodName
-   * @returns {number}
-   */
-  calls(target, methodName) {
-    return this.#stats[target][methodName].calls;
-  }
-
-  /**
-   * Get a specific totalExecutionTime for a given target/methodName pair
-   * @param {String} target
-   * @param {String} methodName
-   * @returns {number}
-   */
-  totalExecutionTime(target, methodName) {
-    return this.#stats[target][methodName].totalExecutionTime;
-  }
-
-  /**
-   * Get a specific minDebugLevel for a given target/methodName pair
-   * @param {String} target
-   * @param {String} methodName
-   * @returns {number}
-   */
-  minDebugLevel(target, methodName) {
-    return this.#stats[target][methodName].minDebugLevel;
-  }
-
-  /**
-   * Generator which iterates over all the targets inside the stats
-   */
-  *targets() {
-    for (let target of Object.keys(this.#stats)) {
-      yield target;
-    }
-  }
-
-  /**
-   * Generator which iterates over the target's methodNames
-   * @param {String} target
-   */
-  *methodNames(target) {
-    for (let methodName of Object.keys(this.#stats[target])) {
-      yield methodName;
-    }
-  }
-
-  /**
-   * Iterates over the auditted stats
-   * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, String, String)} callbackFn
-   */
-  forEach(callbackFn) {
-    for (let target of this.targets()) {
-      for (let methodName of this.methodNames(target)) {
-        callbackFn(
-          Object.assign(this.#stats[target][methodName], {}),
-          target,
-          methodName
-        );
-      }
-    }
-  }
-
-  /**
-   * Prettifies the time audit so you can log it out
-   * @returns {String}
-   */
-  toString() {
-    let auditString = "";
-    for (let target of this.targets()) {
-      let targetAudit = `===== ${target} =====\n`;
-      if (auditString !== "") {
-        targetAudit = "\n\n" + targetAudit;
-      }
-      let hasValues = false;
-      for (let methodName of this.methodNames(target)) {
-        const currStats = this.#stats[target][methodName];
-        if (currStats.calls === 0) continue;
-
-        hasValues = true;
-        targetAudit += `  - ${methodName} Calls: ${
-          currStats.calls
-        } Total Execution Time: ${
-          currStats.totalExecutionTime
-        }ms Average Execution Time ${
-          currStats.totalExecutionTime / currStats.calls
-        }ms\n`;
-      }
-      if (hasValues) {
-        auditString += targetAudit;
-      }
-    }
-    return auditString;
-  }
-}
-
 class TimeAnalysis {
   static #methods = [];
   static #methodTimes = {};
@@ -247,7 +143,7 @@ class TimeAnalysis {
       setTimeout(() => {
         const stats = this.#stats;
         this.#auditting = false;
-        return resolve(new TimeAudit(stats));
+        return resolve(new this.#TimeAudit(stats));
       }, timeToWait)
     );
   }
@@ -268,6 +164,112 @@ class TimeAnalysis {
     func();
     const stats = this.#stats;
     this.#auditting = false;
-    return new TimeAudit(stats);
+    return new this.#TimeAudit(stats);
+  }
+
+  get #TimeAudit() {
+    return class TimeAudit {
+      #stats;
+      constructor(stats) {
+        this.#stats = stats;
+      }
+
+      /**
+       * Get a specific call count for a given target/methodName pair
+       * @param {String} target
+       * @param {String} methodName
+       * @returns {number}
+       */
+      calls(target, methodName) {
+        return this.#stats[target][methodName].calls;
+      }
+
+      /**
+       * Get a specific totalExecutionTime for a given target/methodName pair
+       * @param {String} target
+       * @param {String} methodName
+       * @returns {number}
+       */
+      totalExecutionTime(target, methodName) {
+        return this.#stats[target][methodName].totalExecutionTime;
+      }
+
+      /**
+       * Get a specific minDebugLevel for a given target/methodName pair
+       * @param {String} target
+       * @param {String} methodName
+       * @returns {number}
+       */
+      minDebugLevel(target, methodName) {
+        return this.#stats[target][methodName].minDebugLevel;
+      }
+
+      /**
+       * Generator which iterates over all the targets inside the stats
+       */
+      *targets() {
+        for (let target of Object.keys(this.#stats)) {
+          yield target;
+        }
+      }
+
+      /**
+       * Generator which iterates over the target's methodNames
+       * @param {String} target
+       */
+      *methodNames(target) {
+        for (let methodName of Object.keys(this.#stats[target])) {
+          yield methodName;
+        }
+      }
+
+      /**
+       * Iterates over the auditted stats
+       * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, String, String)} callbackFn
+       */
+      forEach(callbackFn) {
+        for (let target of this.targets()) {
+          for (let methodName of this.methodNames(target)) {
+            callbackFn(
+              Object.assign(this.#stats[target][methodName], {}),
+              target,
+              methodName
+            );
+          }
+        }
+      }
+
+      /**
+       * Prettifies the time audit so you can log it out
+       * @returns {String}
+       */
+      toString() {
+        let auditString = "";
+        for (let target of this.targets()) {
+          let targetAudit = `===== ${target} =====\n`;
+          if (auditString !== "") {
+            targetAudit = "\n\n" + targetAudit;
+          }
+          let hasValues = false;
+          for (let methodName of this.methodNames(target)) {
+            const currStats = this.#stats[target][methodName];
+            if (currStats.calls === 0) continue;
+
+            hasValues = true;
+            targetAudit += `  - ${methodName} Calls: ${
+              currStats.calls
+            } Total Execution Time: ${
+              currStats.totalExecutionTime
+            }ms Average Execution Time ${
+              currStats.totalExecutionTime / currStats.calls
+            }ms\n`;
+          }
+          if (hasValues) {
+            auditString += targetAudit;
+          }
+        }
+        return auditString;
+      }
+    };
   }
 }

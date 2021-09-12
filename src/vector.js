@@ -305,4 +305,4 @@ class Vector {
 }
 
 TimeAnalysis.registerClassMethods(Vector, null, 100);
-TimeAnalysis.registerClassMethods(Vector, ["getAngle"], 0);
+TimeAnalysis.registerClassMethods(Vector, ["getAngle", "setAngle"], 0);
