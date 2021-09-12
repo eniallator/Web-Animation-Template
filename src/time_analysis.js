@@ -4,30 +4,42 @@ class TimeAudit {
     this.#stats = stats;
   }
 
-  calls(target, method) {
-    return this.#stats[target][method].calls;
+  calls(target, methodName) {
+    return this.#stats[target][methodName].calls;
   }
 
-  totalExecutionTime(target, method) {
-    return this.#stats[target][method].accTime;
+  totalExecutionTime(target, methodName) {
+    return this.#stats[target][methodName].accTime;
   }
 
-  minDebugLevel(target, method) {
-    return this.#stats[target][method].minDebugLevel;
+  minDebugLevel(target, methodName) {
+    return this.#stats[target][methodName].minDebugLevel;
+  }
+
+  *targets() {
+    for (let target of Object.keys(this.#stats)) {
+      yield target;
+    }
+  }
+
+  *methodNames(target) {
+    for (let methodName of Object.keys(this.#stats[target])) {
+      yield methodName;
+    }
   }
 
   toString() {
     let auditString = "";
-    for (let target of Object.keys(this.#stats)) {
+    for (let target of this.targets()) {
       if (auditString !== "") {
         auditString += "\n\n";
       }
       auditString += `===== ${target} =====\n`;
-      for (let method of Object.keys(this.#stats[target])) {
-        const currStats = this.#stats[target][method];
+      for (let methodName of this.methodNames(target)) {
+        const currStats = this.#stats[target][methodName];
         if (currStats.calls === 0) continue;
 
-        auditString += `  - ${method} Calls: ${
+        auditString += `  - ${methodName} Calls: ${
           currStats.calls
         } Total Execution Time: ${currStats.accTime}ms Average Execution Time ${
           currStats.accTime / currStats.calls
