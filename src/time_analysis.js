@@ -149,7 +149,7 @@ class TimeAnalysis {
   audit(timeToWait) {
     if (this.#auditting) {
       throw new AuditError(
-        "Cannot do two audits with the same instance! Wait until the first is finished or create another instance"
+        "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
     this.#auditting = true;
@@ -172,7 +172,7 @@ class TimeAnalysis {
   auditFunc(func) {
     if (this.#auditting) {
       throw new AuditError(
-        "Cannot do two audits with the same instance! Wait until the first is finished or create another instance"
+        "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
     this.#auditting = true;
@@ -193,8 +193,8 @@ class TimeAnalysis {
 
       /**
        * Get a specific call count for a given target/methodName pair
-       * @param {String} target
-       * @param {String} methodName
+       * @param {string} target
+       * @param {string} methodName
        * @returns {number}
        */
       calls(target, methodName) {
@@ -203,8 +203,8 @@ class TimeAnalysis {
 
       /**
        * Get a specific totalExecutionTime for a given target/methodName pair
-       * @param {String} target
-       * @param {String} methodName
+       * @param {string} target
+       * @param {string} methodName
        * @returns {number}
        */
       totalExecutionTime(target, methodName) {
@@ -213,8 +213,8 @@ class TimeAnalysis {
 
       /**
        * Get a specific minDebugLevel for a given target/methodName pair
-       * @param {String} target
-       * @param {String} methodName
+       * @param {string} target
+       * @param {string} methodName
        * @returns {number}
        */
       minDebugLevel(target, methodName) {
@@ -223,6 +223,7 @@ class TimeAnalysis {
 
       /**
        * Generator which iterates over all the targets inside the stats
+       * @yields {string} Current target
        */
       *targets() {
         for (let target of Object.keys(this.#stats)) {
@@ -232,7 +233,8 @@ class TimeAnalysis {
 
       /**
        * Generator which iterates over the target's methodNames
-       * @param {String} target
+       * @param {string} target
+       * @yields {string} Current methodName
        */
       *methodNames(target) {
         for (let methodName of Object.keys(this.#stats[target])) {
@@ -242,7 +244,7 @@ class TimeAnalysis {
 
       /**
        * Iterates over the auditted stats
-       * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, String, String)} callbackFn
+       * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string)} callbackFn
        */
       forEach(callbackFn) {
         for (let target of this.targets()) {
@@ -258,7 +260,7 @@ class TimeAnalysis {
 
       /**
        * Prettifies the time audit so you can log it out
-       * @returns {String}
+       * @returns {string}
        */
       toString() {
         let auditString = "";
