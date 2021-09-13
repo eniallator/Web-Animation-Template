@@ -1,3 +1,10 @@
+class AnalysisError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "AnalysisError";
+  }
+}
+
 class AuditError extends Error {
   constructor(message) {
     super(message);
@@ -36,7 +43,7 @@ class TimeAnalysis {
    */
   constructor(debugLevel) {
     if (TimeAnalysis.#mode !== "debug") {
-      throw Error(
+      throw new AnalysisError(
         `TimeAnalysis script tag's mode is set to "${
           TimeAnalysis.#mode
         }"! Please add a mode="debug" attribute to its script tag`
