@@ -127,7 +127,7 @@ class TimeAnalysis {
     }
   }
 
-  get #stats() {
+  #generateStats() {
     const stats = {};
     for (let target of Object.keys(this.#recordedStats)) {
       stats[target] = {};
@@ -163,7 +163,7 @@ class TimeAnalysis {
     this.#recordCurrentStats();
     return new Promise((resolve, reject) =>
       setTimeout(() => {
-        const stats = this.#stats;
+        const stats = this.#generateStats();
         this.#auditting = false;
         resolve(new this.#TimeAudit(stats));
       }, timeToWait)
@@ -172,7 +172,7 @@ class TimeAnalysis {
 
   /**
    * Performs an audit on a given function
-   * @param {function} func Runs the function and then gets the stats for the function
+   * @param {function():void} func Runs the function and then gets the stats for the function
    * @returns {TimeAudit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */
@@ -185,7 +185,7 @@ class TimeAnalysis {
     this.#auditting = true;
     this.#recordCurrentStats();
     func();
-    const stats = this.#stats;
+    const stats = this.#generateStats();
     this.#auditting = false;
     return new this.#TimeAudit(stats);
   }
@@ -251,7 +251,7 @@ class TimeAnalysis {
 
       /**
        * Iterates over the auditted stats
-       * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string)} callbackFn
+       * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string):void} callbackFn
        */
       forEach(callbackFn) {
         for (let target of this.targets()) {

@@ -3,6 +3,7 @@
         "id": "example-checkbox",
         "label": "Example Checkbox",
         "type": "checkbox",
+        "tooltip": "Example tooltip",
         "default": true
     },
     {

@@ -72,13 +72,14 @@ const paramTypes = {
 };
 
 class ParamConfig {
+  static #customTypeConfig = {};
   #shortUrl;
   #state = {};
   #initialValues;
   #listeners = [];
   #updates = [];
   #loadCallback;
-  #loaded;
+  #loaded = false;
   #unloadedSubscriptionListeners = [];
 
   get loaded() {
@@ -104,6 +105,25 @@ class ParamConfig {
         this.#loadConfigHtml($(baseEl), parameterConfig)
       )
       .catch((err) => console.error(err));
+  }
+
+  /**
+   * Add your own custom config type
+   * @param {string} name Name of the type specified in the config under the `type` key
+   * @param {{serialise:function(HTMLElement, boolean):string, deserialise:function(any, boolean):string, setVal:function(HTMLElement, boolean):void, input?: function(string, object):function(object):void, change?: function(string, object):function(object):void, clickable?: boolean}} config The type's config
+   *
+   * EXAMPLE:
+   * ```ParamConfig.addCustomType("text", {
+        serialise: (tag) => escape(tag.val()),
+        deserialise: (val) => unescape(val),
+        setVal: (tag, val) => tag.val(val),
+        change: (key, stateObj) => (evt) => {
+          stateObj[key].val = $(evt.target).val();
+        },
+      })```
+   */
+  static addCustomType(name, config) {
+    this.#customTypeConfig[name] = config;
   }
 
   // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
@@ -149,7 +169,8 @@ class ParamConfig {
           .append(cfgData.label ? label : "", inpTag)
       );
 
-      const typeCfg = paramTypes[cfgData.type];
+      const typeCfg =
+        ParamConfig.#customTypeConfig[cfgData.type] || paramTypes[cfgData.type];
       this.#state[cfgData.id] = {
         tag: inpTag,
         serialise: typeCfg.serialise,
@@ -201,7 +222,7 @@ class ParamConfig {
 
   /**
    * Executes a function when the config has been loaded
-   * @param {function(this)} callbackFn Callback to execute when loaded
+   * @param {function(this):void} callbackFn Callback to execute when loaded
    */
   onLoad(callbackFn) {
     if (this.#loaded) {
@@ -220,7 +241,7 @@ class ParamConfig {
 
   /**
    * Adds an event listener to listen to when a config item changes
-   * @param {function(Object.<string,any>, string[])} listener Listener function
+   * @param {function(Object.<string,any>, string[]):void} listener Listener function
    * @param {string[]} [updateSubscriptions] IDs of the config items to listen to. Defaults to all config items
    */
   addListener(listener, updateSubscriptions = undefined) {
@@ -238,6 +259,10 @@ class ParamConfig {
     this.tellListeners();
   }
 
+  /**
+   * Calls the listeners added with the ConfigParser.addListener method
+   * @param {boolean} force Forces the calls to each listener
+   */
   tellListeners(force = false) {
     if (!force && this.#updates.length === 0) {
       return;
@@ -283,7 +308,7 @@ class ParamConfig {
   /**
    * Checks if a config button has been clicked or not.
    * @param {string} id ID of the config button type
-   * @returns {boolean} If the config button was clicked yet
+   * @returns {boolean} If the config button was clicked since the last call
    */
   clicked(id) {
     if (!this.#state[id].clicked) return false;
