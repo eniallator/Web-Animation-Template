@@ -46,5 +46,38 @@
         "attrs": {
             "placeholder": "World!"
         }
+    },
+    {
+        "id": "example-collection",
+        "label": "Example Collection",
+        "type": "collection",
+        "expandable": true,
+        "fields": [
+            {
+                "label": "Example Range Field",
+                "type": "range",
+                "initial": 2,
+                "attrs": {
+                    "min": 0,
+                    "max": 4,
+                    "step": 1
+                }
+            },
+            {
+                "label": "Example Checkbox Field",
+                "type": "checkbox",
+                "initial": false
+            }
+        ],
+        "default": [
+            [
+                4,
+                true
+            ],
+            [
+                1,
+                false
+            ]
+        ]
     }
 ]

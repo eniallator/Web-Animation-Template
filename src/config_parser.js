@@ -82,13 +82,6 @@ class ParamConfig {
   #loaded = false;
   #unloadedSubscriptionListeners = [];
 
-  get loaded() {
-    return this.#loaded;
-  }
-  get extra() {
-    return this.#shortUrl ? this.#initialValues.e : this.#initialValues.extra;
-  }
-
   /**
    * Config parsing to/from URL parameters and an interactive page element
    * @param {string} configLocation Path to the config json file
@@ -101,10 +94,40 @@ class ParamConfig {
 
     fetch(configLocation)
       .then((resp) => resp.json())
-      .then((parameterConfig) =>
-        this.#loadConfigHtml($(baseEl), parameterConfig)
-      )
+      .then((parameterConfig) => {
+        for (let cfgData of parameterConfig) {
+          if (cfgData.type == "collection") {
+            const onUpdateCallback = (id) => {
+              this.#updates.push(id);
+              this.tellListeners();
+            };
+            this.#state[cfgData.id] = new ConfigCollection(
+              baseEl,
+              cfgData,
+              shortUrl,
+              this.#loadInpHTML,
+              paramTypes,
+              this.#initialValues[cfgData.id],
+              onUpdateCallback
+            );
+          } else {
+            this.#loadConfigHtml($(baseEl), cfgData);
+          }
+        }
+        this.#loaded = true;
+        this.#addSubscriptionListeners();
+        if (this.#loadCallback) {
+          this.#loadCallback(this);
+        }
+      })
       .catch((err) => console.error(err));
+  }
+
+  get loaded() {
+    return this.#loaded;
+  }
+  get extra() {
+    return this.#shortUrl ? this.#initialValues.e : this.#initialValues.extra;
   }
 
   /**
@@ -138,86 +161,84 @@ class ParamConfig {
     return hash;
   }
 
-  #loadConfigHtml(baseEl, parameterConfig) {
-    for (let cfgData of parameterConfig) {
-      let inpTag;
-      if (cfgData.type === "button") {
-        inpTag = $(document.createElement("button")).addClass("btn btn-info");
-        inpTag.text(cfgData.text);
-      } else {
-        inpTag = $(document.createElement("input")).attr("type", cfgData.type);
+  #loadInpHTML(cfgData) {
+    let inpTag;
+    if (cfgData.type === "button") {
+      inpTag = $(document.createElement("button")).addClass("btn btn-info");
+      inpTag.text(cfgData.text);
+    } else {
+      inpTag = $(document.createElement("input")).attr("type", cfgData.type);
+    }
+    if (cfgData.attrs) {
+      for (let attr in cfgData.attrs) {
+        inpTag.attr(attr, cfgData.attrs[attr]);
       }
-      inpTag.attr("id", cfgData.id);
-      if (cfgData.attrs) {
-        for (let attr in cfgData.attrs) {
-          inpTag.attr(attr, cfgData.attrs[attr]);
-        }
-      }
-      const label = $(document.createElement("label"))
-        .attr("for", cfgData.id)
-        .text(cfgData.label);
-      if (cfgData.tooltip) {
-        label
-          .attr("data-toggle", "tooltip")
-          .attr("data-placement", "top")
-          .attr("title", cfgData.tooltip)
-          .tooltip();
-      }
-      baseEl.append(
-        $(document.createElement("div"))
-          .addClass("config-item")
-          .append(cfgData.label ? label : "", inpTag)
+    }
+    return inpTag;
+  }
+
+  #loadConfigHtml(baseEl, cfgData) {
+    const inpTag = this.#loadInpHTML(cfgData);
+    inpTag.attr("id", cfgData.id);
+    const label = $(document.createElement("label"))
+      .attr("for", cfgData.id)
+      .text(cfgData.label);
+    if (cfgData.tooltip) {
+      label
+        .attr("data-toggle", "tooltip")
+        .attr("data-placement", "top")
+        .attr("title", cfgData.tooltip)
+        .tooltip();
+    }
+    baseEl.append(
+      $(document.createElement("div"))
+        .addClass("config-item")
+        .append(cfgData.label ? label : "", inpTag)
+    );
+
+    const typeCfg =
+      ParamConfig.#customTypeConfig[cfgData.type] || paramTypes[cfgData.type];
+    this.#state[cfgData.id] = {
+      tag: inpTag,
+      serialise: typeCfg.serialise,
+      default: cfgData.default,
+    };
+    if (typeCfg.change) {
+      const inpTagChange = typeCfg.change(cfgData.id, this.#state);
+      inpTag.change((evt) => {
+        this.#updates.push(cfgData.id);
+        inpTagChange(evt);
+        this.tellListeners();
+      });
+    }
+    if (typeCfg.input) {
+      const inpTagInput = typeCfg.input(cfgData.id, this.#state);
+      inpTag.on("input", (evt) => {
+        this.#updates.push(cfgData.id);
+        inpTagInput(evt);
+        this.tellListeners();
+      });
+    }
+    if (typeCfg.clickable) {
+      inpTag.click(() => {
+        this.#state[cfgData.id].clicked = true;
+        this.tellListeners();
+      });
+    }
+
+    if (typeCfg.setVal) {
+      const key = this.#shortUrl
+        ? intToBase64(this.#hashString(cfgData.id))
+        : cfgData.id;
+      typeCfg.setVal(
+        inpTag,
+        this.#initialValues[key] !== undefined
+          ? typeCfg.deserialise(this.#initialValues[key], this.#shortUrl)
+          : cfgData.default
       );
-
-      const typeCfg =
-        ParamConfig.#customTypeConfig[cfgData.type] || paramTypes[cfgData.type];
-      this.#state[cfgData.id] = {
-        tag: inpTag,
-        serialise: typeCfg.serialise,
-        default: cfgData.default,
-      };
-      if (typeCfg.change) {
-        const inpTagChange = typeCfg.change(cfgData.id, this.#state);
-        inpTag.change((evt) => {
-          this.#updates.push(cfgData.id);
-          inpTagChange(evt);
-          this.tellListeners();
-        });
-      }
-      if (typeCfg.input) {
-        const inpTagInput = typeCfg.input(cfgData.id, this.#state);
-        inpTag.on("input", (evt) => {
-          this.#updates.push(cfgData.id);
-          inpTagInput(evt);
-          this.tellListeners();
-        });
-      }
-      if (typeCfg.clickable) {
-        inpTag.click(() => {
-          this.#state[cfgData.id].clicked = true;
-          this.tellListeners();
-        });
-      }
-
-      if (typeCfg.setVal) {
-        const key = this.#shortUrl
-          ? intToBase64(this.#hashString(cfgData.id))
-          : cfgData.id;
-        typeCfg.setVal(
-          inpTag,
-          this.#initialValues[key] !== undefined
-            ? typeCfg.deserialise(this.#initialValues[key], this.#shortUrl)
-            : cfgData.default
-        );
-      }
-      inpTag.trigger("change");
-      inpTag.trigger("input");
     }
-    this.#loaded = true;
-    this.#addSubscriptionListeners();
-    if (this.#loadCallback) {
-      this.#loadCallback(this);
-    }
+    inpTag.trigger("change");
+    inpTag.trigger("input");
   }
 
   /**
@@ -325,6 +346,11 @@ class ParamConfig {
     let params = "";
     for (let key in this.#state) {
       if (
+        (this.#state[key].compare &&
+          this.#state[key].compare(
+            this.#state[key].default,
+            this.#state[key].val
+          )) ||
         this.#state[key].default === this.#state[key].val ||
         this.#state[key].serialise === undefined
       ) {
@@ -355,7 +381,7 @@ class ParamConfig {
    * Adds a copy to clipboard handler to a given element selector
    * @param {string} selector Selector of the share button in the format of querySelector selectors
    * @param {(any|function():string)} [extraData] If given a function, it is executed when the user clicks,
-   *  and if it's return value added to the URL parameters. If it is not a function, it is included in the URL parameters.
+   *  and its return value added to the URL parameters. If it is not a function, it is included in the URL parameters.
    *  If the extra data is falsy, it is not included.
    */
   addCopyToClipboardHandler(selector, extraData) {

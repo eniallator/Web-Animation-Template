@@ -54,3 +54,55 @@ input[type="color"]::-webkit-color-swatch {
 .menu-offset {
   margin-bottom: 0.4rem !important;
 }
+
+.config-item table {
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.config-item table td {
+  text-align: center;
+  border-top: 1px solid #454d55;
+}
+.config-item table th {
+  text-align: center;
+}
+.collection-footer {
+  margin-bottom: 0.25rem;
+}
+
+.collection {
+  background-color: #4b535c !important;
+  margin: 0.5rem 0;
+  border-radius: 0.25rem;
+}
+
+.collection input:not([type="checkbox"]) {
+  float: none;
+  width: 3rem;
+  margin-left: 0;
+}
+.collection input[type="checkbox"] {
+  float: none;
+  margin-left: 0;
+}
+
+.collection-caret {
+  width: 0;
+  height: 0;
+  display: inline-block;
+  border: 0.375rem solid transparent;
+  margin-bottom: 0.25rem;
+  border-bottom-color: #f8f9fa;
+}
+.collapsed .collection-caret {
+  margin-top: 0.5rem;
+  border-top-color: #f8f9fa;
+  border-bottom-color: rgba(0, 0, 0, 0);
+}
+
+tr.selected:hover {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+tr.selected {
+  background-color: rgba(255, 255, 255, 0.2);
+}

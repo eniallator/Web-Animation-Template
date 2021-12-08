@@ -74,7 +74,7 @@ class TimeAnalysis {
   }
 
   #timeMethod(target, methodName, minDebugLevel) {
-    const targetName = target.name || "Anonymous";
+    const targetName = target?.name ?? "Anonymous";
     const oldMethod = target.prototype
       ? target.prototype[methodName]
       : target[methodName];

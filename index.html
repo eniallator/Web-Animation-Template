@@ -14,14 +14,22 @@
 <body>
   <canvas id="canvas"></canvas>
   <section id="parameter-config" class="dropup dropdown" aria-labelledby="config-dropdown-btn">
-    <button type="button" id="config-dropdown-btn" class="overlay-button btn btn-secondary dropdown-toggle"
-      data-toggle="dropdown" aria-haspopup="true">
+    <button type="button" id="config-dropdown-btn" class="overlay-button btn btn-secondary" data-toggle="modal"
+      data-target="#config-modal" aria-haspopup="true">
       Config
     </button>
-    <div class="menu-offset dropdown-menu bg-dark text-light" aria-labelledby="config-dropdown-btn">
-      <div id="cfg-outer" class="inline-block"></div>
-      <div class="config-item">
-        <button id="share-btn" class="btn btn-info float-right">Share</button>
+    <div id="config-modal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content bg-dark text-light">
+          <div id="cfg-outer" class="modal-body">
+          </div>
+          <div class="modal-footer">
+            <div class="config-item">
+              <button id="share-btn" class="btn btn-info float-right">Share</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -39,6 +47,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js"></script>
 
   <!-- Config parsing -->
+  <script src="src/config_collection.js"></script>
   <script src="src/config_parser.js"></script>
 
   <!-- Debugging Features -->
