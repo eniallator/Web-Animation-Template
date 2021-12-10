@@ -389,15 +389,20 @@ class ParamConfig {
       extraData !== undefined && typeof extraData !== "function"
         ? () => extraData
         : extraData;
-    new ClipboardJS(selector, {
-      text: (trigger) => {
+
+    $(selector)
+      .data("toggle", "tooltip")
+      .data("placement", "top")
+      .data("trigger", "manual")
+      .attr("title", "Copied!")
+      .click((evt) => {
         const stateCopy = {};
         if (extraDataFunc !== undefined) {
           for (let key in this.#state) {
             stateCopy[key] = this.#state[key].val;
           }
         }
-        return (
+        const textToCopy =
           location.protocol +
           "//" +
           location.host +
@@ -405,9 +410,16 @@ class ParamConfig {
           "?" +
           this.serialiseToURLParams(
             extraData !== undefined ? extraDataFunc(stateCopy) : null
-          )
-        );
-      },
-    }).on("success", (evt) => alert("Copied share link to clipboard"));
+          );
+        const el = $(`<textarea>${textToCopy}</textarea>`);
+        $(document.body).append(el);
+        el.focus().select();
+        document.execCommand("copy");
+        el.remove();
+
+        const copyBtn = $(evt.currentTarget);
+        copyBtn.tooltip("show");
+        setTimeout(() => copyBtn.tooltip("hide"), 1000);
+      });
   }
 }

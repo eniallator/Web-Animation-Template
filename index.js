@@ -26,10 +26,3 @@ function run() {
 }
 
 paramConfig.onLoad(run);
-
-paramConfig.addListener(
-  (state, updates) => {
-    console.log(JSON.stringify(state["example-collection"]));
-  },
-  ["example-collection"]
-);

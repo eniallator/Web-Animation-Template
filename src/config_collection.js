@@ -20,7 +20,7 @@ class ConfigCollection {
     this.#state = [];
     this.#onUpdateCallback = onUpdateCallback;
 
-    const flatInitialData = initialData?.split(",");
+    const flatInitialData = initialData === "" ? [] : initialData?.split(",");
     const numFields = cfgData.fields.length;
     const initial = !flatInitialData
       ? null
@@ -137,7 +137,7 @@ class ConfigCollection {
       const rowItem = {
         fields: this.#cfgData.default[i].map((val, j) => ({
           val: (initial = initialOverride?.[i]?.[j])
-            ? this.#fieldTypes[i].deserialise(initial, this.#shortUrl)
+            ? this.#fieldTypes[j].deserialise(initial, this.#shortUrl)
             : val,
         })),
       };
