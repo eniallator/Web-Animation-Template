@@ -40,11 +40,11 @@ class Vector {
   add(...args) {
     for (let arg of args) {
       if (arg > 0 || arg <= 0) {
-        this.x = this.x + arg;
-        this.y = this.y + arg;
+        this.x += arg;
+        this.y += arg;
       } else {
-        this.x = this.x + arg.x;
-        this.y = this.y + arg.y;
+        this.x += arg.x;
+        this.y += arg.y;
       }
     }
     return this;
@@ -58,11 +58,11 @@ class Vector {
   sub(...args) {
     for (let arg of args) {
       if (arg > 0 || arg <= 0) {
-        this.x = this.x - arg;
-        this.y = this.y - arg;
+        this.x -= arg;
+        this.y -= arg;
       } else {
-        this.x = this.x - arg.x;
-        this.y = this.y - arg.y;
+        this.x -= arg.x;
+        this.y -= arg.y;
       }
     }
     return this;
@@ -76,11 +76,11 @@ class Vector {
   multiply(...args) {
     for (let arg of args) {
       if (arg > 0 || arg <= 0) {
-        this.x = this.x * arg;
-        this.y = this.y * arg;
+        this.x *= arg;
+        this.y *= arg;
       } else {
-        this.x = this.x * arg.x;
-        this.y = this.y * arg.y;
+        this.x *= arg.x;
+        this.y *= arg.y;
       }
     }
     return this;
@@ -94,11 +94,11 @@ class Vector {
   divide(...args) {
     for (let arg of args) {
       if (arg > 0 || arg <= 0) {
-        this.x = this.x / arg;
-        this.y = this.y / arg;
+        this.x /= arg;
+        this.y /= arg;
       } else {
-        this.x = this.x / arg.x;
-        this.y = this.y / arg.y;
+        this.x /= arg.x;
+        this.y /= arg.y;
       }
     }
     return this;
@@ -308,4 +308,6 @@ class Vector {
   }
 }
 
-TimeAnalysis.registerMethods(Vector);
+try {
+  TimeAnalysis.registerMethods(Vector);
+} catch {}

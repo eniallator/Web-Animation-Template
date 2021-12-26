@@ -221,6 +221,7 @@ class ParamConfig {
     }
     if (typeCfg.clickable) {
       inpTag.click(() => {
+        this.#updates.push(cfgData.id);
         this.#state[cfgData.id].clicked = true;
         this.tellListeners();
       });
