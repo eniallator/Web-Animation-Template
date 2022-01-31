@@ -403,7 +403,7 @@ class ParamConfig {
             stateCopy[key] = this.#state[key].val;
           }
         }
-        const textToCopy =
+        const sharableURL =
           location.protocol +
           "//" +
           location.host +
@@ -412,7 +412,8 @@ class ParamConfig {
           this.serialiseToURLParams(
             extraData !== undefined ? extraDataFunc(stateCopy) : null
           );
-        const el = $(`<textarea>${textToCopy}</textarea>`);
+        location.href = sharableURL;
+        const el = $(`<textarea>${sharableURL}</textarea>`);
         $(document.body).append(el);
         el.focus().select();
         document.execCommand("copy");
