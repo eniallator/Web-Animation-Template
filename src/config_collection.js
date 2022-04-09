@@ -118,6 +118,7 @@ class ConfigCollection {
         (rowItem) => $("tr.selected").index(rowItem.rowEl) === -1
       );
       $("tr.selected").remove();
+      this.#onUpdateCallback(this.#cfgData.id);
     });
     html.find("[data-action=add]").click((evt) => {
       const rowItem = {
@@ -129,6 +130,7 @@ class ConfigCollection {
         .closest(".collection")
         .find("tbody")
         .append(rowItem.rowEl);
+      this.#onUpdateCallback(this.#cfgData.id);
     });
 
     const rowHtmlOutput = html.find("tbody");
