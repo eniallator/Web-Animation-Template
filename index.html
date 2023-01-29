@@ -14,11 +14,13 @@
 <body>
   <canvas id="canvas"></canvas>
   <section id="parameter-config" class="dropup dropdown" aria-labelledby="config-dropdown-btn">
-    <button type="button" id="config-dropdown-btn" class="overlay-button btn btn-secondary" data-toggle="modal"
-      data-target="#config-modal" aria-haspopup="true">
-      Config
-    </button>
-    <button type="button" id="download-btn" class="overlay-button btn btn-success">Download</button>
+    <div class="overlay-btns">
+      <button type="button" id="config-dropdown-btn" class="btn btn-secondary" data-toggle="modal"
+        data-target="#config-modal" aria-haspopup="true">
+        Config
+      </button>
+      <button type="button" id="download-btn" class="btn btn-success">Download</button>
+    </div>
     <div id="config-modal" class="modal fade" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-light">
