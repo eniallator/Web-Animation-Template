@@ -32,7 +32,9 @@ class TimeAnalysis {
     if (!methodNames) {
       methodNames = Object.getOwnPropertyNames(
         target.prototype || target
-      ).filter((name) => name !== "constructor");
+      ).filter(
+        (name) => name !== "constructor" && typeof target[name] !== "function"
+      );
     }
     this.#methods.push({ target, methodNames, minDebugLevel });
   }
@@ -63,10 +65,14 @@ class TimeAnalysis {
             item.minDebugLevel
           );
           if (patchedMethod) {
-            if (item.target.prototype) {
-              item.target.prototype[methodName] = patchedMethod;
-            } else {
-              item.target[methodName] = patchedMethod;
+            try {
+              if (item.target.prototype) {
+                item.target.prototype[methodName] = patchedMethod;
+              } else {
+                item.target[methodName] = patchedMethod;
+              }
+            } catch (e) {
+              return;
             }
           }
         })
@@ -161,7 +167,7 @@ class TimeAnalysis {
     }
     this.#auditting = true;
     this.#recordCurrentStats();
-    return new Promise((resolve, reject) =>
+    return new Promise((resolve, _reject) =>
       setTimeout(() => {
         const stats = this.#generateStats();
         this.#auditting = false;

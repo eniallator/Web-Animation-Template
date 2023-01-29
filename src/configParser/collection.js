@@ -1,9 +1,14 @@
 class ConfigCollection {
+  #default;
   #cfgData;
   #fieldTypes;
   #shortUrl;
   #state;
   #onUpdateCallback;
+
+  get default() {
+    return this.#default;
+  }
 
   constructor(
     baseEl,
@@ -29,8 +34,16 @@ class ConfigCollection {
           .map((_, i) =>
             new Array(numFields)
               .fill()
-              .map((_, j) => flatInitialData[i * numFields + j])
+              .map((_, j) =>
+                this.#fieldTypes[j].deserialise(
+                  flatInitialData[i * numFields + j],
+                  this.#shortUrl,
+                  this.#fieldTypes[j]
+                )
+              )
           );
+
+    this.#default = initial ?? this.#cfgData.default;
 
     const html = this.#initHtml(initial, loadInpHtml);
 
@@ -94,9 +107,18 @@ class ConfigCollection {
           <table class="table table-sm table-dark text-light table-hover">
             <thead>
               <tr>
-                ${this.#cfgData.expandable ? '<th scope="col"></th>' : ""}
+                ${
+                  this.#cfgData.expandable
+                    ? '<th scope="col" style="border-bottom: none;"></th>'
+                    : ""
+                }
                 ${this.#cfgData.fields
-                  .map((field) => '<th scope="col">' + field.label + "</th>")
+                  .map(
+                    (field) =>
+                      '<th scope="col" style="border-bottom: none;">' +
+                      field.label +
+                      "</th>"
+                  )
                   .join("")}
               </tr>
             </thead>
@@ -134,15 +156,8 @@ class ConfigCollection {
     });
 
     const rowHtmlOutput = html.find("tbody");
-    for (let i in initialOverride ?? this.#cfgData.default) {
-      let initial;
-      const rowItem = {
-        fields: this.#cfgData.default[i].map((val, j) => ({
-          val: (initial = initialOverride?.[i]?.[j])
-            ? this.#fieldTypes[j].deserialise(initial, this.#shortUrl)
-            : val,
-        })),
-      };
+    for (let i in this.#default) {
+      const rowItem = { fields: this.#default[i].map((val) => ({ val })) };
       this.#state.push(rowItem);
       rowItem.rowEl = this.#makeRowHtml(rowItem, loadInpHtml);
       rowHtmlOutput.append(rowItem.rowEl);
@@ -161,11 +176,22 @@ class ConfigCollection {
           .map((_, i) =>
             this.#fieldTypes[i].serialise(
               $(row.rowEl.children[i + this.#cfgData.expandable].children[0]),
-              this.#shortUrl
+              this.#shortUrl,
+              this.#fieldTypes[i]
             )
           )
           .join(",")
       )
       .join(",");
+  }
+
+  compare(a, b) {
+    return (
+      a.length === b.length &&
+      a.every(
+        (row, i) =>
+          row.length === b[i].length && row.every((item, j) => item === b[i][j])
+      )
+    );
   }
 }

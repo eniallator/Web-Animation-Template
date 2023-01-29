@@ -29,9 +29,9 @@ function base64ToPosInt(str) {
 const paramTypes = {
   checkbox: {
     serialise: (tag, shortUrl) =>
-      String(shortUrl ? +tag.prop("checked") : tag.prop("checked")),
+      `${shortUrl ? +tag.prop("checked") : tag.prop("checked")}`,
     deserialise: (val, shortUrl) =>
-      val.toLowerCase() === (shortUrl ? "1" : "true"),
+      shortUrl ? val === "1" : val.toLowerCase() === "true",
     setVal: (tag, val) => {
       tag.prop("checked", val);
     },
@@ -40,7 +40,26 @@ const paramTypes = {
     },
   },
   number: { ...numberParam },
-  range: { ...numberParam },
+  range: {
+    ...numberParam,
+    serialise: (tag, shortUrl, cfg) =>
+      shortUrl
+        ? intToBase64(
+            Math.round(
+              (Math.max(
+                Math.min(tag.val(), cfg.attrs?.max ?? 100),
+                cfg.attrs?.min ?? 0
+              ) -
+                (cfg.attrs?.min ?? 0)) /
+                (cfg.attrs?.step ?? 1)
+            )
+          )
+        : String(tag.val()),
+    deserialise: (val, shortUrl, cfg) =>
+      shortUrl
+        ? (cfg.attrs?.min ?? 0) + base64ToPosInt(val) * (cfg.attrs?.step ?? 1)
+        : Number(val),
+  },
   button: {
     clickable: true,
   },
@@ -101,13 +120,16 @@ class ParamConfig {
               this.#updates.push(id);
               this.tellListeners();
             };
+            const dataKey = this.#shortUrl
+              ? intToBase64(this.#hashString(cfgData.id))
+              : cfgData.id;
             this.#state[cfgData.id] = new ConfigCollection(
               baseEl,
               cfgData,
               shortUrl,
               this.#loadInpHTML,
               paramTypes,
-              this.#initialValues[cfgData.id],
+              this.#initialValues[dataKey],
               onUpdateCallback
             );
           } else {
@@ -136,7 +158,8 @@ class ParamConfig {
    * @param {{serialise:function(HTMLElement, boolean):string, deserialise:function(any, boolean):string, setVal:function(HTMLElement, boolean):void, input?: function(string, object):function(object):void, change?: function(string, object):function(object):void, clickable?: boolean}} config The type's config
    *
    * EXAMPLE:
-   * ```ParamConfig.addCustomType("text", {
+   * ```
+      ParamConfig.addCustomType("text", {
         serialise: (tag) => escape(tag.val()),
         deserialise: (val) => unescape(val),
         setVal: (tag, val) => tag.val(val),
@@ -202,6 +225,7 @@ class ParamConfig {
       tag: inpTag,
       serialise: typeCfg.serialise,
       default: cfgData.default,
+      cfg: cfgData,
     };
     if (typeCfg.change) {
       const inpTagChange = typeCfg.change(cfgData.id, this.#state);
@@ -234,7 +258,11 @@ class ParamConfig {
       typeCfg.setVal(
         inpTag,
         this.#initialValues[key] !== undefined
-          ? typeCfg.deserialise(this.#initialValues[key], this.#shortUrl)
+          ? typeCfg.deserialise(
+              this.#initialValues[key],
+              this.#shortUrl,
+              cfgData
+            )
           : cfgData.default
       );
     }
@@ -367,7 +395,11 @@ class ParamConfig {
       params +=
         paramKey +
         "=" +
-        this.#state[key].serialise(this.#state[key].tag, this.#shortUrl);
+        this.#state[key].serialise(
+          this.#state[key].tag,
+          this.#shortUrl,
+          this.#state[key].cfg
+        );
     }
     if (extra) {
       if (params !== "") {
@@ -387,15 +419,14 @@ class ParamConfig {
    */
   addCopyToClipboardHandler(selector, extraData) {
     const extraDataFunc =
-      extraData !== undefined && typeof extraData !== "function"
-        ? () => extraData
-        : extraData;
+      typeof extraData !== "function" ? () => extraData : extraData;
 
     $(selector)
       .data("toggle", "tooltip")
       .data("placement", "top")
       .data("trigger", "manual")
       .attr("title", "Copied!")
+      .tooltip()
       .click((evt) => {
         const stateCopy = {};
         if (extraDataFunc !== undefined) {
@@ -403,25 +434,23 @@ class ParamConfig {
             stateCopy[key] = this.#state[key].val;
           }
         }
+        const searchParams = this.serialiseToURLParams(
+          extraData !== undefined ? extraDataFunc(stateCopy) : null
+        );
         const sharableURL =
           location.protocol +
           "//" +
           location.host +
           location.pathname +
-          "?" +
-          this.serialiseToURLParams(
-            extraData !== undefined ? extraDataFunc(stateCopy) : null
-          );
-        location.href = sharableURL;
-        const el = $(`<textarea>${sharableURL}</textarea>`);
-        $(document.body).append(el);
-        el.focus().select();
-        document.execCommand("copy");
-        el.remove();
-
-        const copyBtn = $(evt.currentTarget);
-        copyBtn.tooltip("show");
-        setTimeout(() => copyBtn.tooltip("hide"), 1000);
+          (searchParams.length > 0 ? "?" + searchParams : "");
+        if (location.href !== sharableURL) {
+          history.pushState(null, "", sharableURL);
+        }
+        navigator.clipboard.writeText(sharableURL).then(() => {
+          const copyBtn = $(evt.currentTarget);
+          copyBtn.tooltip("show");
+          setTimeout(() => copyBtn.tooltip("hide"), 1000);
+        });
       });
   }
 }
