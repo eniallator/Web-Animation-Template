@@ -3,6 +3,7 @@ body {
   height: 100%;
   color: black;
   margin: 0;
+  overflow-y: hidden;
 }
 
 input:not([type="checkbox"]) {
@@ -57,9 +58,9 @@ input[type="color"]::-webkit-color-swatch {
   float: right;
 }
 
-#canvas {
+canvas {
   width: 100%;
-  height: calc(100% - 6px);
+  height: 100%;
   image-rendering: pixelated;
 }
 

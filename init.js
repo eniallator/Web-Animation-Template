@@ -1,0 +1,44 @@
+const canvas = document.querySelector("canvas");
+const ctx = canvas.getContext("2d");
+
+if (Mouse != null) {
+  window.mouse = new Mouse(canvas);
+}
+const paramConfig = new ParamConfig(
+  "./config.json",
+  document.querySelector("#cfg-outer")
+);
+paramConfig.addCopyToClipboardHandler("#share-btn");
+
+const drawFunc = document.currentScript.getAttribute("drawFunc");
+
+const truthyAns = ["y", "t", "1"];
+const drawOnResizeAns = document.currentScript.getAttribute("drawonresize");
+const drawOnResize = truthyAns.some((ans) => drawOnResizeAns.startsWith(ans));
+
+window.onresize = (evt) => {
+  const { width, height } = canvas.getBoundingClientRect();
+  canvas.width = width;
+  canvas.height = height;
+  if (drawOnResize) {
+    window[drawFunc]?.();
+  }
+  if (window.resizeCallback != null) {
+    window.resizeCallback(evt);
+  }
+};
+window.onresize();
+
+document.getElementById("download-btn").onclick = function (_evt) {
+  const url = canvas.toDataURL();
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${
+    document.getElementsByTagName("title")?.[0].innerText ?? "download"
+  }.png`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+};
+
+paramConfig.onLoad(() => window[drawFunc]?.());
