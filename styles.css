@@ -42,6 +42,16 @@ input[type="color"]::-webkit-color-swatch {
   justify-content: space-between;
 }
 
+canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.menu-offset {
+  margin-bottom: 0.4rem !important;
+}
+
 .config-item {
   display: block;
   width: 100%;
@@ -58,27 +68,31 @@ input[type="color"]::-webkit-color-swatch {
   float: right;
 }
 
-canvas {
-  width: 100%;
-  height: 100%;
-  image-rendering: pixelated;
-}
-
-.menu-offset {
-  margin-bottom: 0.4rem !important;
-}
-
 .config-item table {
   border-radius: 0.5rem;
   margin-bottom: 0.5rem;
 }
-.config-item table td {
+.config-item td {
   text-align: center;
   border-top: 1px solid #454d55;
 }
-.config-item table th {
+.config-item th {
   text-align: center;
 }
+
+.config-item tr.selected:hover > td {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+.config-item tr.selected > td {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.config-item tr:last-child > td:first-child {
+  border-bottom-left-radius: 0.5rem;
+}
+.config-item tr:last-child > td:last-child {
+  border-bottom-right-radius: 0.5rem;
+}
+
 .collection-footer {
   margin-bottom: 0.25rem;
 }
@@ -111,11 +125,4 @@ canvas {
   margin-top: 0.5rem;
   border-top-color: #f8f9fa;
   border-bottom-color: rgba(0, 0, 0, 0);
-}
-
-tr.selected:hover {
-  background-color: rgba(255, 255, 255, 0.25) !important;
-}
-tr.selected {
-  background-color: rgba(255, 255, 255, 0.2);
 }
