@@ -10,19 +10,10 @@ const paramConfig = new ParamConfig(
 );
 paramConfig.addCopyToClipboardHandler("#share-btn");
 
-const drawFunc = document.currentScript.getAttribute("drawFunc");
-
-const truthyAns = ["y", "t", "1"];
-const drawOnResizeAns = document.currentScript.getAttribute("drawonresize");
-const drawOnResize = truthyAns.some((ans) => drawOnResizeAns.startsWith(ans));
-
 window.onresize = (evt) => {
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = width;
   canvas.height = height;
-  if (drawOnResize) {
-    window[drawFunc]?.();
-  }
   if (window.resizeCallback != null) {
     window.resizeCallback(evt);
   }
@@ -40,5 +31,3 @@ document.getElementById("download-btn").onclick = function (_evt) {
   anchor.click();
   document.body.removeChild(anchor);
 };
-
-paramConfig.onLoad(() => window[drawFunc]?.());

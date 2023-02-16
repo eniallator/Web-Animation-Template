@@ -10,3 +10,5 @@ function draw() {
 }
 
 window.resizeCallback = draw;
+
+paramConfig.onLoad(draw);
