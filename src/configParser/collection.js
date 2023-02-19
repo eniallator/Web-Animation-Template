@@ -1,5 +1,6 @@
 class ConfigCollection {
   #default;
+  #initial;
   #cfgData;
   #fieldTypes;
   #shortUrl;
@@ -43,9 +44,10 @@ class ConfigCollection {
               )
           );
 
-    this.#default = initial ?? this.#cfgData.default;
+    this.#default = this.#cfgData.default;
+    this.#initial = initial ?? this.#cfgData.default;
 
-    const html = this.#initHtml(initial, loadInpHtml);
+    const html = this.#initHtml(loadInpHtml);
 
     baseEl.append(html[0]);
     this.tag = html;
@@ -93,7 +95,7 @@ class ConfigCollection {
     return html;
   }
 
-  #initHtml(initialOverride, loadInpHtml) {
+  #initHtml(loadInpHtml) {
     const html = $(`
       <div class="collection">
         <a class="config-item text-decoration-none text-white collapsed d-flex justify-content-between"
@@ -156,8 +158,8 @@ class ConfigCollection {
     });
 
     const rowHtmlOutput = html.find("tbody");
-    for (let i in this.#default) {
-      const rowItem = { fields: this.#default[i].map((val) => ({ val })) };
+    for (let i in this.#initial) {
+      const rowItem = { fields: this.#initial[i].map((val) => ({ val })) };
       this.#state.push(rowItem);
       rowItem.rowEl = this.#makeRowHtml(rowItem, loadInpHtml);
       rowHtmlOutput.append(rowItem.rowEl);

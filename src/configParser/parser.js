@@ -84,8 +84,8 @@ const paramTypes = {
     },
   },
   text: {
-    serialise: (tag) => escape(tag.val()),
-    deserialise: (val) => unescape(val),
+    serialise: (tag) => encodeURIComponent(tag.val()),
+    deserialise: (val) => decodeURIComponent(val),
     setVal: (tag, val) => tag.val(val),
     change: (key, stateObj) => (evt) => {
       stateObj[key].val = $(evt.target).val();
