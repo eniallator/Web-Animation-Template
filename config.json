@@ -48,6 +48,12 @@
         }
     },
     {
+        "id": "example-datetime",
+        "label": "Example Date Time",
+        "type": "datetime-local",
+        "default": "2018-06-14T10:03"
+    },
+    {
         "id": "example-collection",
         "label": "Example Collection",
         "type": "collection",

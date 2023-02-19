@@ -91,6 +91,27 @@ const paramTypes = {
       stateObj[key].val = $(evt.target).val();
     },
   },
+  ["datetime-local"]: {
+    serialise: (tag, shortUrl) =>
+      shortUrl
+        ? intToBase64(
+            Date.parse(tag.val()) / 60000 - new Date().getTimezoneOffset()
+          )
+        : encodeURIComponent(tag.val()),
+    deserialise: (val, shortUrl) =>
+      shortUrl
+        ? new Date(base64ToPosInt(val) * 60000)
+            .toLocaleString()
+            .replace(
+              /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+).*/,
+              "$<y>-$<m>-$<d>T$<t>"
+            )
+        : decodeURIComponent(val),
+    setVal: (tag, val) => tag.val(val),
+    change: (key, stateObj) => (evt) => {
+      stateObj[key].val = $(evt.target).val();
+    },
+  },
 };
 
 class ParamConfig {
@@ -264,7 +285,7 @@ class ParamConfig {
         : cfgData.id;
       typeCfg.setVal(
         inpTag,
-        this.#initialValues[key] !== undefined
+        this.#initialValues[key] != null
           ? typeCfg.deserialise(
               this.#initialValues[key],
               this.#shortUrl,
