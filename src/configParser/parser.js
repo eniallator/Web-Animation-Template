@@ -9,13 +9,16 @@ const numberParam = {
 
 const BASE64CHARS =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
-function intToBase64(n) {
+function intToBase64(n, length) {
   let base64Str = "";
   while (n) {
     base64Str = BASE64CHARS[((n % 64) + 64) % 64] + base64Str;
     n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
   }
-  return base64Str;
+  return length != null
+    ? "0".repeat(Math.max(length - base64Str.length, 0)) +
+        base64Str.slice(Math.max(base64Str.length - length, 0))
+    : base64Str;
 }
 
 function base64ToPosInt(str) {
@@ -92,6 +95,7 @@ const paramTypes = {
 
 class ParamConfig {
   static #customTypeConfig = {};
+  static #hashKeyLength = 6;
   #shortUrl;
   #state = {};
   #initialValues;
@@ -108,7 +112,7 @@ class ParamConfig {
    * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
    */
   constructor(configLocation, baseEl, shortUrl = false) {
-    this.#initialValues = this.#parseUrlParams(location.search);
+    this.#initialValues = this.#parseUrlParams(location.search, shortUrl);
     this.#shortUrl = shortUrl;
 
     fetch(configLocation)
@@ -121,7 +125,10 @@ class ParamConfig {
               this.tellListeners();
             };
             const dataKey = this.#shortUrl
-              ? intToBase64(this.#hashString(cfgData.id))
+              ? intToBase64(
+                  this.#hashString(cfgData.id),
+                  ParamConfig.#hashKeyLength
+                )
               : cfgData.id;
             this.#state[cfgData.id] = new ConfigCollection(
               baseEl,
@@ -253,7 +260,7 @@ class ParamConfig {
 
     if (typeCfg.setVal) {
       const key = this.#shortUrl
-        ? intToBase64(this.#hashString(cfgData.id))
+        ? intToBase64(this.#hashString(cfgData.id), ParamConfig.#hashKeyLength)
         : cfgData.id;
       typeCfg.setVal(
         inpTag,
@@ -336,8 +343,10 @@ class ParamConfig {
     this.#updates = [];
   }
 
-  #parseUrlParams(rawUrlParams) {
-    const paramRegex = /[?&]?([^=&]+)=?([^&]*)/g;
+  #parseUrlParams(rawUrlParams, shortUrl) {
+    const paramRegex = shortUrl
+      ? new RegExp(`[?&]?([^=&]{${ParamConfig.#hashKeyLength}})([^&]*)`, "g")
+      : /[?&]?([^=&]+)=?([^&]*)/g;
     const parsed = {};
     let tokens;
     while ((tokens = paramRegex.exec(rawUrlParams))) {
@@ -390,11 +399,10 @@ class ParamConfig {
         params += "&";
       }
       const paramKey = this.#shortUrl
-        ? intToBase64(this.#hashString(key))
-        : key;
+        ? intToBase64(this.#hashString(key), ParamConfig.#hashKeyLength)
+        : `${key}=`;
       params +=
         paramKey +
-        "=" +
         this.#state[key].serialise(
           this.#state[key].tag,
           this.#shortUrl,
