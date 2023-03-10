@@ -20,7 +20,7 @@ window.onresize = (evt) => {
 };
 window.onresize();
 
-document.getElementById("download-btn").onclick = function (_evt) {
+document.getElementById("download-btn").onclick = function () {
   const url = canvas.toDataURL();
   const anchor = document.createElement("a");
   anchor.href = url;

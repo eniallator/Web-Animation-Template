@@ -255,8 +255,8 @@ class Vector {
   }
 
   /**
-   * Copies this vector into a dupelicate
-   * @returns {Vector} Dupelicated version of this vector
+   * Copies this vector into a duplicate
+   * @returns {Vector} Duplicated version of this vector
    */
   copy() {
     return new Vector(this);

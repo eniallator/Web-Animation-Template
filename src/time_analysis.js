@@ -19,7 +19,7 @@ class TimeAnalysis {
 
   #recordedStats;
   #debugLevel;
-  #auditting = false;
+  #auditing = false;
 
   /**
    * Registers a class for analyzing execution time
@@ -160,17 +160,17 @@ class TimeAnalysis {
    * @throws {AuditError} If there is an audit already going on
    */
   audit(timeToWait) {
-    if (this.#auditting) {
+    if (this.#auditing) {
       throw new AuditError(
         "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
-    this.#auditting = true;
+    this.#auditing = true;
     this.#recordCurrentStats();
     return new Promise((resolve, _reject) =>
       setTimeout(() => {
         const stats = this.#generateStats();
-        this.#auditting = false;
+        this.#auditing = false;
         resolve(new this.#TimeAudit(stats));
       }, timeToWait)
     );
@@ -183,16 +183,16 @@ class TimeAnalysis {
    * @throws {AuditError} If there is an audit already going on
    */
   auditFunc(func) {
-    if (this.#auditting) {
+    if (this.#auditing) {
       throw new AuditError(
         "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
-    this.#auditting = true;
+    this.#auditing = true;
     this.#recordCurrentStats();
     func();
     const stats = this.#generateStats();
-    this.#auditting = false;
+    this.#auditing = false;
     return new this.#TimeAudit(stats);
   }
 
@@ -256,7 +256,7 @@ class TimeAnalysis {
       }
 
       /**
-       * Iterates over the auditted stats
+       * Iterates over the audited stats
        * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string):void} callbackFn
        */
       forEach(callbackFn) {
