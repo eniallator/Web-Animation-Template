@@ -62,6 +62,18 @@
         "default": "2018-06-14T10:03"
     },
     {
+        "id": "example-select",
+        "label": "Example Select",
+        "type": "select",
+        "default": "bar",
+        "options": [
+            "foo",
+            "bar",
+            "baz",
+            "Another Option"
+        ]
+    },
+    {
         "id": "example-collection",
         "label": "Example Collection",
         "type": "collection",

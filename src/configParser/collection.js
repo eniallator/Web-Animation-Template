@@ -63,7 +63,7 @@ class ConfigCollection {
     const html = $("<tr></tr>").append(
       this.#cfgData.expandable ? rowSelect : "",
       this.#cfgData.fields.map((field, i) => {
-        const td = $("<td></td>").append(loadInpHtml(field));
+        const td = $("<td></td>").append(loadInpHtml(field).html);
         const typeCfg = this.#fieldTypes[i];
         if (typeCfg.change) {
           const fieldChange = typeCfg.change(i, rowItem.fields);

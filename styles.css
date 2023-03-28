@@ -6,7 +6,8 @@ body {
   overflow-y: hidden;
 }
 
-input:not([type="checkbox"]) {
+input:not([type="checkbox"]),
+select {
   width: 8rem;
 }
 
@@ -92,7 +93,8 @@ canvas {
   background-color: transparent;
   border: 0;
 }
-.config-item input {
+.config-item input,
+.config-item select {
   margin-left: 1rem;
   float: right;
 }
@@ -132,7 +134,8 @@ canvas {
   border-radius: 0.25rem;
 }
 
-.collection input:not([type="checkbox"]) {
+.collection input:not([type="checkbox"]),
+.collection select {
   float: none;
   width: 3rem;
   margin-left: 0;

@@ -7,6 +7,15 @@ const numberParam = {
   },
 };
 
+const textParam = {
+  serialise: (tag) => encodeURIComponent(tag.val()),
+  deserialise: (val) => decodeURIComponent(val),
+  setVal: (tag, val) => tag.val(val),
+  change: (key, stateObj) => (evt) => {
+    stateObj[key].val = $(evt.target).val();
+  },
+};
+
 const BASE64CHARS =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
 function intToBase64(n, length) {
@@ -83,14 +92,8 @@ const paramTypes = {
       stateObj[key].val = $(evt.target).val().substr(1).toUpperCase();
     },
   },
-  text: {
-    serialise: (tag) => encodeURIComponent(tag.val()),
-    deserialise: (val) => decodeURIComponent(val),
-    setVal: (tag, val) => tag.val(val),
-    change: (key, stateObj) => (evt) => {
-      stateObj[key].val = $(evt.target).val();
-    },
-  },
+  text: textParam,
+  select: textParam,
   ["datetime-local"]: {
     serialise: (tag, shortUrl) =>
       shortUrl
@@ -239,6 +242,17 @@ class ParamConfig {
     if (cfgData.type === "button") {
       html = inp = $(document.createElement("button")).addClass("btn btn-info");
       inp.text(cfgData.text);
+    } else if (cfgData.type === "select") {
+      html = inp = $(document.createElement("select"))
+        .addClass("form-select")
+        .append(
+          ...cfgData.options.map((option) =>
+            $(document.createElement("option")).val(option).text(option)
+          )
+        );
+      if (cfgData.default != null) {
+        inp.val(cfgData.default);
+      }
     } else if (cfgData.type === "file") {
       inp = $(document.createElement("input")).attr("type", "file").hide();
       const btn = $(document.createElement("button"))
