@@ -39,6 +39,14 @@
         "type": "button"
     },
     {
+        "id": "example-file",
+        "text": "Example File",
+        "type": "file",
+        "attrs": {
+            "accept": "image/*"
+        }
+    },
+    {
         "id": "example-text",
         "label": "Example Text",
         "type": "text",

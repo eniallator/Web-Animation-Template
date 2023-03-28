@@ -112,6 +112,21 @@ const paramTypes = {
       stateObj[key].val = $(evt.target).val();
     },
   },
+  file: {
+    change: (key, stateObj) => (evt) =>
+      new Promise((res, rej) => {
+        if (evt.target.files?.[0] != null) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            stateObj[key].val = evt.target.result;
+            res();
+          };
+          reader.readAsDataURL(evt.target.files[0]);
+        } else {
+          res();
+        }
+      }),
+  },
 };
 
 class ParamConfig {
@@ -183,7 +198,14 @@ class ParamConfig {
   /**
    * Add your own custom config type
    * @param {string} name Name of the type specified in the config under the `type` key
-   * @param {{serialise:function(HTMLElement, boolean):string, deserialise:function(any, boolean):string, setVal:function(HTMLElement, boolean):void, input?: function(string, object):function(object):void, change?: function(string, object):function(object):void, clickable?: boolean}} config The type's config
+   * @param {{
+   *  serialise :function(HTMLElement, boolean): string,
+   *  deserialise :function(any, boolean): string,
+   *  setVal: function(HTMLElement, boolean): void,
+   *  input?: function(string, object): function(HTMLInputEvent): void | Promise,
+   *  change?: function(string, object): function(HTMLChangeEvent): void | Promise,
+   *  clickable?: boolean
+   * }} config The type's config
    *
    * EXAMPLE:
    * ```
@@ -213,23 +235,33 @@ class ParamConfig {
   }
 
   #loadInpHTML(cfgData) {
-    let inpTag;
+    let html, inp;
     if (cfgData.type === "button") {
-      inpTag = $(document.createElement("button")).addClass("btn btn-info");
-      inpTag.text(cfgData.text);
+      html = inp = $(document.createElement("button")).addClass("btn btn-info");
+      inp.text(cfgData.text);
+    } else if (cfgData.type === "file") {
+      inp = $(document.createElement("input")).attr("type", "file").hide();
+      const btn = $(document.createElement("button"))
+        .text(cfgData.text)
+        .addClass("btn btn-secondary")
+        .click(() => inp.click());
+      html = $(document.createElement("div")).append(inp, btn);
     } else {
-      inpTag = $(document.createElement("input")).attr("type", cfgData.type);
+      html = inp = $(document.createElement("input")).attr(
+        "type",
+        cfgData.type
+      );
     }
     if (cfgData.attrs) {
       for (let attr in cfgData.attrs) {
-        inpTag.attr(attr, cfgData.attrs[attr]);
+        inp.attr(attr, cfgData.attrs[attr]);
       }
     }
-    return inpTag;
+    return { html, inp };
   }
 
   #loadConfigHtml(baseEl, cfgData) {
-    const inpTag = this.#loadInpHTML(cfgData);
+    const { inp: inpTag, html: inpHtml } = this.#loadInpHTML(cfgData);
     inpTag.attr("id", cfgData.id);
     const label = $(document.createElement("label"))
       .attr("for", cfgData.id)
@@ -244,11 +276,11 @@ class ParamConfig {
     baseEl.append(
       $(document.createElement("div"))
         .addClass("config-item")
-        .append(cfgData.label ? label : "", inpTag)
+        .append(cfgData.label ? label : "", inpHtml)
     );
 
     const typeCfg =
-      ParamConfig.#customTypeConfig[cfgData.type] || paramTypes[cfgData.type];
+      ParamConfig.#customTypeConfig[cfgData.type] ?? paramTypes[cfgData.type];
     this.#state[cfgData.id] = {
       tag: inpTag,
       serialise: typeCfg.serialise,
@@ -259,16 +291,24 @@ class ParamConfig {
       const inpTagChange = typeCfg.change(cfgData.id, this.#state);
       inpTag.change((evt) => {
         this.#updates.push(cfgData.id);
-        inpTagChange(evt);
-        this.tellListeners();
+        const res = inpTagChange(evt);
+        if (res?.then != null) {
+          res.then(() => this.tellListeners.call(this));
+        } else {
+          this.tellListeners();
+        }
       });
     }
     if (typeCfg.input) {
       const inpTagInput = typeCfg.input(cfgData.id, this.#state);
       inpTag.on("input", (evt) => {
         this.#updates.push(cfgData.id);
-        inpTagInput(evt);
-        this.tellListeners();
+        const res = inpTagInput(evt);
+        if (res?.then != null) {
+          res.then(() => this.tellListeners.call(this));
+        } else {
+          this.tellListeners();
+        }
       });
     }
     if (typeCfg.clickable) {
