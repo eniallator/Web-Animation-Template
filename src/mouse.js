@@ -21,45 +21,28 @@ class Mouse {
   }
 
   #initListeners(element) {
-    element.onmousemove = (evt) => {
-      this.#pos.setHead(evt.clientX, evt.clientY);
-      this.#relativePos.setHead(
-        evt.clientX / element.width,
-        evt.clientY / element.height
-      );
-      if (this.#moveCallback) {
-        this.#moveCallback(this, evt);
+    const handleChange = (callback, posOrEvt, evt) => {
+      if (!isNaN(posOrEvt.clientX) && !isNaN(posOrEvt.clientY)) {
+        this.#pos.setHead(posOrEvt.clientX, posOrEvt.clientY);
+        this.#relativePos.setHead(
+          this.#pos.x / element.width,
+          this.#pos.y / element.height
+        );
       }
+      callback?.call(this, evt ?? posOrEvt);
     };
-    element.ontouchmove = (evt) => {
-      this.#pos.setHead(evt.touches[0].clientX, evt.touches[0].clientY);
-      this.#relativePos.setHead(
-        evt.touches[0].clientX / element.width,
-        evt.touches[0].clientY / element.height
-      );
-      if (this.#moveCallback) {
-        this.#moveCallback(this, evt);
-      }
-    };
+    element.onmousemove = (evt) =>
+      handleChange.call(this, this.#moveCallback, evt);
+    element.ontouchmove = (evt) =>
+      handleChange.call(this, this.#moveCallback, evt.touches[0], evt);
     element.onmousedown = element.ontouchstart = (evt) => {
       this.#clicked = this.#down === false;
       this.#down = true;
-      if (!isNaN(evt.clientX) && !isNaN(evt.clientY)) {
-        this.#pos.setHead(evt.clientX, evt.clientY);
-        this.#relativePos.setHead(
-          evt.clientX / element.width,
-          evt.clientY / element.height
-        );
-      }
-      if (this.#downCallback) {
-        this.#downCallback(this, evt);
-      }
+      handleChange.call(this, this.#downCallback, evt);
     };
     element.onmouseup = element.ontouchend = (evt) => {
       this.#clicked = this.#down = false;
-      if (this.#upCallback) {
-        this.#upCallback(this, evt);
-      }
+      this.#upCallback?.call(this, evt);
     };
   }
 

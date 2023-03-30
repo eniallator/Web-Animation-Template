@@ -235,7 +235,8 @@ class Vector {
   getAngle() {
     const x = this.x ? this.x : 0;
     const y = this.y ? this.y : 0;
-    if (x >= 0 && y >= 0) return Math.atan(y / x);
+    if (x === 0 && y === 0) return 0;
+    else if (x > 0 && y > 0) return Math.atan(y / x);
     else if (x >= 0) return (Math.PI * 3) / 2 + Math.atan(x / -y);
     else if (y >= 0) return Math.PI - Math.atan(y / -x);
     else return (Math.PI * 3) / 2 - Math.atan(x / y);
@@ -250,6 +251,33 @@ class Vector {
     const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
     this.x = magnitude * Math.cos(angle);
     this.y = magnitude * Math.sin(angle);
+
+    return this;
+  }
+
+  /**
+   * Rotates this vector about a pivot
+   * @param {Vector} pivot Pivot to rotate around
+   * @param {number} angle Angle to rotate by
+   * @returns {this} this
+   */
+  rotate(pivot, angle) {
+    const dx = this.x - pivot.x;
+    const dy = this.y - pivot.y;
+    const dMag = Math.sqrt(dx * dx + dy * dy);
+
+    let currAngle;
+    if (dx === 0 && dy === 0) currAngle = 0;
+    else if (dx > 0 && dy > 0) currAngle = Math.atan(dy / dx);
+    else if (dx >= 0) currAngle = (Math.PI * 3) / 2 + Math.atan(dx / -dy);
+    else if (dy >= 0) currAngle = Math.PI - Math.atan(dy / -dx);
+    else currAngle = (Math.PI * 3) / 2 - Math.atan(dx / dy);
+
+    const oX = dMag * Math.cos(currAngle + angle);
+    const oY = dMag * Math.sin(currAngle + angle);
+
+    this.x = oX + pivot.x;
+    this.y = oY + pivot.y;
 
     return this;
   }
