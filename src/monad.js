@@ -27,4 +27,12 @@ class Monad {
     callback(this.#value);
     return this;
   }
+
+  /**
+   * Get the current value of this monad
+   * @returns The current value
+   */
+  value() {
+    return this.#value;
+  }
 }
