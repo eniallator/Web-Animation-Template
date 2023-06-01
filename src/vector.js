@@ -5,9 +5,9 @@ class Vector {
    * @param {number} [y] Y component of the given coordinates
    */
   constructor(xOrVec, y) {
-    if (xOrVec > 0 || xOrVec <= 0 || y > 0 || y <= 0) {
+    if (xOrVec > 0 || xOrVec <= 0) {
       this.x = xOrVec;
-      this.y = y;
+      this.y = y ?? xOrVec;
     } else {
       this.x = xOrVec.x;
       this.y = xOrVec.y;
@@ -22,11 +22,11 @@ class Vector {
   pow(...args) {
     for (let arg of args) {
       if (arg > 0 || arg <= 0) {
-        this.x = this.x ** arg;
-        this.y = this.y ** arg;
+        this.x = Math.pow(this.x, arg);
+        this.y = Math.pow(this.y, arg);
       } else {
-        this.x = this.x ** arg.x;
-        this.y = this.y ** arg.y;
+        this.x = Math.pow(this.x, arg.x);
+        this.y = Math.pow(this.y, arg.y);
       }
     }
     return this;
@@ -148,9 +148,9 @@ class Vector {
    * @returns {this} this
    */
   setHead(xOrVec, y) {
-    if (xOrVec > 0 || xOrVec <= 0 || y > 0 || y <= 0) {
+    if (xOrVec > 0 || xOrVec <= 0) {
       this.x = xOrVec;
-      this.y = y;
+      this.y = y ?? xOrVec;
     } else {
       this.x = xOrVec.x;
       this.y = xOrVec.y;
@@ -236,9 +236,11 @@ class Vector {
     const x = this.x ? this.x : 0;
     const y = this.y ? this.y : 0;
     if (x === 0 && y === 0) return 0;
+    else if (y === 0) return x > 0 ? 0 : Math.PI;
+    else if (x === 0) return y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
     else if (x > 0 && y > 0) return Math.atan(y / x);
-    else if (x >= 0) return (Math.PI * 3) / 2 + Math.atan(x / -y);
-    else if (y >= 0) return Math.PI - Math.atan(y / -x);
+    else if (x > 0) return (Math.PI * 3) / 2 + Math.atan(x / -y);
+    else if (y > 0) return Math.PI - Math.atan(y / -x);
     else return (Math.PI * 3) / 2 - Math.atan(x / y);
   }
 
@@ -268,9 +270,11 @@ class Vector {
 
     let currAngle;
     if (dx === 0 && dy === 0) currAngle = 0;
+    else if (dy === 0) currAngle = dx > 0 ? 0 : Math.PI;
+    else if (dx === 0) currAngle = dy > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
     else if (dx > 0 && dy > 0) currAngle = Math.atan(dy / dx);
-    else if (dx >= 0) currAngle = (Math.PI * 3) / 2 + Math.atan(dx / -dy);
-    else if (dy >= 0) currAngle = Math.PI - Math.atan(dy / -dx);
+    else if (dx > 0) currAngle = (Math.PI * 3) / 2 + Math.atan(dx / -dy);
+    else if (dy > 0) currAngle = Math.PI - Math.atan(dy / -dx);
     else currAngle = (Math.PI * 3) / 2 - Math.atan(dx / dy);
 
     const oX = dMag * Math.cos(currAngle + angle);
