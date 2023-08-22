@@ -459,11 +459,10 @@ class ParamConfig {
     let params = "";
     for (let key in this.#state) {
       if (
-        (this.#state[key].compare &&
-          this.#state[key].compare(
-            this.#state[key].default,
-            this.#state[key].val
-          )) ||
+        this.#state[key].compare?.(
+          this.#state[key].default,
+          this.#state[key].val
+        ) ||
         this.#state[key].default === this.#state[key].val ||
         this.#state[key].serialise === undefined
       ) {
