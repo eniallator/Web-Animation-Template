@@ -1,198 +1,9 @@
-/*
-*  serialise :function(HTMLElement, boolean): string,
-*  deserialise :function(any, boolean): string,
-*  setVal: function(HTMLElement, boolean): void,
-*  input?: function(string, object): function(HTMLInputEvent): void | Promise,
-*  change?: function(string, object): function(HTMLChangeEvent): void | Promise,
-*  clickable?: boolean
-{
-  serialise: (tag) => escape(tag.val()),
-  deserialise: (val) => unescape(val),
-  setVal: (tag, val) => tag.val(val),
-  change: (key, stateObj) => (evt) => {
-    stateObj[key].val = $(evt.target).val();
-  },
-}
-*/
+import { intToBase64 } from "./parse";
+import { ConfigPart } from "./types";
 
-// Read from config.json
-interface Config {
-  id: string;
-  type: string;
-  label?: string;
-  text?: string;
-  tooltip?: string;
-  options?: Array<string>;
-  default?: unknown;
-  attrs?: Record<string, string>;
-}
-
-interface ConfigParam<T = any> {
-  serialise?: (
-    element: HTMLInputElement,
-    shortUrl: boolean,
-    cfg: Config
-  ) => string;
-  deserialise?: (value: string, shortUrl: boolean, cfg: Config) => T;
-  setVal?: (element: HTMLInputElement, value: T) => void;
-  input?: (
-    key: string,
-    state?: State
-  ) => (evt: InputEvent) => Promise<void> | void;
-  change?: (
-    key: string,
-    state?: State
-  ) => (evt: InputEvent) => Promise<void> | void;
-  clickable?: boolean;
-}
-
-const numberParam: ConfigParam<number> = {
-  serialise: (tag) => String(tag.value),
-  deserialise: Number,
-  setVal: (tag, val) => (tag.value = `${val}`),
-  change: (key, stateObj) => (evt) => {
-    stateObj[key].val = +(evt.target as HTMLInputElement).value;
-  },
-};
-
-const textParam: ConfigParam<string> = {
-  serialise: (tag) => encodeURIComponent(tag.value),
-  deserialise: (val) => decodeURIComponent(val),
-  setVal: (tag, val) => (tag.value = val),
-  change: (key, stateObj) => (evt) => {
-    stateObj[key].val = (evt.target as HTMLInputElement).value;
-  },
-};
-
-const BASE64CHARS =
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
-function intToBase64(n: number, length?: number): string {
-  let base64Str = "";
-  while (n) {
-    base64Str = BASE64CHARS[((n % 64) + 64) % 64] + base64Str;
-    n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
-  }
-  return length != null
-    ? base64Str
-        .padStart(length, "0")
-        .slice(Math.max(base64Str.length - length, 0))
-    : base64Str;
-}
-
-function base64ToPosInt(str: string): number {
-  let n = 0;
-  for (let char of str) {
-    n = n * 64 + BASE64CHARS.indexOf(char);
-  }
-  return n;
-}
-
-const paramTypes: Record<string, ConfigParam<any>> = {
-  checkbox: {
-    serialise: (tag, shortUrl) =>
-      `${
-        shortUrl ? +tag.hasAttribute("checked") : tag.hasAttribute("checked")
-      }`,
-    deserialise: (val, shortUrl) =>
-      shortUrl ? val === "1" : val.toLowerCase() === "true",
-    setVal: (tag, val) => {
-      if (val) {
-        tag.setAttribute("checked", "");
-      } else {
-        tag.removeAttribute("checked");
-      }
-    },
-    change: (key, stateObj) => (evt) => {
-      stateObj[key].val = (evt.target as HTMLInputElement).hasAttribute(
-        "checked"
-      );
-    },
-  },
-  number: { ...numberParam },
-  range: {
-    ...numberParam,
-    serialise: (tag, shortUrl, cfg) =>
-      shortUrl
-        ? intToBase64(
-            Math.round(
-              (Math.max(
-                Math.min(Number(tag.value), Number(cfg.attrs?.max ?? 100)),
-                Number(cfg.attrs?.min ?? 0)
-              ) -
-                Number(cfg.attrs?.min ?? 0)) /
-                Number(cfg.attrs?.step ?? 1)
-            )
-          )
-        : tag.value,
-    deserialise: (val, shortUrl, cfg) =>
-      shortUrl
-        ? Number(cfg.attrs?.min ?? 0) +
-          base64ToPosInt(val) * Number(cfg.attrs?.step ?? 1)
-        : Number(val),
-  },
-  button: {
-    clickable: true,
-  },
-  color: {
-    serialise: (tag, shortUrl) => {
-      const col = String(tag.value.slice(1).toUpperCase());
-      if (shortUrl) return intToBase64(parseInt(col, 16));
-      return col;
-    },
-    deserialise: (val, shortUrl) => {
-      if (shortUrl) return base64ToPosInt(val).toString(16);
-      return val.toUpperCase();
-    },
-    setVal: (tag, val) => (tag.value = "#" + val),
-    input: (key, stateObj) => (evt) => {
-      stateObj[key].val = (evt.target as HTMLInputElement).value
-        .slice(1)
-        .toUpperCase();
-    },
-  },
-  text: textParam,
-  select: textParam,
-  ["datetime-local"]: {
-    serialise: (tag, shortUrl) =>
-      shortUrl
-        ? intToBase64(
-            Date.parse(tag.value) / 60000 - new Date().getTimezoneOffset()
-          )
-        : encodeURIComponent(tag.value),
-    deserialise: (val, shortUrl) =>
-      shortUrl
-        ? new Date(base64ToPosInt(val) * 60000)
-            .toLocaleString()
-            .replace(
-              /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+).*/,
-              "$<y>-$<m>-$<d>T$<t>"
-            )
-        : decodeURIComponent(val),
-    setVal: (tag, val) => (tag.value = val),
-    change: (key, stateObj) => (evt) => {
-      stateObj[key].val = (evt.target as HTMLInputElement).value;
-    },
-  },
-  file: {
-    change: (key, stateObj) => (evt) =>
-      new Promise((res) => {
-        const target = evt.target as HTMLInputElement;
-        if (target.files?.[0] != null) {
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            stateObj[key].val = evt.target?.result;
-            res();
-          };
-          reader.readAsDataURL(target.files[0]);
-        } else {
-          res();
-        }
-      }),
-  },
-};
+type State = Record<string, string>;
 
 export default class ParamConfig {
-  private static customTypeConfig: Record<string, ConfigParam<any>> = {};
   private static hashKeyLength: number = 6;
   private shortUrl: boolean;
   private state: State = {};
@@ -210,48 +21,39 @@ export default class ParamConfig {
    * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
    */
   constructor(
-    configLocation: string,
+    config: Array<ConfigPart>,
     baseEl: HTMLElement,
     shortUrl: boolean = false
   ) {
     this.initialValues = this.parseUrlParams(location.search, shortUrl);
     this.shortUrl = shortUrl;
 
-    fetch(configLocation)
-      .then((resp) => resp.json())
-      .then((parameterConfig: Array<Config>) => {
-        for (let cfgData of parameterConfig) {
-          if (cfgData.type == "collection") {
-            const onUpdateCallback = (id: string) => {
-              this.updates.push(id);
-              this.tellListeners();
-            };
-            const dataKey = this.shortUrl
-              ? intToBase64(
-                  this.hashString(cfgData.id),
-                  ParamConfig.hashKeyLength
-                )
-              : cfgData.id;
-            this.state[cfgData.id] = new ConfigCollection(
-              baseEl,
-              cfgData,
-              shortUrl,
-              this.loadInpHTML,
-              paramTypes,
-              this.initialValues[dataKey],
-              onUpdateCallback
-            );
-          } else {
-            this.loadConfigHtml(baseEl, cfgData);
-          }
-        }
-        this._loaded = true;
-        this.addSubscriptionListeners();
-        if (this.loadCallback) {
-          this.loadCallback(this);
-        }
-      })
-      .catch((err) => console.error(err));
+    for (let cfgData of config) {
+      if (cfgData.type == "Collection") {
+        const onUpdateCallback = (id: string) => {
+          this.updates.push(id);
+          this.tellListeners();
+        };
+        const dataKey = this.shortUrl
+          ? intToBase64(this.hashString(cfgData.id), ParamConfig.hashKeyLength)
+          : cfgData.id;
+        this.state[cfgData.id] = new ConfigCollection(
+          baseEl,
+          cfgData,
+          shortUrl,
+          this.loadInpHTML,
+          this.initialValues[dataKey],
+          onUpdateCallback
+        );
+      } else {
+        this.loadConfigHtml(baseEl, cfgData);
+      }
+    }
+    this._loaded = true;
+    this.addSubscriptionListeners();
+    if (this.loadCallback) {
+      this.loadCallback(this);
+    }
   }
 
   get loaded() {
@@ -259,33 +61,6 @@ export default class ParamConfig {
   }
   get extra() {
     return this.shortUrl ? this.initialValues.e : this.initialValues.extra;
-  }
-
-  /**
-   * Add your own custom config type
-   * @param {string} name Name of the type specified in the config under the `type` key
-   * @param {{
-   *  serialise :function(HTMLElement, boolean): string,
-   *  deserialise :function(any, boolean): string,
-   *  setVal: function(HTMLElement, boolean): void,
-   *  input?: function(string, object): function(HTMLInputEvent): void | Promise,
-   *  change?: function(string, object): function(HTMLChangeEvent): void | Promise,
-   *  clickable?: boolean
-   * }} config The type's config
-   *
-   * EXAMPLE:
-   * ```
-      ParamConfig.addCustomType("text", {
-        serialise: (tag) => escape(tag.val()),
-        deserialise: (val) => unescape(val),
-        setVal: (tag, val) => tag.val(val),
-        change: (key, stateObj) => (evt) => {
-          stateObj[key].val = $(evt.target).val();
-        },
-      })```
-   */
-  static addCustomType(name: string, config: ConfigParam) {
-    this.customTypeConfig[name] = config;
   }
 
   // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
@@ -369,9 +144,9 @@ export default class ParamConfig {
         label.setAttribute("data-placement", "top");
         label.setAttribute("title", cfgData.tooltip).tooltip();
       }
-       const 
       baseEl.append(
-        document.createElement("div")
+        document
+          .createElement("div")
           .addClass("config-item")
           .append(cfgData.label ? label : "", inpHtml)
       );
@@ -448,7 +223,7 @@ export default class ParamConfig {
     }
   }
 
-  #addSubscriptionListeners() {
+  addSubscriptionListeners() {
     if (!this.#loaded) return;
     for (let args of this.#unloadedSubscriptionListeners) {
       this.addListener(...args);

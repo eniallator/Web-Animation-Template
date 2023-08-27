@@ -1,35 +1,35 @@
-interface BaseConfig {
+export interface BaseConfig {
   id: string;
   tooltip?: string;
   attrs?: Record<string, string>;
 }
 
-interface InputConfig<T> extends BaseConfig {
+export interface BaseInputConfig<T> extends BaseConfig {
   label?: string;
   default?: T;
 }
 
-export interface CheckboxConfig extends InputConfig<boolean> {
+export interface CheckboxConfig extends BaseInputConfig<boolean> {
   type: "Checkbox";
 }
 
-export interface NumberConfig extends InputConfig<number> {
+export interface NumberConfig extends BaseInputConfig<number> {
   type: "Number";
 }
 
-export interface RangeConfig extends InputConfig<number> {
+export interface RangeConfig extends BaseInputConfig<number> {
   type: "Range";
 }
 
-export interface ColorConfig extends InputConfig<string> {
+export interface ColorConfig extends BaseInputConfig<string> {
   type: "Color";
 }
 
-export interface TextConfig extends InputConfig<string> {
+export interface TextConfig extends BaseInputConfig<string> {
   type: "Text";
 }
 
-export interface DatetimeConfig extends InputConfig<string> {
+export interface DatetimeConfig extends BaseInputConfig<string> {
   type: "Datetime";
 }
 
@@ -42,7 +42,7 @@ type ArrayItems<A extends ReadonlyArray<unknown>> = A extends ReadonlyArray<
 export interface SelectConfig<
   T extends string = string,
   A extends ReadonlyArray<T> = ReadonlyArray<T>
-> extends InputConfig<ArrayItems<A>> {
+> extends BaseInputConfig<ArrayItems<A>> {
   type: "Select";
   options: A;
 }
@@ -57,19 +57,19 @@ export interface ButtonConfig extends BaseConfig {
   text?: string;
 }
 
-export type ConfigAtom =
+export type InputConfig =
   | CheckboxConfig
   | NumberConfig
   | RangeConfig
   | ColorConfig
   | TextConfig
-  | FileConfig
   | DatetimeConfig
-  | SelectConfig<string>
-  | ButtonConfig;
+  | SelectConfig<string>;
+
+export type ConfigAtom = InputConfig | FileConfig | ButtonConfig;
 
 type DeriveDefaults<R extends ReadonlyArray<ConfigAtom>> = {
-  [K in keyof R]: R[K] extends InputConfig<infer T> ? T : null;
+  [K in keyof R]: R[K] extends BaseInputConfig<infer T> ? T : null;
 };
 
 export interface ConfigCollection<R extends ReadonlyArray<ConfigAtom>> {

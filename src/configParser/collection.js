@@ -16,7 +16,6 @@ class ConfigCollection {
     cfgData,
     shortUrl,
     loadInpHtml,
-    paramTypes,
     initialData,
     onUpdateCallback
   ) {
