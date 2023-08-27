@@ -1,36 +1,85 @@
-const numberParam = {
-  serialise: (tag) => String(tag.val()),
-  deserialise: Number,
-  setVal: (tag, val) => tag.val(val),
-  change: (key, stateObj) => (evt) => {
-    stateObj[key].val = +$(evt.target).val();
-  },
-};
-
-const textParam = {
-  serialise: (tag) => encodeURIComponent(tag.val()),
-  deserialise: (val) => decodeURIComponent(val),
+/*
+*  serialise :function(HTMLElement, boolean): string,
+*  deserialise :function(any, boolean): string,
+*  setVal: function(HTMLElement, boolean): void,
+*  input?: function(string, object): function(HTMLInputEvent): void | Promise,
+*  change?: function(string, object): function(HTMLChangeEvent): void | Promise,
+*  clickable?: boolean
+{
+  serialise: (tag) => escape(tag.val()),
+  deserialise: (val) => unescape(val),
   setVal: (tag, val) => tag.val(val),
   change: (key, stateObj) => (evt) => {
     stateObj[key].val = $(evt.target).val();
+  },
+}
+*/
+
+// Read from config.json
+interface Config {
+  id: string;
+  type: string;
+  label?: string;
+  text?: string;
+  tooltip?: string;
+  options?: Array<string>;
+  default?: unknown;
+  attrs?: Record<string, string>;
+}
+
+interface ConfigParam<T = any> {
+  serialise?: (
+    element: HTMLInputElement,
+    shortUrl: boolean,
+    cfg: Config
+  ) => string;
+  deserialise?: (value: string, shortUrl: boolean, cfg: Config) => T;
+  setVal?: (element: HTMLInputElement, value: T) => void;
+  input?: (
+    key: string,
+    state?: State
+  ) => (evt: InputEvent) => Promise<void> | void;
+  change?: (
+    key: string,
+    state?: State
+  ) => (evt: InputEvent) => Promise<void> | void;
+  clickable?: boolean;
+}
+
+const numberParam: ConfigParam<number> = {
+  serialise: (tag) => String(tag.value),
+  deserialise: Number,
+  setVal: (tag, val) => (tag.value = `${val}`),
+  change: (key, stateObj) => (evt) => {
+    stateObj[key].val = +(evt.target as HTMLInputElement).value;
+  },
+};
+
+const textParam: ConfigParam<string> = {
+  serialise: (tag) => encodeURIComponent(tag.value),
+  deserialise: (val) => decodeURIComponent(val),
+  setVal: (tag, val) => (tag.value = val),
+  change: (key, stateObj) => (evt) => {
+    stateObj[key].val = (evt.target as HTMLInputElement).value;
   },
 };
 
 const BASE64CHARS =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
-function intToBase64(n, length) {
+function intToBase64(n: number, length?: number): string {
   let base64Str = "";
   while (n) {
     base64Str = BASE64CHARS[((n % 64) + 64) % 64] + base64Str;
     n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
   }
   return length != null
-    ? "0".repeat(Math.max(length - base64Str.length, 0)) +
-        base64Str.slice(Math.max(base64Str.length - length, 0))
+    ? base64Str
+        .padStart(length, "0")
+        .slice(Math.max(base64Str.length - length, 0))
     : base64Str;
 }
 
-function base64ToPosInt(str) {
+function base64ToPosInt(str: string): number {
   let n = 0;
   for (let char of str) {
     n = n * 64 + BASE64CHARS.indexOf(char);
@@ -38,17 +87,25 @@ function base64ToPosInt(str) {
   return n;
 }
 
-const paramTypes = {
+const paramTypes: Record<string, ConfigParam<any>> = {
   checkbox: {
     serialise: (tag, shortUrl) =>
-      `${shortUrl ? +tag.prop("checked") : tag.prop("checked")}`,
+      `${
+        shortUrl ? +tag.hasAttribute("checked") : tag.hasAttribute("checked")
+      }`,
     deserialise: (val, shortUrl) =>
       shortUrl ? val === "1" : val.toLowerCase() === "true",
     setVal: (tag, val) => {
-      tag.prop("checked", val);
+      if (val) {
+        tag.setAttribute("checked", "");
+      } else {
+        tag.removeAttribute("checked");
+      }
     },
     change: (key, stateObj) => (evt) => {
-      stateObj[key].val = $(evt.target).is(":checked");
+      stateObj[key].val = (evt.target as HTMLInputElement).hasAttribute(
+        "checked"
+      );
     },
   },
   number: { ...numberParam },
@@ -59,17 +116,18 @@ const paramTypes = {
         ? intToBase64(
             Math.round(
               (Math.max(
-                Math.min(tag.val(), cfg.attrs?.max ?? 100),
-                cfg.attrs?.min ?? 0
+                Math.min(Number(tag.value), Number(cfg.attrs?.max ?? 100)),
+                Number(cfg.attrs?.min ?? 0)
               ) -
-                (cfg.attrs?.min ?? 0)) /
-                (cfg.attrs?.step ?? 1)
+                Number(cfg.attrs?.min ?? 0)) /
+                Number(cfg.attrs?.step ?? 1)
             )
           )
-        : String(tag.val()),
+        : tag.value,
     deserialise: (val, shortUrl, cfg) =>
       shortUrl
-        ? (cfg.attrs?.min ?? 0) + base64ToPosInt(val) * (cfg.attrs?.step ?? 1)
+        ? Number(cfg.attrs?.min ?? 0) +
+          base64ToPosInt(val) * Number(cfg.attrs?.step ?? 1)
         : Number(val),
   },
   button: {
@@ -77,7 +135,7 @@ const paramTypes = {
   },
   color: {
     serialise: (tag, shortUrl) => {
-      const col = String(tag.val().substr(1).toUpperCase());
+      const col = String(tag.value.slice(1).toUpperCase());
       if (shortUrl) return intToBase64(parseInt(col, 16));
       return col;
     },
@@ -85,11 +143,11 @@ const paramTypes = {
       if (shortUrl) return base64ToPosInt(val).toString(16);
       return val.toUpperCase();
     },
-    setVal: (tag, val) => {
-      tag.val("#" + val);
-    },
+    setVal: (tag, val) => (tag.value = "#" + val),
     input: (key, stateObj) => (evt) => {
-      stateObj[key].val = $(evt.target).val().substr(1).toUpperCase();
+      stateObj[key].val = (evt.target as HTMLInputElement).value
+        .slice(1)
+        .toUpperCase();
     },
   },
   text: textParam,
@@ -98,9 +156,9 @@ const paramTypes = {
     serialise: (tag, shortUrl) =>
       shortUrl
         ? intToBase64(
-            Date.parse(tag.val()) / 60000 - new Date().getTimezoneOffset()
+            Date.parse(tag.value) / 60000 - new Date().getTimezoneOffset()
           )
-        : encodeURIComponent(tag.val()),
+        : encodeURIComponent(tag.value),
     deserialise: (val, shortUrl) =>
       shortUrl
         ? new Date(base64ToPosInt(val) * 60000)
@@ -110,21 +168,22 @@ const paramTypes = {
               "$<y>-$<m>-$<d>T$<t>"
             )
         : decodeURIComponent(val),
-    setVal: (tag, val) => tag.val(val),
+    setVal: (tag, val) => (tag.value = val),
     change: (key, stateObj) => (evt) => {
-      stateObj[key].val = $(evt.target).val();
+      stateObj[key].val = (evt.target as HTMLInputElement).value;
     },
   },
   file: {
     change: (key, stateObj) => (evt) =>
-      new Promise((res, rej) => {
-        if (evt.target.files?.[0] != null) {
+      new Promise((res) => {
+        const target = evt.target as HTMLInputElement;
+        if (target.files?.[0] != null) {
           const reader = new FileReader();
           reader.onload = (evt) => {
-            stateObj[key].val = evt.target.result;
+            stateObj[key].val = evt.target?.result;
             res();
           };
-          reader.readAsDataURL(evt.target.files[0]);
+          reader.readAsDataURL(target.files[0]);
         } else {
           res();
         }
@@ -132,17 +191,17 @@ const paramTypes = {
   },
 };
 
-class ParamConfig {
-  static #customTypeConfig = {};
-  static #hashKeyLength = 6;
-  #shortUrl;
-  #state = {};
-  #initialValues;
-  #listeners = [];
-  #updates = [];
-  #loadCallback;
-  #loaded = false;
-  #unloadedSubscriptionListeners = [];
+export default class ParamConfig {
+  private static customTypeConfig: Record<string, ConfigParam<any>> = {};
+  private static hashKeyLength: number = 6;
+  private shortUrl: boolean;
+  private state: State = {};
+  private initialValues;
+  private listeners = [];
+  private updates: Array<string> = [];
+  private loadCallback?: (this: ThisType<ParamConfig>) => void;
+  private _loaded: boolean = false;
+  private unloadedSubscriptionListeners = [];
 
   /**
    * Config parsing to/from URL parameters and an interactive page element
@@ -150,52 +209,56 @@ class ParamConfig {
    * @param {HTMLElement} baseEl The element to put all the config HTML code
    * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
    */
-  constructor(configLocation, baseEl, shortUrl = false) {
-    this.#initialValues = this.#parseUrlParams(location.search, shortUrl);
-    this.#shortUrl = shortUrl;
+  constructor(
+    configLocation: string,
+    baseEl: HTMLElement,
+    shortUrl: boolean = false
+  ) {
+    this.initialValues = this.parseUrlParams(location.search, shortUrl);
+    this.shortUrl = shortUrl;
 
     fetch(configLocation)
       .then((resp) => resp.json())
-      .then((parameterConfig) => {
+      .then((parameterConfig: Array<Config>) => {
         for (let cfgData of parameterConfig) {
           if (cfgData.type == "collection") {
-            const onUpdateCallback = (id) => {
-              this.#updates.push(id);
+            const onUpdateCallback = (id: string) => {
+              this.updates.push(id);
               this.tellListeners();
             };
-            const dataKey = this.#shortUrl
+            const dataKey = this.shortUrl
               ? intToBase64(
-                  this.#hashString(cfgData.id),
-                  ParamConfig.#hashKeyLength
+                  this.hashString(cfgData.id),
+                  ParamConfig.hashKeyLength
                 )
               : cfgData.id;
-            this.#state[cfgData.id] = new ConfigCollection(
+            this.state[cfgData.id] = new ConfigCollection(
               baseEl,
               cfgData,
               shortUrl,
-              this.#loadInpHTML,
+              this.loadInpHTML,
               paramTypes,
-              this.#initialValues[dataKey],
+              this.initialValues[dataKey],
               onUpdateCallback
             );
           } else {
-            this.#loadConfigHtml($(baseEl), cfgData);
+            this.loadConfigHtml(baseEl, cfgData);
           }
         }
-        this.#loaded = true;
-        this.#addSubscriptionListeners();
-        if (this.#loadCallback) {
-          this.#loadCallback(this);
+        this._loaded = true;
+        this.addSubscriptionListeners();
+        if (this.loadCallback) {
+          this.loadCallback(this);
         }
       })
       .catch((err) => console.error(err));
   }
 
   get loaded() {
-    return this.#loaded;
+    return this._loaded;
   }
   get extra() {
-    return this.#shortUrl ? this.#initialValues.e : this.#initialValues.extra;
+    return this.shortUrl ? this.initialValues.e : this.initialValues.extra;
   }
 
   /**
@@ -221,12 +284,12 @@ class ParamConfig {
         },
       })```
    */
-  static addCustomType(name, config) {
-    this.#customTypeConfig[name] = config;
+  static addCustomType(name: string, config: ConfigParam) {
+    this.customTypeConfig[name] = config;
   }
 
   // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-  #hashString(str) {
+  private hashString(str: string): number {
     let hash = 0;
     if (str.length == 0) return hash;
     for (let i = 0; i < str.length; i++) {
@@ -237,61 +300,82 @@ class ParamConfig {
     return hash;
   }
 
-  #loadInpHTML(cfgData) {
-    let html, inp;
+  private loadInpHTML(cfgData: Config): {
+    html: HTMLElement;
+    inp: HTMLElement;
+  } {
+    const setAttributes = (inp: HTMLElement): HTMLElement => {
+      if (cfgData.attrs) {
+        for (let attr in cfgData.attrs) {
+          inp.setAttribute(attr, cfgData.attrs[attr]);
+        }
+      }
+      return inp;
+    };
     if (cfgData.type === "button") {
-      html = inp = $(document.createElement("button")).addClass("btn btn-info");
-      inp.text(cfgData.text);
+      const html = document.createElement("button");
+      html.className = "btn btn-info";
+      const inp = html;
+      inp.innerText = cfgData.text ?? "";
+      return { inp: setAttributes(inp), html };
     } else if (cfgData.type === "select") {
-      html = inp = $(document.createElement("select"))
-        .addClass("form-select")
-        .append(
-          ...cfgData.options.map((option) =>
-            $(document.createElement("option")).val(option).text(option)
-          )
-        );
+      const html = document.createElement("select");
+      const inp = html;
+      html.className = "form-select";
+
+      cfgData.options?.forEach((option) => {
+        const el = document.createElement("option");
+        el.value = option;
+        el.innerText = option;
+        inp.appendChild(el);
+      });
+
       if (cfgData.default != null) {
-        inp.val(cfgData.default);
+        inp.value = cfgData.default as string;
       }
+      return { inp: setAttributes(inp), html };
     } else if (cfgData.type === "file") {
-      inp = $(document.createElement("input")).attr("type", "file").hide();
-      const btn = $(document.createElement("button"))
-        .text(cfgData.text)
-        .addClass("btn btn-secondary")
-        .click(() => inp.click());
-      html = $(document.createElement("div")).append(inp, btn);
+      const inp = document.createElement("input");
+      inp.setAttribute("type", "file");
+      inp.style.display = "none";
+
+      const btn = document.createElement("button");
+      btn.innerText = cfgData.text ?? "";
+      btn.className = "btn btn-secondary";
+      btn.onclick = () => inp.click();
+
+      const html = document.createElement("div");
+      html.appendChild(inp);
+      html.appendChild(btn);
+
+      return { inp: setAttributes(inp), html };
     } else {
-      html = inp = $(document.createElement("input")).attr(
-        "type",
-        cfgData.type
-      );
+      const html = document.createElement("input");
+      const inp = html;
+      html.setAttribute("type", cfgData.type);
+      return { inp: setAttributes(inp), html };
     }
-    if (cfgData.attrs) {
-      for (let attr in cfgData.attrs) {
-        inp.attr(attr, cfgData.attrs[attr]);
-      }
-    }
-    return { html, inp };
   }
 
-  #loadConfigHtml(baseEl, cfgData) {
-    const { inp: inpTag, html: inpHtml } = this.#loadInpHTML(cfgData);
-    inpTag.attr("id", cfgData.id);
-    const label = $(document.createElement("label"))
-      .attr("for", cfgData.id)
-      .text(cfgData.label);
-    if (cfgData.tooltip) {
-      label
-        .attr("data-toggle", "tooltip")
-        .attr("data-placement", "top")
-        .attr("title", cfgData.tooltip)
-        .tooltip();
+  loadConfigHtml(baseEl: HTMLElement, cfgData: Config) {
+    const { inp: inpTag, html: inpHtml } = this.loadInpHTML(cfgData);
+    inpTag.setAttribute("id", cfgData.id);
+    if (cfgData.label != null) {
+      const label = document.createElement("label");
+      label.setAttribute("for", cfgData.id);
+      label.innerText = cfgData.label;
+      if (cfgData.tooltip != null) {
+        label.setAttribute("data-toggle", "tooltip");
+        label.setAttribute("data-placement", "top");
+        label.setAttribute("title", cfgData.tooltip).tooltip();
+      }
+       const 
+      baseEl.append(
+        document.createElement("div")
+          .addClass("config-item")
+          .append(cfgData.label ? label : "", inpHtml)
+      );
     }
-    baseEl.append(
-      $(document.createElement("div"))
-        .addClass("config-item")
-        .append(cfgData.label ? label : "", inpHtml)
-    );
 
     const typeCfg =
       ParamConfig.#customTypeConfig[cfgData.type] ?? paramTypes[cfgData.type];
@@ -418,11 +502,14 @@ class ParamConfig {
     this.#updates = [];
   }
 
-  #parseUrlParams(rawUrlParams, shortUrl) {
+  private parseUrlParams(
+    rawUrlParams: string,
+    shortUrl: boolean
+  ): Record<string, string> {
     const paramRegex = shortUrl
-      ? new RegExp(`[?&]?([^=&]{${ParamConfig.#hashKeyLength}})([^&]*)`, "g")
+      ? new RegExp(`[?&]?([^=&]{${ParamConfig.hashKeyLength}})([^&]*)`, "g")
       : /[?&]?([^=&]+)=?([^&]*)/g;
-    const parsed = {};
+    const parsed: Record<string, string> = {};
     let tokens;
     while ((tokens = paramRegex.exec(rawUrlParams))) {
       parsed[tokens[1]] = tokens[2];

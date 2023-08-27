@@ -1,0 +1,28 @@
+{
+  "name": "web-art-template",
+  "description": "Web art template",
+  "version": "0.0.1",
+  "main": "app.js",
+  "packageManager": "yarn@1.22.19",
+  "author": "eniallator",
+  "license": "MIT",
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "yarn": "^1.22.19"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.29.3",
+    "bs-fullscreen-message": "^1.1.0",
+    "strip-ansi": "^7.1.0",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-dev-middleware": "^6.1.1"
+  },
+  "scripts": {
+    "start": "node app",
+    "lint": "eslint 'src/**/*.ts'",
+    "typecheck": "tsc --noEmit",
+    "findissues": "yarn typecheck && yarn lint"
+  }
+}
