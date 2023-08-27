@@ -69,16 +69,20 @@ export type InputConfig =
 export type ConfigAtom = InputConfig | FileConfig | ButtonConfig;
 
 type DeriveDefaults<R extends ReadonlyArray<ConfigAtom>> = {
-  [K in keyof R]: R[K] extends BaseInputConfig<infer T> ? T : null;
+  [K in keyof R]: R[K] extends BaseInputConfig<infer T>
+    ? unknown extends T
+      ? null
+      : T
+    : never;
 };
 
-export interface ConfigCollection<R extends ReadonlyArray<ConfigAtom>> {
+export interface ConfigCollection<F extends ReadonlyArray<ConfigAtom>> {
   type: "Collection";
   id: string;
   label?: string;
   expandable?: boolean;
-  fields: R;
-  defaults?: ReadonlyArray<DeriveDefaults<R>>;
+  fields: F;
+  defaults?: ReadonlyArray<DeriveDefaults<F>>;
 }
 
 export type ConfigPart =

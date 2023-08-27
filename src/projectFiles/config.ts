@@ -79,7 +79,6 @@ export default config(
     expandable: true,
     fields: <const>[
       rangeConfig({
-        id: "example-collection-range",
         label: "Example Range Field",
         default: 2,
         attrs: {
@@ -89,7 +88,6 @@ export default config(
         },
       }),
       checkboxConfig({
-        id: "example-collection-checkbox",
         label: "Example Checkbox Field",
         default: false,
       }),

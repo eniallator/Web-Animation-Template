@@ -1,3 +1,4 @@
+import uuid from "uuid-random";
 import {
   CheckboxConfig,
   NumberConfig,
@@ -13,55 +14,77 @@ import {
   TextConfig,
 } from "./types";
 
+type OptionalId<T extends { id: string }> = Omit<T, "id"> & { id?: T["id"] };
+
+function insertOptionalId<T extends { id?: string }>(
+  value: T
+): T & { id: string } {
+  return { ...value, id: value.id ?? uuid() };
+}
+
 export function checkboxConfig(
-  config: Omit<CheckboxConfig, "type">
+  config: OptionalId<Omit<CheckboxConfig, "type">>
 ): CheckboxConfig {
-  return { type: "Checkbox", ...config };
+  return insertOptionalId({ type: "Checkbox", ...config });
 }
 
-export function numberConfig(config: Omit<NumberConfig, "type">): NumberConfig {
-  return { type: "Number", ...config };
+export function numberConfig(
+  config: OptionalId<Omit<NumberConfig, "type">>
+): NumberConfig {
+  return insertOptionalId({ type: "Number", ...config });
 }
 
-export function rangeConfig(config: Omit<RangeConfig, "type">): RangeConfig {
-  return { type: "Range", ...config };
+export function rangeConfig(
+  config: OptionalId<Omit<RangeConfig, "type">>
+): RangeConfig {
+  return insertOptionalId({ type: "Range", ...config });
 }
 
-export function colorConfig(config: Omit<ColorConfig, "type">): ColorConfig {
-  return { type: "Color", ...config };
+export function colorConfig(
+  config: OptionalId<Omit<ColorConfig, "type">>
+): ColorConfig {
+  return insertOptionalId({ type: "Color", ...config });
 }
 
-export function textConfig(config: Omit<TextConfig, "type">): TextConfig {
-  return { type: "Text", ...config };
+export function textConfig(
+  config: OptionalId<Omit<TextConfig, "type">>
+): TextConfig {
+  return insertOptionalId({ type: "Text", ...config });
 }
 
 export function datetimeConfig(
-  config: Omit<DatetimeConfig, "type">
+  config: OptionalId<Omit<DatetimeConfig, "type">>
 ): DatetimeConfig {
-  return { type: "Datetime", ...config };
+  return insertOptionalId({ type: "Datetime", ...config });
 }
 
 export function selectConfig<
   T extends string,
   A extends ReadonlyArray<T> = ReadonlyArray<T>
->(config: Omit<SelectConfig<T, A>, "type">): SelectConfig<T, A> {
-  return { type: "Select", ...config };
+>(config: OptionalId<Omit<SelectConfig<T, A>, "type">>): SelectConfig<T, A> {
+  return insertOptionalId({ type: "Select", ...config });
 }
 
-export function fileConfig(config: Omit<FileConfig, "type">): FileConfig {
-  return { type: "File", ...config };
+export function fileConfig(
+  config: OptionalId<Omit<FileConfig, "type">>
+): FileConfig {
+  return insertOptionalId({ type: "File", ...config });
 }
 
-export function buttonConfig(config: Omit<ButtonConfig, "type">): ButtonConfig {
-  return { type: "Button", ...config };
+export function buttonConfig(
+  config: OptionalId<Omit<ButtonConfig, "type">>
+): ButtonConfig {
+  return insertOptionalId({ type: "Button", ...config });
 }
 
 export function configCollection<R extends ReadonlyArray<ConfigAtom>>(
-  config: Omit<ConfigCollection<R>, "type">
+  config: OptionalId<Omit<ConfigCollection<R>, "type">>
 ): ConfigCollection<R> {
-  return { type: "Collection", ...config };
+  return insertOptionalId({ type: "Collection", ...config });
 }
 
-export function config(...parts: Array<ConfigPart>): Array<ConfigPart> {
+export function config(
+  ...parts: ReadonlyArray<ConfigPart>
+): ReadonlyArray<ConfigPart> {
   return parts;
 }
