@@ -1,5 +1,5 @@
-import { isNumber } from "./guard";
 import TimeAnalysis from "./time_analysis";
+import { isNumber } from "./utils";
 
 type VectorParam = number | Vector;
 

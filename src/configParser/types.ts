@@ -1,35 +1,43 @@
-export interface BaseConfig {
-  id: string;
+import { DeriveDefaults, DeriveStateType } from "./derive";
+
+export interface BaseConfig<I extends string> {
+  id: I;
   tooltip?: string;
   attrs?: Record<string, string>;
 }
 
-export interface BaseInputConfig<T> extends BaseConfig {
+export interface BaseInputConfig<I extends string, T> extends BaseConfig<I> {
   label?: string;
   default?: T;
 }
 
-export interface CheckboxConfig extends BaseInputConfig<boolean> {
+export interface CheckboxConfig<I extends string>
+  extends BaseInputConfig<I, boolean> {
   type: "Checkbox";
 }
 
-export interface NumberConfig extends BaseInputConfig<number> {
+export interface NumberConfig<I extends string>
+  extends BaseInputConfig<I, number> {
   type: "Number";
 }
 
-export interface RangeConfig extends BaseInputConfig<number> {
+export interface RangeConfig<I extends string>
+  extends BaseInputConfig<I, number> {
   type: "Range";
 }
 
-export interface ColorConfig extends BaseInputConfig<string> {
+export interface ColorConfig<I extends string>
+  extends BaseInputConfig<I, string> {
   type: "Color";
 }
 
-export interface TextConfig extends BaseInputConfig<string> {
+export interface TextConfig<I extends string>
+  extends BaseInputConfig<I, string> {
   type: "Text";
 }
 
-export interface DatetimeConfig extends BaseInputConfig<string> {
+export interface DatetimeConfig<I extends string>
+  extends BaseInputConfig<I, Date> {
   type: "Datetime";
 }
 
@@ -40,51 +48,68 @@ type ArrayItems<A extends ReadonlyArray<unknown>> = A extends ReadonlyArray<
   : never;
 
 export interface SelectConfig<
+  I extends string,
   T extends string = string,
-  A extends ReadonlyArray<T> = ReadonlyArray<T>
-> extends BaseInputConfig<ArrayItems<A>> {
+  A extends readonly [T, ...T[]] = readonly [T, ...T[]]
+> extends BaseInputConfig<I, ArrayItems<A>> {
   type: "Select";
   options: A;
 }
 
-export interface FileConfig extends BaseConfig {
+export interface FileConfig<I extends string>
+  extends BaseInputConfig<I, string> {
   type: "File";
   text?: string;
 }
 
-export interface ButtonConfig extends BaseConfig {
+export interface ButtonConfig<I extends string> extends BaseConfig<I> {
   type: "Button";
   text?: string;
 }
 
-export type InputConfig =
-  | CheckboxConfig
-  | NumberConfig
-  | RangeConfig
-  | ColorConfig
-  | TextConfig
-  | DatetimeConfig
-  | SelectConfig<string>;
+export type InputConfig<I extends string> =
+  | CheckboxConfig<I>
+  | FileConfig<I>
+  | NumberConfig<I>
+  | RangeConfig<I>
+  | ColorConfig<I>
+  | TextConfig<I>
+  | DatetimeConfig<I>
+  | SelectConfig<I, string>;
 
-export type ConfigAtom = InputConfig | FileConfig | ButtonConfig;
-
-type DeriveDefaults<R extends ReadonlyArray<ConfigAtom>> = {
-  [K in keyof R]: R[K] extends BaseInputConfig<infer T>
-    ? unknown extends T
-      ? null
-      : T
-    : never;
-};
-
-export interface ConfigCollection<F extends ReadonlyArray<ConfigAtom>> {
+export type ConfigCollectionFields = ReadonlyArray<InputConfig<string>>;
+export interface ConfigCollection<
+  I extends string,
+  F extends ConfigCollectionFields
+> {
   type: "Collection";
-  id: string;
+  id: I;
   label?: string;
   expandable?: boolean;
   fields: F;
-  defaults?: ReadonlyArray<DeriveDefaults<F>>;
+  default?: ReadonlyArray<DeriveDefaults<F>>;
 }
 
-export type ConfigPart =
-  | ConfigAtom
-  | ConfigCollection<ReadonlyArray<ConfigAtom>>;
+export type ConfigPart<I extends string> =
+  | InputConfig<I>
+  | ButtonConfig<I>
+  | ConfigCollection<I, ConfigCollectionFields>;
+
+export type SerialisableConfig<I extends string> =
+  | InputConfig<I>
+  | ConfigCollection<I, ConfigCollectionFields>;
+
+export type CompleteConfig<C extends ConfigPart<string>> = ReadonlyArray<C>;
+
+export interface StateItem<C extends ConfigPart<string>> {
+  value: DeriveStateType<C>;
+  config: C;
+  // el: C extends ConfigCollection<I, ReadonlyArray<ConfigAtom<string>>>
+  //   ? Array<Array<HTMLElement>>
+  //   : HTMLElement;
+  clicked: boolean;
+}
+
+export type OnUpdate<C extends ConfigPart<string>> = (
+  newValue: DeriveStateType<C>
+) => void;

@@ -1,4 +1,3 @@
-import uuid from "uuid-random";
 import {
   CheckboxConfig,
   NumberConfig,
@@ -9,82 +8,77 @@ import {
   FileConfig,
   ButtonConfig,
   ConfigCollection,
-  ConfigAtom,
   ConfigPart,
   TextConfig,
+  CompleteConfig,
+  ConfigCollectionFields,
 } from "./types";
 
-type OptionalId<T extends { id: string }> = Omit<T, "id"> & { id?: T["id"] };
-
-function insertOptionalId<T extends { id?: string }>(
-  value: T
-): T & { id: string } {
-  return { ...value, id: value.id ?? uuid() };
+export function checkboxConfig<I extends string>(
+  config: Omit<CheckboxConfig<I>, "type">
+): CheckboxConfig<I> {
+  return { type: "Checkbox", ...config };
 }
 
-export function checkboxConfig(
-  config: OptionalId<Omit<CheckboxConfig, "type">>
-): CheckboxConfig {
-  return insertOptionalId({ type: "Checkbox", ...config });
+export function numberConfig<I extends string>(
+  config: Omit<NumberConfig<I>, "type">
+): NumberConfig<I> {
+  return { type: "Number", ...config };
 }
 
-export function numberConfig(
-  config: OptionalId<Omit<NumberConfig, "type">>
-): NumberConfig {
-  return insertOptionalId({ type: "Number", ...config });
+export function rangeConfig<I extends string>(
+  config: Omit<RangeConfig<I>, "type">
+): RangeConfig<I> {
+  return { type: "Range", ...config };
 }
 
-export function rangeConfig(
-  config: OptionalId<Omit<RangeConfig, "type">>
-): RangeConfig {
-  return insertOptionalId({ type: "Range", ...config });
+export function colorConfig<I extends string>(
+  config: Omit<ColorConfig<I>, "type">
+): ColorConfig<I> {
+  return { type: "Color", ...config };
 }
 
-export function colorConfig(
-  config: OptionalId<Omit<ColorConfig, "type">>
-): ColorConfig {
-  return insertOptionalId({ type: "Color", ...config });
+export function textConfig<I extends string>(
+  config: Omit<TextConfig<I>, "type">
+): TextConfig<I> {
+  return { type: "Text", ...config };
 }
 
-export function textConfig(
-  config: OptionalId<Omit<TextConfig, "type">>
-): TextConfig {
-  return insertOptionalId({ type: "Text", ...config });
-}
-
-export function datetimeConfig(
-  config: OptionalId<Omit<DatetimeConfig, "type">>
-): DatetimeConfig {
-  return insertOptionalId({ type: "Datetime", ...config });
+export function datetimeConfig<I extends string>(
+  config: Omit<DatetimeConfig<I>, "type">
+): DatetimeConfig<I> {
+  return { type: "Datetime", ...config };
 }
 
 export function selectConfig<
+  I extends string,
   T extends string,
-  A extends ReadonlyArray<T> = ReadonlyArray<T>
->(config: OptionalId<Omit<SelectConfig<T, A>, "type">>): SelectConfig<T, A> {
-  return insertOptionalId({ type: "Select", ...config });
+  A extends readonly [T, ...T[]] = readonly [T, ...T[]]
+>(config: Omit<SelectConfig<I, T, A>, "type">): SelectConfig<I, T, A> {
+  return { type: "Select", ...config };
 }
 
-export function fileConfig(
-  config: OptionalId<Omit<FileConfig, "type">>
-): FileConfig {
-  return insertOptionalId({ type: "File", ...config });
+export function fileConfig<I extends string>(
+  config: Omit<FileConfig<I>, "type">
+): FileConfig<I> {
+  return { type: "File", ...config };
 }
 
-export function buttonConfig(
-  config: OptionalId<Omit<ButtonConfig, "type">>
-): ButtonConfig {
-  return insertOptionalId({ type: "Button", ...config });
+export function buttonConfig<I extends string>(
+  config: Omit<ButtonConfig<I>, "type">
+): ButtonConfig<I> {
+  return { type: "Button", ...config };
 }
 
-export function configCollection<R extends ReadonlyArray<ConfigAtom>>(
-  config: OptionalId<Omit<ConfigCollection<R>, "type">>
-): ConfigCollection<R> {
-  return insertOptionalId({ type: "Collection", ...config });
+export function configCollection<
+  I extends string,
+  F extends ConfigCollectionFields
+>(config: Omit<ConfigCollection<I, F>, "type">): ConfigCollection<I, F> {
+  return { type: "Collection", ...config };
 }
 
-export function config(
-  ...parts: ReadonlyArray<ConfigPart>
-): ReadonlyArray<ConfigPart> {
+export function config<C extends CompleteConfig<ConfigPart<string>>>(
+  ...parts: C
+): C {
   return parts;
 }
