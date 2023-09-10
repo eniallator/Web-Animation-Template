@@ -16,13 +16,13 @@ import { CompleteConfig, ConfigPart } from "../configParser/types";
 
 const cfg = config(
   checkboxConfig({
-    id: <const>"example-checkbox",
+    id: "example-checkbox",
     label: "Example Checkbox",
     tooltip: "Example tooltip",
     default: true,
   }),
   rangeConfig({
-    id: <const>"example-range",
+    id: "example-range",
     label: "Example Range",
     default: 5,
     attrs: {
@@ -32,7 +32,7 @@ const cfg = config(
     },
   }),
   numberConfig({
-    id: <const>"example-number",
+    id: "example-number",
     label: "Example Number",
     default: 5,
     attrs: {
@@ -41,23 +41,23 @@ const cfg = config(
     },
   }),
   colorConfig({
-    id: <const>"example-colour",
+    id: "example-colour",
     label: "Example Colour",
     default: "FF5A5F",
   }),
   buttonConfig({
-    id: <const>"example-button",
+    id: "example-button",
     text: "Example Button",
   }),
   fileConfig({
-    id: <const>"example-file",
+    id: "example-file",
     text: "Example File",
     attrs: {
       accept: "image/*",
     },
   }),
   textConfig({
-    id: <const>"example-text",
+    id: "example-text",
     label: "Example Text",
     default: "Hello",
     attrs: {
@@ -65,18 +65,18 @@ const cfg = config(
     },
   }),
   datetimeConfig({
-    id: <const>"example-datetime",
+    id: "example-datetime",
     label: "Example Date Time",
     default: new Date("2018-06-14T10:03"),
   }),
   selectConfig({
-    id: <const>"example-select",
+    id: "example-select",
     label: "Example Select",
     default: "bar",
-    options: <const>["foo", "bar", "baz", "Another Option"],
+    options: ["foo", "bar", "baz", "Another Option"],
   }),
   configCollection({
-    id: <const>"example-collection",
+    id: "example-collection",
     label: "Example Collection",
     expandable: true,
     fields: <const>[
@@ -113,4 +113,3 @@ const myState = createState(cfg);
 
 myState["example-button"].config.type === "Button";
 myState["example-checkbox"].config.type === "Checkbox";
-myState["example-colour"].config.type === "Checkbox";

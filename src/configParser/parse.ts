@@ -22,19 +22,18 @@ import {
 export const MAX_SERIALISED_VALUE_SIZE = 100;
 
 function serialiseRaw(
-  state: StateItem<string, SerialisableConfig<string>>,
+  state: StateItem<SerialisableConfig<string>>,
   shortUrl: boolean
 ): string {
   const { config } = state;
   switch (config.type) {
     case "Checkbox": {
-      const { value } = state as StateItem<string, CheckboxConfig<string>>;
+      const { value } = state as StateItem<CheckboxConfig<string>>;
       return `${shortUrl ? +value : value}`;
     }
 
     case "Collection": {
       const { value } = state as StateItem<
-        string,
         ConfigCollection<string, ConfigCollectionFields>
       >;
       return value
@@ -52,14 +51,14 @@ function serialiseRaw(
     }
 
     case "Color": {
-      const { value } = state as StateItem<string, ColorConfig<string>>;
+      const { value } = state as StateItem<ColorConfig<string>>;
       const col = String(value.slice(1).toUpperCase());
       if (shortUrl) return intToBase64(parseInt(col, 16));
       return col;
     }
 
     case "Datetime": {
-      const narrowed = state as StateItem<string, DatetimeConfig<string>>;
+      const narrowed = state as StateItem<DatetimeConfig<string>>;
       return shortUrl
         ? intToBase64(
             narrowed.value.getTime() / 60000 - new Date().getTimezoneOffset()
@@ -75,27 +74,27 @@ function serialiseRaw(
     }
 
     case "File": {
-      const { value } = state as StateItem<string, FileConfig<string>>;
+      const { value } = state as StateItem<FileConfig<string>>;
       return encodeURIComponent(value);
     }
 
     case "Number": {
-      const narrowed = state as StateItem<string, NumberConfig<string>>;
+      const narrowed = state as StateItem<NumberConfig<string>>;
       return `${narrowed.value}`;
     }
 
     case "Range": {
-      const narrowed = state as StateItem<string, RangeConfig<string>>;
+      const narrowed = state as StateItem<RangeConfig<string>>;
       return `${narrowed.value}`;
     }
 
     case "Select": {
-      const narrowed = state as StateItem<string, SelectConfig<string>>;
+      const narrowed = state as StateItem<SelectConfig<string>>;
       return encodeURIComponent(narrowed.value);
     }
 
     case "Text": {
-      const narrowed = state as StateItem<string, TextConfig<string>>;
+      const narrowed = state as StateItem<TextConfig<string>>;
       return encodeURIComponent(narrowed.value);
     }
 
@@ -105,7 +104,7 @@ function serialiseRaw(
 }
 
 export function serialise(
-  state: StateItem<string, SerialisableConfig<string>>,
+  state: StateItem<SerialisableConfig<string>>,
   shortUrl: boolean
 ): string | null {
   const raw = serialiseRaw(state, shortUrl);
