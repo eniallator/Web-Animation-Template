@@ -99,8 +99,6 @@ export type SerialisableConfig<I extends string> =
   | InputConfig<I>
   | ConfigCollection<I, ConfigCollectionFields>;
 
-export type CompleteConfig<C extends ConfigPart<string>> = ReadonlyArray<C>;
-
 export interface StateItem<C extends ConfigPart<string>> {
   value: DeriveStateType<C>;
   config: C;

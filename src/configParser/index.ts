@@ -1,23 +1,23 @@
 import { intToBase64 } from "../core/b64";
 import { isEqual, isString } from "../core/utils";
-import { DeriveId, NarrowedState, PassedState, State } from "./derive";
+import { DeriveId, DeriveStateType, PassedState } from "./derive";
 import { initStateItem } from "./init";
-import { isSerialisable, serialise } from "./serialise";
-import { CompleteConfig, ConfigPart, StateItem } from "./types";
+import { isSerialisableStateItem, serialise } from "./serialise";
+import { ButtonConfig, ConfigPart, StateItem } from "./types";
 
-export default class ParamConfig<S extends State<ConfigPart<string>>> {
+export default class ParamConfig<const C extends ConfigPart<string>> {
   private static hashKeyLength: number = 6;
   private shortUrl: boolean;
-  private state: S;
+  private state: Array<StateItem<C>>;
   private initialValues: Record<string, string>;
   private listeners: Array<{
     listener: (
-      passedState: PassedState<S>,
-      updates: Array<DeriveId<S>>
+      passedState: PassedState<C>,
+      updates: Array<DeriveId<C>>
     ) => void;
-    subscriptions: Array<DeriveId<S>> | null;
+    subscriptions: Array<DeriveId<C>> | null;
   }> = [];
-  private updates: Array<DeriveId<S>> = [];
+  private updates: Array<DeriveId<C>> = [];
 
   /**
    * Config parsing to/from URL parameters and an interactive page element
@@ -26,42 +26,54 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
    * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
    */
   constructor(
-    state: S,
-    // configs: CompleteConfig<C>,
+    configs: ReadonlyArray<C>,
+    baseEl: HTMLElement,
     shortUrl: boolean = false,
     initial: string = location.search
   ) {
     this.initialValues = this.parseUrlParams(initial, shortUrl);
     this.shortUrl = shortUrl;
-    this.state = state;
-
-    // const workingState: Partial<State<C>> = {};
-
-    // for (let config of configs) {
-    //   workingState[config.id] = initStateItem(
-    //     baseEl,
-    //     config,
-    //     this.initialValues[this.urlKey(config.id)] ?? null,
-    //     this.shortUrl,
-    //     () => this.state[config.id].value,
-    //     (value) => {
-    //       this.state[config.id].value = value;
-    //       this.updates.push(config.id);
-    //       this.tellListeners();
-    //     },
-    //     () => {
-    //       this.state[config.id].clicked = true;
-    //       this.updates.push(config.id);
-    //       this.tellListeners();
-    //     }
-    //   );
-    // }
-
-    // this.state = workingState as State<C>;
+    this.state = configs.map((config) =>
+      initStateItem(
+        baseEl,
+        config,
+        this.initialValues[this.urlKey(config.id)] ?? null,
+        this.shortUrl,
+        () => this.typedStateItem(config.id).value as DeriveStateType<C>,
+        (value) => {
+          this.typedStateItem(config.id).value = value;
+          this.updates.push(config.id);
+          this.tellListeners();
+        },
+        () => {
+          this.typedStateItem(config.id).clicked = true;
+          this.updates.push(config.id);
+          this.tellListeners();
+        }
+      )
+    );
   }
 
   get extra() {
     return this.initialValues[this.urlKey("extra")];
+  }
+
+  private optTypedStateItem<const K extends DeriveId<C>>(
+    id: K
+  ): StateItem<Extract<C, ConfigPart<K>>> | null {
+    const item = this.state.find((item) => item.config.id === id) as
+      | StateItem<Extract<C, ConfigPart<K>>>
+      | undefined;
+    return item ?? null;
+  }
+
+  private typedStateItem<const K extends DeriveId<C>>(id: K) {
+    const item = this.optTypedStateItem(id);
+    if (item != null) {
+      return item;
+    } else {
+      throw new Error(`Unknown config ID: ${id}`);
+    }
   }
 
   // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
@@ -88,18 +100,31 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
    * @param {string[]} [updateSubscriptions] IDs of the config items to listen to. Defaults to all config items
    */
   addListener(
-    listener: (state: PassedState<S>, updates: Array<DeriveId<S>>) => void,
-    updateSubscriptions?: Array<DeriveId<S>>
+    listener: (
+      passedState: PassedState<C>,
+      updates: Array<DeriveId<C>>
+    ) => void,
+    updateSubscriptions?: Array<DeriveId<C>>
   ): void {
     const subscriptions =
       updateSubscriptions != null
         ? (updateSubscriptions || Object.keys(this.state)).filter(
-            (update) => this.state[update] !== undefined
+            (update) => this.optTypedStateItem(update) !== undefined
           )
         : null;
 
     this.listeners.push({ listener, subscriptions });
     this.tellListeners();
+  }
+
+  private createdPassedState(): PassedState<C> {
+    return this.state.reduce(
+      (acc, item) => ({
+        ...acc,
+        [item.config.id]: item.value,
+      }),
+      {} as PassedState<C>
+    );
   }
 
   /**
@@ -118,17 +143,7 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
           : [...this.updates];
 
       if (force || relevantSubscriptions.length > 0) {
-        const passedState = (
-          Object.keys(this.state) as Array<DeriveId<S>>
-        ).reduce(
-          (acc, key) => ({
-            ...acc,
-            [key]: this.getVal(key),
-          }),
-          {} as PassedState<S>
-        );
-
-        listener(passedState, relevantSubscriptions);
+        listener(this.createdPassedState(), relevantSubscriptions);
       }
     }
 
@@ -155,13 +170,8 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
    * @param {string} id Config Item ID
    * @returns Current value of the config item
    */
-  getVal<const K extends DeriveId<S>>(id: K): S[K]["value"] {
-    return this.state[id].value;
-    // if (this.state[id] != null) {
-    //   return this.state[id].value as S[K]["value"];
-    // } else {
-    //   throw new Error(`Unknown state ID: ${id}`);
-    // }
+  getVal<const K extends DeriveId<C>>(id: K) {
+    return this.typedStateItem(id).value;
   }
 
   /**
@@ -169,20 +179,10 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
    * @param {string} id ID of the config button type
    * @returns {boolean} If the config button was clicked since the last call
    */
-  clicked<const K extends DeriveId<S>>(id: K): boolean {
-    return this.state[id].clicked;
-    // const item = this.state[id];
-    // if (item != null) {
-    //   if (item.type === "Atom") {
-    //     const { clicked } = item;
-    //     item.clicked = false;
-    //     return clicked;
-    //   } else {
-    //     return false;
-    //   }
-    // } else {
-    //   throw new Error(`Unknown state ID: ${id}`);
-    // }
+  clicked<const K extends DeriveId<Extract<C, ButtonConfig<string>>>>(
+    id: K
+  ): boolean {
+    return this.typedStateItem(id).clicked;
   }
 
   /**
@@ -193,13 +193,20 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
   serialiseToURLParams(extra?: string): string {
     const urlPart = (key: string, value: string) =>
       [this.urlKey(key), value].join(this.shortUrl ? "" : "=");
-    let params: Array<string> = Object.entries<StateItem<C>>(this.state)
-      .map(([key, item]) => {
+    let params: Array<string> = this.state
+      .map((item) => {
         if (
-          isSerialisable(item.config) &&
-          !isEqual<typeof item.value>(item.config.default, item.value)
+          isSerialisableStateItem(item) &&
+          (item.config.default == null ||
+            !isEqual<typeof item.value>(
+              item.config.default as typeof item.value,
+              item.value
+            ))
         ) {
-          return urlPart(key, serialise(item, this.shortUrl));
+          const serialised = serialise(item, this.shortUrl);
+          return serialised != null
+            ? urlPart(item.config.id, serialised)
+            : null;
         } else {
           return null;
         }
@@ -214,12 +221,12 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
   /**
    * Adds a copy to clipboard handler to a given element selector
    * @param {string} selector Selector of the share button in the format of querySelector selectors
-   * @param {(any|function(state: PassedState<S>):string)} [extraData] If given a function, it is executed when the user clicks,
+   * @param {(function(state: PassedState<C>):string)} [extraData] If given a function, it is executed when the user clicks,
    *  and its return value added to the URL parameters. If it is not a function, it is included in the URL parameters.
    */
   addCopyToClipboardHandler(
     selector: string,
-    extraData?: ((state: PassedState<S>) => string) | string
+    extraData?: ((state: PassedState<C>) => string) | string
   ) {
     const extraDataFunc =
       typeof extraData !== "function" ? () => extraData : extraData;
@@ -228,14 +235,8 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
 
     if (el != null) {
       (el as HTMLElement).onclick = (_evt) => {
-        const passedState: PassedState<S> = {};
-        if (extraDataFunc !== undefined) {
-          for (let key in this.state) {
-            passedState[key] = this.state[key].value;
-          }
-        }
         const searchParams = this.serialiseToURLParams(
-          extraDataFunc?.(passedState)
+          extraDataFunc?.(this.createdPassedState())
         );
         const sharableURL =
           location.protocol +
@@ -262,34 +263,5 @@ export default class ParamConfig<S extends State<ConfigPart<string>>> {
     //       setTimeout(() => copyBtn.tooltip("hide"), 1000);
     //     });
     //   });
-  }
-
-  static fromConfig<C extends ConfigPart<string>>(
-    configs: CompleteConfig<C>,
-    baseEl: HTMLElement
-  ): ParamConfig<State<C>> {
-    const state = configs.reduce(
-      (workingState: State<C>, config) => ({
-        ...workingState,
-        [config.id]: initStateItem(
-          baseEl,
-          config,
-          this.initialValues[this.urlKey(config.id)] ?? null,
-          this.shortUrl,
-          () => this.state[config.id].value,
-          (value) => {
-            this.state[config.id].value = value;
-            this.updates.push(config.id);
-            this.tellListeners();
-          },
-          () => {
-            this.state[config.id].clicked = true;
-            this.updates.push(config.id);
-            this.tellListeners();
-          }
-        ),
-      }),
-      {} as State<C>
-    );
   }
 }

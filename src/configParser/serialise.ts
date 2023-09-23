@@ -162,6 +162,7 @@ export function deserialise<C extends SerialisableConfig<string>>(
       return checkExhausted(config);
   }
 }
+
 export function isSerialisable(
   config: ConfigPart<string>
 ): config is SerialisableConfig<string> {
@@ -181,4 +182,10 @@ export function isSerialisable(
     default:
       return checkExhausted(config);
   }
+}
+
+export function isSerialisableStateItem(
+  item: StateItem<ConfigPart<string>>
+): item is StateItem<SerialisableConfig<string>> {
+  return isSerialisable(item.config);
 }

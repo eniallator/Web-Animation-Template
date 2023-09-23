@@ -4,7 +4,6 @@ import {
   ConfigCollectionFields,
   ConfigPart,
   SerialisableConfig,
-  StateItem,
 } from "./types";
 
 export type DeriveDefaults<R extends ConfigCollectionFields> = {
@@ -22,27 +21,12 @@ export type DeriveStateType<C extends ConfigPart<string>> =
       : Exclude<C["default"], undefined>
     : null;
 
-// export type State<C extends ConfigPart<string>> = {
-//   [P in C as P extends ConfigPart<infer I> ? I : never]: P extends ConfigPart<
-//     infer I
-//   >
-//     ? StateItem<I, P>
-//     : never;
-// };
-export type State<C extends ConfigPart<string>> = {
-  [P in C as P["id"]]: StateItem<P>;
+export type PassedState<C extends ConfigPart<string, any>> = {
+  [P in C as P["id"]]: DeriveStateType<P>;
 };
 
-export type PassedState<S extends State<ConfigPart<string>>> = {
-  [K in keyof S]: S[K] extends StateItem<infer C> ? C : never;
+export type NarrowedPart<I extends C["id"], C extends ConfigPart<string>> = {
+  [P in C as P extends ConfigPart<I, any> ? "part" : never]: P;
 };
 
-export type NarrowedState<I extends string> = {
-  [T in I]: StateItem<ConfigPart<T>>;
-};
-
-export type DeriveId<S extends State<ConfigPart<string>>> = S extends State<
-  ConfigPart<infer I>
->
-  ? I
-  : never;
+export type DeriveId<C extends ConfigPart<string>> = C["id"];

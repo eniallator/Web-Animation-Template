@@ -11,7 +11,6 @@ import {
   ConfigCollection,
   ConfigPart,
   TextConfig,
-  CompleteConfig,
   ConfigCollectionFields,
   InputConfig,
 } from "./types";
@@ -73,13 +72,13 @@ export function buttonConfig<const I extends string>(
 }
 
 export function configCollection<
-  I extends string,
+  const I extends string,
   const F extends ConfigCollectionFields
 >(config: Omit<ConfigCollection<I, F>, "type">): ConfigCollection<I, F> {
   return { type: "Collection", ...config };
 }
 
-export function config<C extends CompleteConfig<ConfigPart<string>>>(
+export function config<C extends ReadonlyArray<ConfigPart<string>>>(
   ...parts: C
 ): C {
   return parts;
