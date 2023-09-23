@@ -1,3 +1,4 @@
+import { checkExhausted } from "../core/utils";
 import {
   CheckboxConfig,
   NumberConfig,
@@ -12,6 +13,7 @@ import {
   TextConfig,
   CompleteConfig,
   ConfigCollectionFields,
+  InputConfig,
 } from "./types";
 
 export function checkboxConfig<const I extends string>(
@@ -81,4 +83,27 @@ export function config<C extends CompleteConfig<ConfigPart<string>>>(
   ...parts: C
 ): C {
   return parts;
+}
+
+export function inputType(type: InputConfig<string>["type"]): string {
+  switch (type) {
+    case "Checkbox":
+      return "checkbox";
+    case "Color":
+      return "color";
+    case "Datetime":
+      return "datetime-local";
+    case "File":
+      return "file";
+    case "Number":
+      return "number";
+    case "Range":
+      return "range";
+    case "Select":
+      return "select";
+    case "Text":
+      return "text";
+    default:
+      return checkExhausted(type);
+  }
 }

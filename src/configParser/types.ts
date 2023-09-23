@@ -90,10 +90,10 @@ export interface ConfigCollection<
   default?: ReadonlyArray<DeriveDefaults<F>>;
 }
 
-export type ConfigPart<I extends string> =
-  | InputConfig<I>
-  | ButtonConfig<I>
-  | ConfigCollection<I, ConfigCollectionFields>;
+export type ConfigPart<
+  I extends string,
+  F extends ConfigCollectionFields = ConfigCollectionFields
+> = InputConfig<I> | ButtonConfig<I> | ConfigCollection<I, F>;
 
 export type SerialisableConfig<I extends string> =
   | InputConfig<I>

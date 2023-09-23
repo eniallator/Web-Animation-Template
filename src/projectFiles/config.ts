@@ -11,10 +11,8 @@ import {
   selectConfig,
   textConfig,
 } from "../configParser/create";
-import { State } from "../configParser/derive";
-import { CompleteConfig, ConfigPart } from "../configParser/types";
 
-const cfg = config(
+export default config(
   checkboxConfig({
     id: "example-checkbox",
     label: "Example Checkbox",
@@ -79,7 +77,7 @@ const cfg = config(
     id: "example-collection",
     label: "Example Collection",
     expandable: true,
-    fields: <const>[
+    fields: [
       rangeConfig({
         id: "example-collection-range",
         label: "Example Range Field",
@@ -102,14 +100,3 @@ const cfg = config(
     ],
   })
 );
-
-function createState<I extends string, C extends ConfigPart<I>>(
-  cfg: CompleteConfig<C>
-): State<C> {
-  return {} as State<C>;
-}
-
-const myState = createState(cfg);
-
-myState["example-button"].config.type === "Button";
-myState["example-checkbox"].config.type === "Checkbox";

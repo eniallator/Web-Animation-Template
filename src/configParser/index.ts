@@ -1,20 +1,23 @@
 import { intToBase64 } from "../core/b64";
 import { isEqual, isString } from "../core/utils";
-import { PassedState, State } from "./derive";
+import { DeriveId, NarrowedState, PassedState, State } from "./derive";
 import { initStateItem } from "./init";
-import { isSerialisable, serialise } from "./parse";
+import { isSerialisable, serialise } from "./serialise";
 import { CompleteConfig, ConfigPart, StateItem } from "./types";
 
-export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
+export default class ParamConfig<S extends State<ConfigPart<string>>> {
   private static hashKeyLength: number = 6;
   private shortUrl: boolean;
-  private state: State<C>;
+  private state: S;
   private initialValues: Record<string, string>;
   private listeners: Array<{
-    listener: (state: PassedState<C>, updates: Array<I>) => void;
-    subscriptions: Array<I> | null;
+    listener: (
+      passedState: PassedState<S>,
+      updates: Array<DeriveId<S>>
+    ) => void;
+    subscriptions: Array<DeriveId<S>> | null;
   }> = [];
-  private updates: Array<I> = [];
+  private updates: Array<DeriveId<S>> = [];
 
   /**
    * Config parsing to/from URL parameters and an interactive page element
@@ -23,37 +26,14 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
    * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
    */
   constructor(
-    configs: CompleteConfig<C>,
-    baseEl: HTMLElement,
+    state: S,
+    // configs: CompleteConfig<C>,
     shortUrl: boolean = false,
     initial: string = location.search
   ) {
     this.initialValues = this.parseUrlParams(initial, shortUrl);
     this.shortUrl = shortUrl;
-
-    this.state = configs.reduce(
-      (workingState: State<C>, config) => ({
-        ...workingState,
-        [config.id]: initStateItem(
-          baseEl,
-          config,
-          this.initialValues[this.urlKey(config.id)] ?? null,
-          this.shortUrl,
-          () => this.state[config.id].value,
-          (value) => {
-            this.state[config.id].value = value;
-            this.updates.push(config.id);
-            this.tellListeners();
-          },
-          () => {
-            this.state[config.id].clicked = true;
-            this.updates.push(config.id);
-            this.tellListeners();
-          }
-        ),
-      }),
-      {} as State<C>
-    );
+    this.state = state;
 
     // const workingState: Partial<State<C>> = {};
 
@@ -108,8 +88,8 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
    * @param {string[]} [updateSubscriptions] IDs of the config items to listen to. Defaults to all config items
    */
   addListener(
-    listener: (state: PassedState<C>, updates: Array<I>) => void,
-    updateSubscriptions?: Array<I>
+    listener: (state: PassedState<S>, updates: Array<DeriveId<S>>) => void,
+    updateSubscriptions?: Array<DeriveId<S>>
   ): void {
     const subscriptions =
       updateSubscriptions != null
@@ -131,22 +111,26 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
       return;
     }
 
-    this.listeners.forEach((item) => {
+    for (const { listener, subscriptions } of this.listeners) {
       let relevantSubscriptions =
-        item.subscriptions != null
-          ? item.subscriptions.filter((update) => this.updates.includes(update))
+        subscriptions != null
+          ? subscriptions.filter((update) => this.updates.includes(update))
           : [...this.updates];
 
       if (force || relevantSubscriptions.length > 0) {
-        const stateCopy: PassedState<C> = Object.fromEntries(
-          Object.entries(this.state).map(
-            ([key, item]) => <const>[key as I, item.value]
-          )
-        ) as PassedState<C>;
+        const passedState = (
+          Object.keys(this.state) as Array<DeriveId<S>>
+        ).reduce(
+          (acc, key) => ({
+            ...acc,
+            [key]: this.getVal(key),
+          }),
+          {} as PassedState<S>
+        );
 
-        item.listener(stateCopy, relevantSubscriptions);
+        listener(passedState, relevantSubscriptions);
       }
-    });
+    }
 
     this.updates = [];
   }
@@ -171,12 +155,13 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
    * @param {string} id Config Item ID
    * @returns Current value of the config item
    */
-  getVal(id: I) {
-    if (this.state[id] != null) {
-      return this.state[id].value;
-    } else {
-      throw new Error(`Unknown state ID: ${id}`);
-    }
+  getVal<const K extends DeriveId<S>>(id: K): S[K]["value"] {
+    return this.state[id].value;
+    // if (this.state[id] != null) {
+    //   return this.state[id].value as S[K]["value"];
+    // } else {
+    //   throw new Error(`Unknown state ID: ${id}`);
+    // }
   }
 
   /**
@@ -184,19 +169,20 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
    * @param {string} id ID of the config button type
    * @returns {boolean} If the config button was clicked since the last call
    */
-  clicked(id: I): boolean {
-    const item = this.state[id];
-    if (item != null) {
-      if (item.type === "Atom") {
-        const { clicked } = item;
-        item.clicked = false;
-        return clicked;
-      } else {
-        return false;
-      }
-    } else {
-      throw new Error(`Unknown state ID: ${id}`);
-    }
+  clicked<const K extends DeriveId<S>>(id: K): boolean {
+    return this.state[id].clicked;
+    // const item = this.state[id];
+    // if (item != null) {
+    //   if (item.type === "Atom") {
+    //     const { clicked } = item;
+    //     item.clicked = false;
+    //     return clicked;
+    //   } else {
+    //     return false;
+    //   }
+    // } else {
+    //   throw new Error(`Unknown state ID: ${id}`);
+    // }
   }
 
   /**
@@ -207,7 +193,7 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
   serialiseToURLParams(extra?: string): string {
     const urlPart = (key: string, value: string) =>
       [this.urlKey(key), value].join(this.shortUrl ? "" : "=");
-    let params: Array<string> = Object.entries<StateItem<I, C>>(this.state)
+    let params: Array<string> = Object.entries<StateItem<C>>(this.state)
       .map(([key, item]) => {
         if (
           isSerialisable(item.config) &&
@@ -228,12 +214,12 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
   /**
    * Adds a copy to clipboard handler to a given element selector
    * @param {string} selector Selector of the share button in the format of querySelector selectors
-   * @param {(any|function(state: PassedState<C>):string)} [extraData] If given a function, it is executed when the user clicks,
+   * @param {(any|function(state: PassedState<S>):string)} [extraData] If given a function, it is executed when the user clicks,
    *  and its return value added to the URL parameters. If it is not a function, it is included in the URL parameters.
    */
   addCopyToClipboardHandler(
     selector: string,
-    extraData?: ((state: PassedState<C>) => string) | string
+    extraData?: ((state: PassedState<S>) => string) | string
   ) {
     const extraDataFunc =
       typeof extraData !== "function" ? () => extraData : extraData;
@@ -242,7 +228,7 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
 
     if (el != null) {
       (el as HTMLElement).onclick = (_evt) => {
-        const passedState: Partial<PassedState<C>> = {};
+        const passedState: PassedState<S> = {};
         if (extraDataFunc !== undefined) {
           for (let key in this.state) {
             passedState[key] = this.state[key].value;
@@ -276,5 +262,34 @@ export default class ParamConfig<I extends string, C extends ConfigPart<I>> {
     //       setTimeout(() => copyBtn.tooltip("hide"), 1000);
     //     });
     //   });
+  }
+
+  static fromConfig<C extends ConfigPart<string>>(
+    configs: CompleteConfig<C>,
+    baseEl: HTMLElement
+  ): ParamConfig<State<C>> {
+    const state = configs.reduce(
+      (workingState: State<C>, config) => ({
+        ...workingState,
+        [config.id]: initStateItem(
+          baseEl,
+          config,
+          this.initialValues[this.urlKey(config.id)] ?? null,
+          this.shortUrl,
+          () => this.state[config.id].value,
+          (value) => {
+            this.state[config.id].value = value;
+            this.updates.push(config.id);
+            this.tellListeners();
+          },
+          () => {
+            this.state[config.id].clicked = true;
+            this.updates.push(config.id);
+            this.tellListeners();
+          }
+        ),
+      }),
+      {} as State<C>
+    );
   }
 }

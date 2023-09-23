@@ -33,6 +33,16 @@ export type State<C extends ConfigPart<string>> = {
   [P in C as P["id"]]: StateItem<P>;
 };
 
-export type PassedState<C extends ConfigPart<string>> = {
-  [P in C as P["id"]]: DeriveStateType<P>;
+export type PassedState<S extends State<ConfigPart<string>>> = {
+  [K in keyof S]: S[K] extends StateItem<infer C> ? C : never;
 };
+
+export type NarrowedState<I extends string> = {
+  [T in I]: StateItem<ConfigPart<T>>;
+};
+
+export type DeriveId<S extends State<ConfigPart<string>>> = S extends State<
+  ConfigPart<infer I>
+>
+  ? I
+  : never;

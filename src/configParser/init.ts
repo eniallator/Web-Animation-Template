@@ -1,13 +1,8 @@
 import { replaceItem } from "../core/utils";
+import { inputType } from "./create";
 import { DeriveDefaults, DeriveStateType } from "./derive";
-import {
-  changeCallback,
-  deserialise,
-  inputCallback,
-  inputType,
-  inputValue,
-  isSerialisable,
-} from "./parse";
+import { changeCallback, inputCallback, inputValue } from "./event";
+import { deserialise, isSerialisable } from "./serialise";
 import {
   ConfigCollection,
   ConfigCollectionFields,
@@ -232,7 +227,7 @@ export function initStateItem<C extends ConfigPart<string>>(
   getCurrentValue: () => DeriveStateType<C>,
   onUpdate: OnUpdate<C>,
   onClick?: () => void
-): StateItem<C["id"], C> {
+): StateItem<C> {
   const container = document.createElement("div");
   container.className = "config-item";
   if (isSerialisable(config) && config.label != null) {
