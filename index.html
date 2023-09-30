@@ -4,6 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Niall's web animation template" />
+  <meta name="theme-color" content="#343a40" />
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <title>TITLE</title>
   <link href="./styles.css" rel="stylesheet" />
@@ -11,11 +13,13 @@
 </head>
 
 <body>
-  <canvas></canvas>
-  <div id="credit">
-    <a href="https://eniallator.com" target="_blank"><span>Created by Niall</span></a>
-  </div>
-  <section id="parameter-config" class="dropup dropdown" aria-labelledby="config-dropdown-btn">
+  <main>
+    <canvas></canvas>
+    <section id="credit">
+      <a href="https://eniallator.com" target="_blank"><span>Created by Niall</span></a>
+    </section>
+  </main>
+  <section id="parameter-config" role="dialog" aria-label="Parameter configuration menu">
     <div class="overlay-btns">
       <button id="config-dropdown-btn" class="secondary" title="Config">
         <svg xmlns="http://www.w3.org/2000/svg" height="1em"
@@ -34,7 +38,9 @@
     </div>
     <dialog id="config-modal">
       <form>
-        <div id="cfg-outer"></div>
+        <h1>Web Animation Template</h1>
+        <section id="cfg-outer">
+        </section>
         <div class="dialog-actions">
           <button class="secondary" formmethod="dialog">Close</button>
           <button type="button" id="share-btn" class="primary">Share</button>

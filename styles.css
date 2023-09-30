@@ -1,5 +1,6 @@
 html,
-body {
+body,
+main {
   height: 100%;
   overflow-y: hidden;
   margin: 0;
@@ -16,16 +17,21 @@ body {
 
 input:not([type="checkbox"]),
 select {
-  width: 12rem;
   border: 0;
-  padding: 0;
   font: inherit;
+  font-size: inherit;
+  padding: 0 0.5rem;
+}
+input:not([type="checkbox"]) {
+  width: 11rem;
+}
+select,
+input[type="color"] {
+  width: 12rem;
 }
 
 input[type="color"] {
-  appearance: none;
-  border: none;
-  height: 30px;
+  height: 1.75rem;
   padding: 0;
 }
 input[type="color"]::-webkit-color-swatch-wrapper {
@@ -240,6 +246,7 @@ dialog {
   padding: 0;
   border: 0;
   border-radius: 0.5rem;
+  background-color: var(--bg-primary);
 }
 
 @media (max-width: 440px) {
@@ -275,14 +282,23 @@ dialog::backdrop {
 }
 
 dialog form {
-  background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
-#cfg-outer {
-  overflow-y: auto;
+h1,
+#cfg-outer,
+dialog .dialog-actions {
   max-width: 100%;
   padding: 1rem 1.5rem;
+}
+
+h1 {
+  margin: 0;
+}
+
+#cfg-outer {
+  padding: 0.5rem 1.5rem 1rem;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
@@ -297,10 +313,8 @@ dialog form {
 dialog .dialog-actions {
   position: sticky;
   bottom: 0;
-  background-color: var(--bg-primary);
   display: flex;
   justify-content: space-between;
   flex-direction: row;
-  padding: 1rem 1.75rem;
   border-top: 1px solid #6c757d;
 }
