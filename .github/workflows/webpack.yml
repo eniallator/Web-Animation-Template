@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Yarn cache
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ~/.yarn
           key: yarn-${{ hashFiles('yarn.lock') }}
