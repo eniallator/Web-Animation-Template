@@ -62,44 +62,41 @@ input[type="color"]::-webkit-color-swatch {
   left: 0;
 }
 
-button.primary {
+button {
   cursor: pointer;
   font-size: inherit;
+  display: flex;
+  align-items: center;
   color: var(--text-light);
   fill: var(--text-light);
-  background-color: #17a2b8;
   padding: 0.5rem 0.6rem;
   font-weight: 400;
   border-radius: 0.6rem;
   border-width: 0;
+}
+button:focus {
+  border-width: 0;
+  box-shadow: 0;
+}
+
+button.primary {
+  background-color: #17a2b8;
 }
 button.primary:hover {
   background-color: #138496;
 }
 button.primary:focus {
   outline: #117a8b solid 2px;
-  border-width: 0;
-  box-shadow: 0;
 }
 
 button.secondary {
-  cursor: pointer;
-  font-size: inherit;
-  color: var(--text-light);
-  fill: var(--text-light);
   background-color: #6c757d;
-  padding: 0.5rem 0.6rem;
-  font-weight: 400;
-  border-radius: 0.6rem;
-  border-width: 0;
 }
 button.secondary:hover {
   background-color: #5a6268;
 }
 button.secondary:focus {
   outline: #5a6268 solid 2px;
-  border-width: 0;
-  box-shadow: 0;
 }
 
 .overlay-btns {
