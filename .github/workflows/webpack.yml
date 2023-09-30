@@ -12,8 +12,5 @@ jobs:
         run: yarn
       - name: Build bundle
         run: yarn build
-      - uses: actions/upload-pages-artifact@v2
-        if: always()
-        with:
-          name: dist
-          path: dist/
+      - name: Deploy
+        run: yarn deploy
