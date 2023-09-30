@@ -71,7 +71,7 @@ export default config(
     id: "example-select",
     label: "Example Select",
     default: "bar",
-    options: ["foo", "bar", "baz", "Another Option"],
+    options: ["foo", "bar", "baz", "another option"],
   }),
   configCollection({
     id: "example-collection",
@@ -80,7 +80,7 @@ export default config(
     fields: [
       rangeConfig({
         id: "example-collection-range",
-        label: "Example Range Field",
+        label: "Range",
         default: 2,
         attrs: {
           min: "0",
@@ -90,7 +90,7 @@ export default config(
       }),
       checkboxConfig({
         id: "example-collection-checkbox",
-        label: "Example Checkbox Field",
+        label: "Checkbox",
         default: false,
       }),
     ],

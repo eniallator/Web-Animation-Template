@@ -1,5 +1,6 @@
 import { intToBase64 } from "../core/b64";
 import { isEqual, isString } from "../core/utils";
+import dom from "../core/dom";
 import { DeriveId, DeriveStateType, PassedState } from "./derive";
 import { initStateItem } from "./init";
 import { isSerialisableStateItem, serialise } from "./serialise";
@@ -231,22 +232,18 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
     const extraDataFunc =
       typeof extraData !== "function" ? () => extraData : extraData;
 
-    const el = document.querySelector(selector);
-
-    if (el != null) {
-      (el as HTMLElement).onclick = (_evt) => {
-        const searchParams = this.serialiseToURLParams(
-          extraDataFunc?.(this.createdPassedState())
-        );
-        const sharableURL =
-          location.protocol +
-          "//" +
-          location.host +
-          location.pathname +
-          (searchParams.length > 0 ? "?" + searchParams : "");
-        navigator.clipboard.writeText(sharableURL);
-      };
-    }
+    dom.addListener(dom.get(selector), "click", () => {
+      const searchParams = this.serialiseToURLParams(
+        extraDataFunc?.(this.createdPassedState())
+      );
+      const sharableURL =
+        location.protocol +
+        "//" +
+        location.host +
+        location.pathname +
+        (searchParams.length > 0 ? "?" + searchParams : "");
+      navigator.clipboard.writeText(sharableURL);
+    });
     // $(selector)
     //   .data("toggle", "tooltip")
     //   .data("placement", "top")

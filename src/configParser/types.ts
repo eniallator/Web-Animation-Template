@@ -1,4 +1,6 @@
-import { DeriveDefaults, DeriveStateType } from "./derive";
+import ParamConfig from ".";
+import Mouse from "../core/mouse";
+import { DeriveDefaults, DeriveParts, DeriveStateType } from "./derive";
 
 export interface BaseConfig<I extends string> {
   id: I;
@@ -111,3 +113,10 @@ export interface StateItem<C extends ConfigPart<string>> {
 export type OnUpdate<C extends ConfigPart<string>> = (
   newValue: DeriveStateType<C>
 ) => void;
+
+export interface AppContext<A extends Array<ConfigPart<string>>> {
+  paramConfig: ParamConfig<DeriveParts<A>>;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  mouse: Mouse;
+}

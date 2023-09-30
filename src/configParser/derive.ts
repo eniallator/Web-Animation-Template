@@ -30,3 +30,9 @@ export type NarrowedPart<I extends C["id"], C extends ConfigPart<string>> = {
 };
 
 export type DeriveId<C extends ConfigPart<string>> = C["id"];
+
+export type DeriveParts<A extends Array<ConfigPart<string>>> = A extends Array<
+  infer C
+>
+  ? C
+  : never;

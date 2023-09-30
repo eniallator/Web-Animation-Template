@@ -20,6 +20,16 @@ export function replaceItem<T>(
   return copy;
 }
 
+export function filterAndMap<I, O>(
+  arr: I[],
+  mapper: (val: I, index: number, arr: I[]) => O | null | undefined
+): O[] {
+  return arr.reduce((acc: O[], item, i, arr) => {
+    const mapped = mapper(item, i, arr);
+    return mapped != null ? [...acc, mapped] : acc;
+  }, []);
+}
+
 export function isNumber(value: unknown): value is number {
   return typeof value === "number";
 }

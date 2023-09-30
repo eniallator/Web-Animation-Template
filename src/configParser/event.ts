@@ -58,12 +58,11 @@ export function changeCallback<C extends InputConfig<string>>(
     case "Color":
       return null;
     case "Checkbox":
-      return (evt) =>
+      return (evt) => {
         onUpdate(
-          (evt.target as HTMLElement).hasAttribute(
-            "checked"
-          ) as DeriveStateType<C>
+          (evt.target as HTMLInputElement).checked as DeriveStateType<C>
         );
+      };
     case "Datetime":
     case "Select":
     case "Text":
