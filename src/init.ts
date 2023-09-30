@@ -1,9 +1,9 @@
 import ParamConfig from "./configParser";
 import Mouse from "./core/mouse";
 import dom from "./core/dom";
-import config from "./projectFiles/config";
-import * as app from "./projectFiles";
-import { AppContext } from "./configParser/types";
+import config from "./app/config";
+import { AppContext } from "./core/types";
+import app from "./app";
 
 const canvas = dom.get<HTMLCanvasElement>("canvas");
 const ctx = canvas.getContext("2d");
@@ -27,11 +27,10 @@ window.onresize = (evt) => {
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = width;
   canvas.height = height;
-  if ("onResize" in app && typeof app.onResize === "function") {
+  if (app.onResize != null) {
     app.onResize(evt, appContext);
   }
 };
-window.onresize(new UIEvent("resize"));
 
 dom.addListener(dom.get("#download-btn"), "click", () => {
   const url = canvas.toDataURL();
@@ -60,3 +59,12 @@ dom.addListener(
 );
 
 app.init(appContext);
+
+const { animationFrame } = app;
+if (animationFrame != null) {
+  const animate = () => {
+    animationFrame(appContext);
+    requestAnimationFrame(animate);
+  };
+  requestAnimationFrame(animate);
+}
