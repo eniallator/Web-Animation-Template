@@ -133,7 +133,7 @@ export function deserialise<C extends SerialisableConfig<string>>(
         ) as DeriveStateType<C>;
     }
     case "Datetime":
-      return (
+      return new Date(
         shortUrl
           ? formatDate(new Date(base64ToPosInt(value) * 60000))
           : decodeURIComponent(value)

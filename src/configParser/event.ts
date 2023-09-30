@@ -17,6 +17,7 @@ export function inputValue<C extends InputConfig<string>>(
     case "Range":
       return Number(el.value) as DeriveStateType<C>;
     case "Datetime":
+      return new Date(el.value) as DeriveStateType<C>;
     case "Select":
     case "Text":
       return el.value as DeriveStateType<C>;
@@ -64,6 +65,10 @@ export function changeCallback<C extends InputConfig<string>>(
         );
       };
     case "Datetime":
+      return (evt) =>
+        hasKey(evt.target, "value", isString)
+          ? onUpdate(new Date(evt.target.value) as DeriveStateType<C>)
+          : null;
     case "Select":
     case "Text":
       return (evt) =>
