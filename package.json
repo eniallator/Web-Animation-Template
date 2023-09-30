@@ -29,7 +29,6 @@
     "webpack-dev-middleware": "^6.1.1"
   },
   "scripts": {
-    "start": "node app",
     "build": "webpack",
     "watch": "webpack --watch",
     "lint": "eslint 'src/**/*.ts'",
