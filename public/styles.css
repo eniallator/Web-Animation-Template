@@ -105,6 +105,7 @@ button.secondary:focus {
   bottom: 0.5rem;
   right: 0.5rem;
   left: 0.5rem;
+  font-size: 1.5rem;
   margin-bottom: 0.25rem !important;
   display: flex;
   justify-content: start;
@@ -172,15 +173,15 @@ canvas {
   width: 100%;
   background-color: #4b535c !important;
   border-radius: 0.25rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0;
   display: flex;
   flex-direction: column;
 }
 .collection .heading {
+  margin: 0 1rem;
   cursor: pointer;
   color: white;
   text-decoration: none !important;
-  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -188,12 +189,10 @@ canvas {
 
 .collection input:not([type="checkbox"]),
 .collection select {
-  float: none;
   width: 3rem;
   margin-left: 0;
 }
 .collection input[type="checkbox"] {
-  float: none;
   margin-left: 0;
 }
 
@@ -210,7 +209,7 @@ canvas {
 }
 
 .collection-content {
-  margin-top: 0.5rem;
+  margin: 0.5rem 1rem 0;
   transition: all 0.5s;
 }
 
@@ -245,16 +244,19 @@ dialog {
     width: 100%;
   }
 
-  dialog .config-item {
+  .config-item {
     display: flex;
     flex-direction: column;
-    margin: 1rem 0;
+    align-items: stretch;
   }
 
   .config-item input,
   .config-item select {
-    margin-left: 0;
-    float: unset;
+    margin-top: 0.5rem;
+    width: unset;
+  }
+  .config-item input[type="checkbox"] {
+    width: fit-content;
   }
 }
 dialog::backdrop {
@@ -282,7 +284,7 @@ dialog form {
 }
 
 #cfg-outer > * {
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 #cfg-outer > *:first-child {
   margin-top: 0;

@@ -244,11 +244,9 @@ function initHtml<C extends ConfigPart<string>>(
       btn.className = "secondary";
       btn.onclick = () => inp.click();
 
-      const html = document.createElement("div");
-      html.appendChild(inp);
-      html.appendChild(btn);
+      baseEl.appendChild(inp);
+      baseEl.appendChild(btn);
 
-      baseEl.appendChild(html);
       return "" as DeriveStateType<C>;
     }
     case "Select": {
