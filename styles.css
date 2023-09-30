@@ -16,9 +16,10 @@ body {
 
 input:not([type="checkbox"]),
 select {
-  width: 8rem;
+  width: 12rem;
   border: 0;
   padding: 0;
+  font: inherit;
 }
 
 input[type="color"] {
@@ -190,7 +191,7 @@ canvas {
 
 .collection input:not([type="checkbox"]),
 .collection select {
-  min-width: 3rem;
+  width: 5rem;
   margin-left: 0;
 }
 .collection input[type="checkbox"] {
