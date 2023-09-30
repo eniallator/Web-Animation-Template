@@ -11,8 +11,8 @@ export default {
 
   output: {
     path: currDir,
-    publicPath: "public",
-    filename: "public/bundle.js",
+    publicPath: "dist",
+    filename: "dist/bundle.js",
   },
 
   plugins: [
@@ -20,7 +20,6 @@ export default {
       host: "localhost",
       port: 3000,
       server: {
-        baseDir: "public",
         reload: ["*.ts", "*.js", "*.html", "*.css"],
       },
       reload: ["*.ts", "*.js", "*.html", "*.css"],
