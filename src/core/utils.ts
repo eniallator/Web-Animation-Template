@@ -62,3 +62,12 @@ export function isEqual<T>(a: T, b: T): boolean {
         a.every((v, i) => isEqual(v, b[i]))
     : a === b;
 }
+
+export function formatDate(date: Date): string {
+  return date
+    .toLocaleString()
+    .replace(
+      /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+).*/,
+      "$<y>-$<m>-$<d>T$<t>"
+    );
+}

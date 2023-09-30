@@ -1,5 +1,5 @@
 import { intToBase64 } from "../core/b64";
-import { isEqual, isString } from "../core/utils";
+import { formatDate, isEqual, isString } from "../core/utils";
 import dom from "../core/dom";
 import { DeriveId, DeriveStateType, PassedState } from "./derive";
 import { initStateItem } from "./init";
@@ -200,7 +200,9 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
           isSerialisableStateItem(item) &&
           (item.config.default == null ||
             !isEqual<typeof item.value>(
-              item.config.default as typeof item.value,
+              (item.config.type === "Datetime"
+                ? formatDate(item.config.default)
+                : item.config.default) as typeof item.value,
               item.value
             ))
         ) {

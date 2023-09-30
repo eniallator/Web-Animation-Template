@@ -1,5 +1,5 @@
 import { base64ToPosInt, intToBase64 } from "../core/b64";
-import { checkExhausted } from "../core/utils";
+import { checkExhausted, formatDate } from "../core/utils";
 import { DeriveDefaults, DeriveStateType } from "./derive";
 import {
   CheckboxConfig,
@@ -9,7 +9,6 @@ import {
   ConfigPart,
   DatetimeConfig,
   FileConfig,
-  InputConfig,
   NumberConfig,
   RangeConfig,
   SelectConfig,
@@ -62,14 +61,7 @@ function serialiseRaw(
         ? intToBase64(
             narrowed.value.getTime() / 60000 - new Date().getTimezoneOffset()
           )
-        : encodeURIComponent(
-            narrowed.value
-              .toLocaleString()
-              .replace(
-                /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+).*/,
-                "$<y>-$<m>-$<d>T$<t>"
-              )
-          );
+        : encodeURIComponent(formatDate(narrowed.value));
     }
 
     case "File": {
@@ -143,12 +135,7 @@ export function deserialise<C extends SerialisableConfig<string>>(
     case "Datetime":
       return (
         shortUrl
-          ? new Date(base64ToPosInt(value) * 60000)
-              .toLocaleString()
-              .replace(
-                /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+).*/,
-                "$<y>-$<m>-$<d>T$<t>"
-              )
+          ? formatDate(new Date(base64ToPosInt(value) * 60000))
           : decodeURIComponent(value)
       ) as DeriveStateType<C>;
     case "Number":
