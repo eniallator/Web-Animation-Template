@@ -9,15 +9,17 @@ body {
   line-height: 24px;
   color: #212529;
   text-align: left;
-  --text-light: #f8f9fa;
-  --bg-dark: #343a40;
+  --text-primary: #f8f9fa;
+  --bg-primary: #343a40;
+  --bg-secondary: #4b535c;
 }
 
 input:not([type="checkbox"]),
 select {
-  width: 8rem;
+  width: 12rem;
   border: 0;
   padding: 0;
+  font: inherit;
 }
 
 input[type="color"] {
@@ -68,8 +70,8 @@ button {
   font-size: inherit;
   display: flex;
   align-items: center;
-  color: var(--text-light);
-  fill: var(--text-light);
+  color: var(--text-primary);
+  fill: var(--text-primary);
   padding: 0.5rem 0.6rem;
   font-weight: 400;
   border-radius: 0.6rem;
@@ -146,7 +148,7 @@ canvas {
 }
 .config-item td {
   text-align: center;
-  border-top: 1px solid #454d55;
+  border-top: 1px solid var(--bg-secondary);
 }
 .config-item th {
   text-align: center;
@@ -171,7 +173,7 @@ canvas {
 
 .collection {
   width: 100%;
-  background-color: #4b535c !important;
+  background-color: var(--bg-secondary) !important;
   border-radius: 0.25rem;
   padding: 0.5rem 0;
   display: flex;
@@ -189,7 +191,7 @@ canvas {
 
 .collection input:not([type="checkbox"]),
 .collection select {
-  width: 3rem;
+  width: 5rem;
   margin-left: 0;
 }
 .collection input[type="checkbox"] {
@@ -204,7 +206,7 @@ canvas {
 
 .collection table {
   width: 100%;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-primary);
   table-layout: fixed;
 }
 
@@ -239,6 +241,7 @@ dialog {
   border: 0;
   border-radius: 0.5rem;
 }
+
 @media (max-width: 440px) {
   dialog {
     width: 100%;
@@ -259,6 +262,7 @@ dialog {
     width: fit-content;
   }
 }
+
 dialog::backdrop {
   position: fixed;
   top: 0;
@@ -271,8 +275,8 @@ dialog::backdrop {
 }
 
 dialog form {
-  background-color: var(--bg-dark);
-  color: var(--text-light);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 #cfg-outer {
@@ -293,10 +297,10 @@ dialog form {
 dialog .dialog-actions {
   position: sticky;
   bottom: 0;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-primary);
   display: flex;
   justify-content: space-between;
   flex-direction: row;
   padding: 1rem 1.75rem;
-  border-top: 1px solid white;
+  border-top: 1px solid #6c757d;
 }

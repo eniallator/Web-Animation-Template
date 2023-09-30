@@ -34,7 +34,9 @@ function initCollectionRowHtml<F extends ConfigCollectionFields>(
   onUpdate: (newRow: DeriveDefaults<F>) => void
 ): DeriveDefaults<F> {
   const row = document.createElement("tr");
-  row.innerHTML = '<td><input data-row-selector type="checkbox" /></td>';
+  if (config.expandable) {
+    row.innerHTML = '<td><input data-row-selector type="checkbox" /></td>';
+  }
   baseEl.appendChild(row);
   return config.fields.map((config, i) => {
     const itemEl = document.createElement("td");

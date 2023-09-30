@@ -93,10 +93,16 @@ export default config(
         label: "Checkbox",
         default: false,
       }),
+      selectConfig({
+        id: "example-collection-select",
+        label: "Select",
+        default: "Maybe",
+        options: ["Yes", "No", "Maybe"],
+      }),
     ],
     default: [
-      [4, true],
-      [1, false],
+      [4, true, "Yes"],
+      [1, false, "No"],
     ],
   })
 );
