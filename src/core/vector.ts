@@ -1,11 +1,21 @@
-class Vector {
+import TimeAnalysis from "./time_analysis";
+import { isNumber } from "./utils";
+
+type VectorParam = number | Vector;
+
+export default class Vector {
+  public x: number;
+  public y: number;
+
   /**
    * Robust 2D Vector class which has many available operations
-   * @param {(number|Vector)} xOrVec X component of the given coordinates. Or a vector to copy if supplied instead.
+   * @param {VectorParam} xOrVec X component of the given coordinates. Or a vector to copy if supplied instead.
    * @param {number} [y] Y component of the given coordinates
    */
-  constructor(xOrVec, y) {
-    if (xOrVec > 0 || xOrVec <= 0) {
+  constructor(xOrVex: number, y?: number);
+  constructor(xOrVex: Vector);
+  constructor(xOrVec: VectorParam, y?: number) {
+    if (isNumber(xOrVec)) {
       this.x = xOrVec;
       this.y = y ?? xOrVec;
     } else {
@@ -16,12 +26,12 @@ class Vector {
 
   /**
    * Raises the current x and y to given power(s)
-   * @param  {...(number|Vector)} args If given a number, both components are raised to this. If given a Vector, the power operation is component-wise
+   * @param  {...VectorParam} args If given a number, both components are raised to this. If given a Vector, the power operation is component-wise
    * @returns {this} this
    */
-  pow(...args) {
+  pow(...args: Array<VectorParam>): ThisType<Vector> {
     for (let arg of args) {
-      if (arg > 0 || arg <= 0) {
+      if (isNumber(arg)) {
         this.x = Math.pow(this.x, arg);
         this.y = Math.pow(this.y, arg);
       } else {
@@ -34,12 +44,12 @@ class Vector {
 
   /**
    * Adds the current x and y with given operand(s)
-   * @param  {...(number|Vector)} args If given a number, both components are added with this. If given a Vector, the add operation is component-wise
+   * @param  {...VectorParam} args If given a number, both components are added with this. If given a Vector, the add operation is component-wise
    * @returns {this} this
    */
-  add(...args) {
+  add(...args: Array<VectorParam>): ThisType<Vector> {
     for (let arg of args) {
-      if (arg > 0 || arg <= 0) {
+      if (isNumber(arg)) {
         this.x += arg;
         this.y += arg;
       } else {
@@ -52,12 +62,12 @@ class Vector {
 
   /**
    * Subtracts given operand(s) from the current x and y
-   * @param  {...(number|Vector)} args If given a number, both components have the number taken away from them. If given a Vector, the subtract operation is component-wise
+   * @param  {...VectorParam} args If given a number, both components have the number taken away from them. If given a Vector, the subtract operation is component-wise
    * @returns {this} this
    */
-  sub(...args) {
+  sub(...args: Array<VectorParam>): ThisType<Vector> {
     for (let arg of args) {
-      if (arg > 0 || arg <= 0) {
+      if (isNumber(arg)) {
         this.x -= arg;
         this.y -= arg;
       } else {
@@ -70,12 +80,12 @@ class Vector {
 
   /**
    * Multiplies the current x and y with given operand(s)
-   * @param  {...(number|Vector)} args If given a number, both components are multiplied by this. If given a Vector, the multiply operation is component-wise
+   * @param  {...VectorParam} args If given a number, both components are multiplied by this. If given a Vector, the multiply operation is component-wise
    * @returns {this} this
    */
-  multiply(...args) {
+  multiply(...args: Array<VectorParam>): ThisType<Vector> {
     for (let arg of args) {
-      if (arg > 0 || arg <= 0) {
+      if (isNumber(arg)) {
         this.x *= arg;
         this.y *= arg;
       } else {
@@ -88,12 +98,12 @@ class Vector {
 
   /**
    * Divides the current x and y by the given operand(s)
-   * @param  {...(number|Vector)} args If given a number, both components are divided by this. If given a Vector, the divide operation is component-wise
+   * @param  {...VectorParam} args If given a number, both components are divided by this. If given a Vector, the divide operation is component-wise
    * @returns {this} this
    */
-  divide(...args) {
+  divide(...args: Array<VectorParam>): ThisType<Vector> {
     for (let arg of args) {
-      if (arg > 0 || arg <= 0) {
+      if (isNumber(arg)) {
         this.x /= arg;
         this.y /= arg;
       } else {
@@ -110,7 +120,7 @@ class Vector {
    * @param {number} t Between 0 and 1, where 0 is this current vector and 1 is the supplied other vector
    * @returns {Vector} Interpolated vector
    */
-  lerp(other, t) {
+  lerp(other: Vector, t: number): Vector {
     return new Vector(
       this.x - (this.x - other.x) * t,
       this.y - (this.y - other.y) * t
@@ -122,7 +132,7 @@ class Vector {
    * @param {Vector} other Vector to dot product with
    * @returns {number} Dot product
    */
-  dot(other) {
+  dot(other: Vector): number {
     return this.x * other.x + this.y * other.y;
   }
 
@@ -130,32 +140,31 @@ class Vector {
    * Returns the max of x or y, whichever component is bigger
    * @returns {number} the value of the bigger component
    */
-  getMax() {
+  getMax(): number {
     return Math.max(this.x, this.y);
   }
   /**
    * Returns the min of x or y, whichever component is smaller
    * @returns {number} the value of the smaller component
    */
-  getMin() {
+  getMin(): number {
     return Math.min(this.x, this.y);
   }
 
   /**
    * Sets the "head" of the current vector to a given value
-   * @param {(number|Vector)} xOrVec X component of the given coordinates. Or a vector to copy if supplied instead.
+   * @param {VectorParam} xOrVec X component of the given coordinates. Or a vector to copy if supplied instead.
    * @param {number} [y] Y component of the given coordinates
    * @returns {this} this
    */
-  setHead(xOrVec, y) {
-    if (xOrVec > 0 || xOrVec <= 0) {
+  setHead(xOrVec: VectorParam, y: number): ThisType<Vector> {
+    if (isNumber(xOrVec)) {
       this.x = xOrVec;
       this.y = y ?? xOrVec;
     } else {
       this.x = xOrVec.x;
       this.y = xOrVec.y;
     }
-
     return this;
   }
 
@@ -163,7 +172,7 @@ class Vector {
    * Computes the squared magnitude of this vector
    * @returns {number} Squared magnitude of this vector
    */
-  getSquaredMagnitude() {
+  getSquaredMagnitude(): number {
     return this.x * this.x + this.y * this.y;
   }
 
@@ -171,7 +180,7 @@ class Vector {
    * Computes the magnitude of this vector
    * @returns {number} Magnitude of this vector
    */
-  getMagnitude() {
+  getMagnitude(): number {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }
 
@@ -180,7 +189,7 @@ class Vector {
    * @param {number} mag New magnitude to set to
    * @returns {this} this
    */
-  setMagnitude(mag) {
+  setMagnitude(mag: number): ThisType<Vector> {
     const magRatio = mag / Math.sqrt(this.x * this.x + this.y * this.y);
     this.x *= magRatio;
     this.y *= magRatio;
@@ -192,7 +201,7 @@ class Vector {
    * Returns a new normalised version of this vector
    * @returns {Vector} Normalised vector
    */
-  getNorm() {
+  getNorm(): Vector {
     const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
     return new Vector(this.x / magnitude, this.y / magnitude);
   }
@@ -201,7 +210,7 @@ class Vector {
    * Normalises this vector
    * @returns {this} this
    */
-  normalise() {
+  normalise(): ThisType<Vector> {
     const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
     this.x /= magnitude;
     this.y /= magnitude;
@@ -212,7 +221,7 @@ class Vector {
    * Sets each component of this vector to it's absolute value
    * @returns {this} this
    */
-  abs() {
+  abs(): ThisType<Vector> {
     this.x = Math.abs(this.x);
     this.y = Math.abs(this.y);
     return this;
@@ -222,7 +231,7 @@ class Vector {
    * Get the sign of each component in this vector
    * @returns {Vector} The signs of this vector where 1 >= 0 and -1 < 0
    */
-  getSign() {
+  getSign(): Vector {
     const x = this.x >= 0 ? 1 : -1;
     const y = this.y >= 0 ? 1 : -1;
     return new Vector(x, y);
@@ -232,7 +241,7 @@ class Vector {
    * Gets the angle of this vector
    * @returns {number} Angle between 0 and 2 * PI
    */
-  getAngle() {
+  getAngle(): number {
     const x = this.x ? this.x : 0;
     const y = this.y ? this.y : 0;
     if (x === 0 && y === 0) return 0;
@@ -249,7 +258,7 @@ class Vector {
    * @param {number} angle Angle to set to
    * @returns {this} this
    */
-  setAngle(angle) {
+  setAngle(angle: number): ThisType<Vector> {
     const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
     this.x = magnitude * Math.cos(angle);
     this.y = magnitude * Math.sin(angle);
@@ -263,7 +272,7 @@ class Vector {
    * @param {number} angle Angle to rotate by
    * @returns {this} this
    */
-  rotate(pivot, angle) {
+  rotate(pivot: Vector, angle: number): ThisType<Vector> {
     const dx = this.x - pivot.x;
     const dy = this.y - pivot.y;
     const dMag = Math.sqrt(dx * dx + dy * dy);
@@ -290,7 +299,7 @@ class Vector {
    * Copies this vector into a duplicate
    * @returns {Vector} Duplicated version of this vector
    */
-  copy() {
+  copy(): Vector {
     return new Vector(this);
   }
 
@@ -299,43 +308,45 @@ class Vector {
    * @param {Vector} other
    * @returns {boolean} If they are equal
    */
-  equals(other) {
+  equals(other: Vector): boolean {
     return this.x === other.x && this.y === other.y;
   }
 
-  toString() {
+  toString(): string {
     return `x:${this.x},y:${this.y}`;
   }
 
   /**
    * Parses a string and tries to make a vector out of it
    * @param {string} str Vector string in the format of "x:NUMBER,y:NUMBER"
-   * @returns {(Vector|void)} A vector if the x and y components have been found, else void
+   * @returns {(Vector|undefined)} A vector if the x and y components have been found, else void
    */
-  static parseString(str) {
+  static parseString(str: string): Vector | undefined {
     const tokens = /^x:([^,]+),y:(.+)$/.exec(str);
     if (tokens) {
       return new Vector(Number(tokens[1]), Number(tokens[2]));
+    } else {
+      return undefined;
     }
   }
 
-  static get ZERO() {
+  static get ZERO(): Vector {
     return new Vector(0, 0);
   }
-  static get ONE() {
+  static get ONE(): Vector {
     return new Vector(1, 1);
   }
 
-  static get RIGHT() {
+  static get RIGHT(): Vector {
     return new Vector(1, 0);
   }
-  static get LEFT() {
+  static get LEFT(): Vector {
     return new Vector(-1, 0);
   }
-  static get DOWN() {
+  static get DOWN(): Vector {
     return new Vector(0, 1);
   }
-  static get UP() {
+  static get UP(): Vector {
     return new Vector(0, -1);
   }
 }
