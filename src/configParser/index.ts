@@ -199,12 +199,13 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
         if (
           isSerialisableStateItem(item) &&
           (item.config.default == null ||
-            !isEqual<typeof item.value>(
-              (item.config.type === "Datetime"
-                ? formatDate(item.config.default)
-                : item.config.default) as typeof item.value,
-              item.value
-            ))
+            (item.config.type === "Datetime"
+              ? formatDate(item.config.default) !==
+                formatDate(item.value as Date)
+              : !isEqual<typeof item.value>(
+                  item.config.default as typeof item.value,
+                  item.value
+                )))
         ) {
           const serialised = serialise(item, this.shortUrl);
           return serialised != null
