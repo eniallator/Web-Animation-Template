@@ -313,6 +313,7 @@ h1 {
 
 dialog .dialog-actions {
   position: sticky;
+  background-color: var(--bg-primary);
   bottom: 0;
   display: flex;
   justify-content: space-between;
