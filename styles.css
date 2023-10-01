@@ -21,6 +21,7 @@ select {
   font: inherit;
   font-size: inherit;
   padding: 0 0.5rem;
+  height: 1.75rem;
 }
 input:not([type="checkbox"]) {
   width: 11rem;
@@ -31,7 +32,6 @@ input[type="color"] {
 }
 
 input[type="color"] {
-  height: 1.75rem;
   padding: 0;
 }
 input[type="color"]::-webkit-color-swatch-wrapper {
