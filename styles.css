@@ -134,10 +134,6 @@ canvas {
   image-rendering: pixelated;
 }
 
-.menu-offset {
-  margin-bottom: 0.4rem !important;
-}
-
 .config-item {
   display: flex;
   justify-content: space-between;
