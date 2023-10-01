@@ -254,6 +254,9 @@ dialog {
     width: 100%;
     border-radius: 0;
   }
+  #cfg-outer > *:not(:first-child) {
+    margin-top: 1.5rem !important;
+  }
 
   .config-item {
     display: flex;
@@ -304,11 +307,8 @@ h1 {
   flex-direction: column;
 }
 
-#cfg-outer > * {
+#cfg-outer > *:not(:first-child) {
   margin-top: 1rem;
-}
-#cfg-outer > *:first-child {
-  margin-top: 0;
 }
 
 dialog .dialog-actions {
