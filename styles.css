@@ -338,6 +338,10 @@ dialog {
     width: unset;
   }
   .config-item input[type="checkbox"] {
+    width: fit-content;
+  }
+  .config-item .collection input[type="checkbox"] {
+    width: unset;
     min-width: 3rem;
   }
   .dialog-actions {
