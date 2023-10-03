@@ -69,30 +69,32 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
   const html = `
     <div id="${config.id}" class="collection">
       <a class="heading">
-        <span>${config.label}</span>
+        <span class="collection-label">${config.label}</span>
         <span class="collection-caret"></span>
       </a>
-      <div class="collection-content">
-        <table>
-          <thead>
-            <tr>
-              ${
-                config.expandable
-                  ? '<th scope="col" style="width: 2rem;"></th>'
-                  : ""
-              }
-              ${config.fields
-                .map(
-                  (childConfig) =>
-                    '<th scope="col">' +
-                    (isSerialisable(childConfig) ? childConfig.label : "") +
-                    "</th>"
-                )
-                .join("")}
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="collection-container">
+        <div class="collection-content">
+          <table>
+            <thead>
+              <tr class="wrap-text">
+                ${
+                  config.expandable
+                    ? `<th scope="col" class="row-select"></th>`
+                    : ""
+                }
+                ${config.fields
+                  .map(
+                    (childConfig) =>
+                      `<th scope="col" >${
+                        isSerialisable(childConfig) ? childConfig.label : ""
+                      }</th>`
+                  )
+                  .join("")}
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
         ${
           config.expandable
             ? `<div class="collection-actions">
@@ -206,7 +208,7 @@ function initHtml<C extends ConfigPart<string>>(
       if (hasId) {
         inp.setAttribute("id", config.id);
       }
-      inp.className = "primary";
+      inp.className = "primary wrap-text";
       inp.innerText = config.text ?? "";
       inp.onclick = onClick ?? null;
 
@@ -243,7 +245,7 @@ function initHtml<C extends ConfigPart<string>>(
       const btn = document.createElement("button");
       btn.type = "button";
       btn.innerText = config.text ?? "";
-      btn.className = "secondary";
+      btn.className = "secondary wrap-text";
       btn.onclick = () => inp.click();
 
       baseEl.appendChild(inp);
@@ -339,6 +341,8 @@ export function initStateItem<C extends ConfigPart<string>>(
   if (isSerialisable(config) && config.label != null) {
     const label = document.createElement("label");
     label.setAttribute("for", config.id);
+    label.setAttribute("title", config.label);
+    label.className = "wrap-text";
     label.innerText = config.label;
     // if (config.tooltip != null) {
     //   label.setAttribute("data-toggle", "tooltip");

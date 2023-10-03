@@ -1,6 +1,6 @@
 {
-  "name": "web-art-template",
-  "description": "Web art template",
+  "name": "web-animation-template",
+  "description": "Web animation template",
   "version": "0.0.1",
   "main": "app.js",
   "packageManager": "yarn@1.22.19",
