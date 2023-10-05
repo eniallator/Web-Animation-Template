@@ -102,9 +102,6 @@ export type SerialisableConfig<I extends string> =
 export interface StateItem<C extends ConfigPart<string>> {
   value: DeriveStateType<C>;
   config: C;
-  // el: C extends ConfigCollection<I, ReadonlyArray<ConfigAtom<string>>>
-  //   ? Array<Array<HTMLElement>>
-  //   : HTMLElement;
   clicked: boolean;
 }
 
