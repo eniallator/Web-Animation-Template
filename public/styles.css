@@ -131,7 +131,7 @@ button.secondary:focus {
   outline: #5a6268 solid 2px;
 }
 
-.overlay-btns {
+.overlay-buttons {
   position: absolute;
   bottom: 0.5rem;
   right: 0.5rem;
@@ -141,13 +141,13 @@ button.secondary:focus {
   display: flex;
   justify-content: start;
 }
-.overlay-btns > button {
+.overlay-buttons > button {
   border-radius: 0;
 }
-.overlay-btns > button:first-child {
+.overlay-buttons > button:first-child {
   border-radius: 0.6rem 0 0 0.6rem;
 }
-.overlay-btns > button:last-child {
+.overlay-buttons > button:last-child {
   border-radius: 0 0.6rem 0.6rem 0;
 }
 

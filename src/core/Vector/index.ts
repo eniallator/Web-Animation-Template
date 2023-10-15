@@ -397,7 +397,7 @@ export default class Vector<const C extends Components> {
   ): ValidatedReturnType<C, MinSize<Components3D>, number> {
     const components = this.components;
     if (isMin3D(components)) {
-      return components[1] as ValidatedReturnType<
+      return components[2] as ValidatedReturnType<
         C,
         MinSize<Components3D>,
         number
@@ -412,7 +412,7 @@ export default class Vector<const C extends Components> {
   ): ValidatedReturnType<C, MinSize<Components4D>, number> {
     const components = this.components;
     if (isMin4D(components)) {
-      return components[1] as ValidatedReturnType<
+      return components[3] as ValidatedReturnType<
         C,
         MinSize<Components4D>,
         number
