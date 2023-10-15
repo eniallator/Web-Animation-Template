@@ -13,7 +13,6 @@ import {
 import {
   Components,
   VectorArg,
-  ValidatedReturnType,
   Components2D,
   Components3D,
   Components4D,
@@ -274,12 +273,9 @@ export default class Vector<const C extends Components> {
    * @type {Vector<Components2D>}
    * @returns {number} Angle between 0 and 2 * PI
    */
-  getAngle(
-    this: Vector<Components2D>
-  ): ValidatedReturnType<C, Components2D, number> {
-    const { components } = this;
-    if (is2D(components)) {
-      const [x, y] = components;
+  getAngle(this: Vector<Components2D>): number {
+    if (is2D(this.components)) {
+      const [x, y] = this.components;
 
       let out: number;
       if (x === 0 && y === 0) out = 0;
@@ -290,7 +286,7 @@ export default class Vector<const C extends Components> {
       else if (y > 0) out = Math.PI - Math.atan(y / -x);
       else out = (Math.PI * 3) / 2 - Math.atan(x / y);
 
-      return out as ValidatedReturnType<C, Components2D, number>;
+      return out;
     } else {
       throw new IncompatibleOperation("Requires a 2D vector");
     }
@@ -305,16 +301,15 @@ export default class Vector<const C extends Components> {
   setAngle(
     this: Vector<Components2D>,
     angle: number
-  ): ValidatedReturnType<C, Components2D, Vector<Components2D>> {
-    const { components } = this;
-    if (is2D(components)) {
-      const [x, y] = components;
+  ): ThisType<Vector<Components2D>> {
+    if (is2D(this.components)) {
+      const [x, y] = this.components;
 
       const magnitude = Math.sqrt(x ** 2 + y ** 2);
       this.components[0] = magnitude * Math.cos(angle);
       this.components[1] = magnitude * Math.sin(angle);
 
-      return this as ValidatedReturnType<C, Components2D, Vector<Components2D>>;
+      return this;
     } else {
       throw new IncompatibleOperation("Requires a 2D vector");
     }
@@ -331,10 +326,9 @@ export default class Vector<const C extends Components> {
     this: Vector<Components2D>,
     pivot: Vector<Components2D>,
     angle: number
-  ): ValidatedReturnType<C, Components2D, Vector<Components2D>> {
-    const { components } = this;
-    if (is2D(components)) {
-      const [x, y] = components;
+  ): ThisType<Vector<Components2D>> {
+    if (is2D(this.components)) {
+      const [x, y] = this.components;
       const [px, py] = pivot.components;
       const dx = x - px;
       const dy = y - py;
@@ -355,7 +349,7 @@ export default class Vector<const C extends Components> {
       this.components[0] = oX + px;
       this.components[1] = oY + py;
 
-      return this as ValidatedReturnType<C, Components2D, Vector<Components2D>>;
+      return this;
     } else {
       throw new IncompatibleOperation("Requires a 2D vector");
     }
@@ -377,46 +371,25 @@ export default class Vector<const C extends Components> {
     return this.components[0];
   }
 
-  y(
-    this: Vector<MinSize<Components2D>>
-  ): ValidatedReturnType<C, MinSize<Components2D>, number> {
-    const { components } = this;
-    if (isMin2D(components)) {
-      return components[1] as ValidatedReturnType<
-        C,
-        MinSize<Components2D>,
-        number
-      >;
+  y(this: Vector<MinSize<Components2D>>): number {
+    if (isMin2D(this.components)) {
+      return this.components[1];
     } else {
       throw new IncompatibleOperation("Requires at least a 2D vector");
     }
   }
 
-  z(
-    this: Vector<MinSize<Components3D>>
-  ): ValidatedReturnType<C, MinSize<Components3D>, number> {
-    const components = this.components;
-    if (isMin3D(components)) {
-      return components[2] as ValidatedReturnType<
-        C,
-        MinSize<Components3D>,
-        number
-      >;
+  z(this: Vector<MinSize<Components3D>>): number {
+    if (isMin3D(this.components)) {
+      return this.components[2];
     } else {
       throw new IncompatibleOperation("Requires at least a 3D vector");
     }
   }
 
-  w(
-    this: Vector<MinSize<Components4D>>
-  ): ValidatedReturnType<C, MinSize<Components4D>, number> {
-    const components = this.components;
-    if (isMin4D(components)) {
-      return components[3] as ValidatedReturnType<
-        C,
-        MinSize<Components4D>,
-        number
-      >;
+  w(this: Vector<MinSize<Components4D>>): number {
+    if (isMin4D(this.components)) {
+      return this.components[3];
     } else {
       throw new IncompatibleOperation("Requires at least a 4D vector");
     }
