@@ -1,78 +1,24 @@
-import TimeAnalysis from "./time_analysis";
-import { isNumber } from "./utils";
-
-type Components = [number, ...Array<number>];
-export type Components2D = [number, number];
-export type Components3D = [...Components2D, number];
-export type Components4D = [...Components3D, number];
-
-type MinSize<C extends Components> = [...C, ...Array<number>];
-
-type VectorArg<C extends Components> = Vector<C> | number;
-
-function narrowArg<C extends Components>(
-  param: VectorArg<C>
-): [number, null] | [null, Vector<C>] {
-  return isNumber(param) ? [param, null] : [null, param];
-}
-
-class IncompatibleVectors extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "IncompatibleVectors";
-  }
-}
-
-class IncompatibleOperation extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "IncompatibleOperation";
-  }
-}
-
-function isSameSize<C extends Components>(
-  a: Vector<C>,
-  b: Vector<Components>
-): b is Vector<C> {
-  if (a.size !== b.size) {
-    throw new IncompatibleVectors(
-      `Received an incompatible vector of size ${b.size}`
-    );
-  }
-  return true;
-}
-
-function isComponents(value: unknown): value is Components {
-  return Array.isArray(value) && value.length >= 1 && value.every(isNumber);
-}
-
-function isMin2D(components: Components): components is MinSize<Components2D> {
-  return components.length >= 2;
-}
-
-function isMin3D(components: Components): components is MinSize<Components3D> {
-  return components.length >= 3;
-}
-
-function isMin4D(components: Components): components is MinSize<Components4D> {
-  return components.length >= 4;
-}
-
-function is2D(components: Components): components is Components2D {
-  return components.length === 2;
-}
-
-type MinValidatedReturnType<
-  C extends Components,
-  R extends Components,
-  O
-> = C extends [...R, ...Array<number>] ? O : never;
-
-type ValidatedReturnType<
-  C extends Components,
-  R extends Components,
-  O
-> = C extends R ? O : never;
+import TimeAnalysis from "../time_analysis";
+import { isNumber } from "../utils";
+import { IncompatibleOperation } from "./error";
+import {
+  is2D,
+  isComponents,
+  isMin2D,
+  isMin3D,
+  isMin4D,
+  isSameSize,
+  narrowArg,
+} from "./helpers";
+import {
+  Components,
+  VectorArg,
+  ValidatedReturnType,
+  Components2D,
+  MinValidatedReturnType,
+  Components3D,
+  Components4D,
+} from "./types";
 
 export default class Vector<const C extends Components> {
   private components: C;
@@ -507,3 +453,5 @@ export default class Vector<const C extends Components> {
 try {
   TimeAnalysis.registerMethods(Vector);
 } catch {}
+
+export type { Components2D, Components3D, Components4D };

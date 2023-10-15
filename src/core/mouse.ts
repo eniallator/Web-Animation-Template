@@ -1,4 +1,4 @@
-import Vector from "./vector";
+import Vector, { Components2D } from "./Vector";
 
 function isMouseEvent(evt: unknown): evt is MouseEvent {
   return (
@@ -18,8 +18,8 @@ type MouseCallback = (
 export default class Mouse {
   private _down: boolean;
   private _clicked: boolean;
-  private _pos: Vector;
-  private _relativePos: Vector;
+  private _pos: Vector<Components2D>;
+  private _relativePos: Vector<Components2D>;
   private elementBounds: DOMRect;
   private downCallback?: MouseCallback;
   private moveCallback?: MouseCallback;
@@ -56,10 +56,9 @@ export default class Mouse {
       callback?.call(this, evt);
     };
     element.onmousemove = (evt: MouseEvent | TouchEvent) =>
-      handleChange.call(this, this.moveCallback, evt);
+      handleChange(this.moveCallback, evt);
     element.ontouchmove = (evt: MouseEvent | TouchEvent) =>
-      handleChange.call(
-        this,
+      handleChange(
         this.moveCallback,
         evt,
         !isMouseEvent(evt) ? evt.touches[0] : undefined
@@ -69,11 +68,11 @@ export default class Mouse {
     ) => {
       this._clicked = this._down === false;
       this._down = true;
-      handleChange.call(this, this.downCallback, evt);
+      handleChange(this.downCallback, evt);
     };
     element.onmouseup = element.ontouchend = (evt: MouseEvent | TouchEvent) => {
       this._clicked = this._down = false;
-      this.upCallback?.call(this, evt);
+      handleChange(this.upCallback, evt);
     };
 
     element.onresize = () => {
@@ -114,10 +113,10 @@ export default class Mouse {
   get clicked(): boolean {
     return this._clicked;
   }
-  get pos(): Vector {
+  get pos(): Vector<Components2D> {
     return this._pos;
   }
-  get relativePos(): Vector {
+  get relativePos(): Vector<Components2D> {
     return this._relativePos;
   }
 }
