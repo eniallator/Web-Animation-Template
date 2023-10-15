@@ -1,6 +1,5 @@
 import Vector from ".";
 import { isNumber } from "../utils";
-import { IncompatibleVectors } from "./error";
 import {
   Components,
   VectorArg,
@@ -45,11 +44,6 @@ export function is2D(components: Components): components is Components2D {
 export function isSameSize<C extends Components>(
   a: Vector<C>,
   b: Vector<Components>
-): b is Vector<C> {
-  if (a.size !== b.size) {
-    throw new IncompatibleVectors(
-      `Received an incompatible vector of size ${b.size}`
-    );
-  }
-  return true;
+): boolean {
+  return a.size === b.size;
 }

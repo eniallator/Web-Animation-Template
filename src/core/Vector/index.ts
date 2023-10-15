@@ -1,6 +1,6 @@
 import TimeAnalysis from "../time_analysis";
 import { isNumber } from "../utils";
-import { IncompatibleOperation } from "./error";
+import { IncompatibleOperation, IncompatibleVectors } from "./error";
 import {
   is2D,
   isComponents,
@@ -47,7 +47,11 @@ export default class Vector<const C extends Components> {
   pow(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
-      if (vec != null) isSameSize(this, vec);
+      if (vec != null && !isSameSize(this, vec)) {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${vec.size}`
+        );
+      }
       for (const i in this.components) {
         this.components[i] **= num ?? vec.components[i];
       }
@@ -63,7 +67,11 @@ export default class Vector<const C extends Components> {
   add(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
-      if (vec != null) isSameSize(this, vec);
+      if (vec != null && !isSameSize(this, vec)) {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${vec.size}`
+        );
+      }
       for (const i in this.components) {
         this.components[i] += num ?? vec.components[i];
       }
@@ -79,7 +87,11 @@ export default class Vector<const C extends Components> {
   sub(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
-      if (vec != null) isSameSize(this, vec);
+      if (vec != null && !isSameSize(this, vec)) {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${vec.size}`
+        );
+      }
       for (const i in this.components) {
         this.components[i] -= num ?? vec.components[i];
       }
@@ -95,7 +107,11 @@ export default class Vector<const C extends Components> {
   multiply(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
-      if (vec != null) isSameSize(this, vec);
+      if (vec != null && !isSameSize(this, vec)) {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${vec.size}`
+        );
+      }
       for (const i in this.components) {
         this.components[i] *= num ?? vec.components[i];
       }
@@ -111,7 +127,11 @@ export default class Vector<const C extends Components> {
   divide(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
-      if (vec != null) isSameSize(this, vec);
+      if (vec != null && !isSameSize(this, vec)) {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${vec.size}`
+        );
+      }
       for (const i in this.components) {
         this.components[i] /= num ?? vec.components[i];
       }
@@ -126,12 +146,17 @@ export default class Vector<const C extends Components> {
    * @returns {Vector} Interpolated vector
    */
   lerp(other: Vector<C>, t: number): Vector<C> {
-    isSameSize(this, other);
-    return new Vector(
-      this.components.map(
-        (component, i) => component - (component - other.components[i]) * t
-      ) as C
-    );
+    if (isSameSize(this, other)) {
+      return new Vector(
+        this.components.map(
+          (component, i) => component - (component - other.components[i]) * t
+        ) as C
+      );
+    } else {
+      throw new IncompatibleVectors(
+        `Received an incompatible vector of size ${other.size}`
+      );
+    }
   }
 
   /**
@@ -140,11 +165,16 @@ export default class Vector<const C extends Components> {
    * @returns {number} Dot product
    */
   dot(other: Vector<C>): number {
-    isSameSize(this, other);
-    return this.components.reduce(
-      (acc, component, i) => acc + component * other.components[i],
-      0
-    );
+    if (isSameSize(this, other)) {
+      return this.components.reduce(
+        (acc, component, i) => acc + component * other.components[i],
+        0
+      );
+    } else {
+      throw new IncompatibleVectors(
+        `Received an incompatible vector of size ${other.size}`
+      );
+    }
   }
 
   /**
@@ -170,8 +200,13 @@ export default class Vector<const C extends Components> {
    */
   setHead(...params: C | readonly [Vector<C>]): ThisType<Vector<C>> {
     if (!isNumber(params[0])) {
-      isSameSize(this, params[0]);
-      this.components = [...params[0].components] as C;
+      if (isSameSize(this, params[0])) {
+        this.components = [...params[0].components] as C;
+      } else {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${params[0].size}`
+        );
+      }
     } else {
       this.components = params as C;
     }
