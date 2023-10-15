@@ -20,3 +20,10 @@ export type ValidatedReturnType<
   R extends Components,
   O
 > = C extends R ? O : never;
+
+export type ArrayToNumber<A extends Array<unknown>> = A extends [
+  unknown,
+  ...infer R
+]
+  ? [number, ...ArrayToNumber<R>]
+  : [];

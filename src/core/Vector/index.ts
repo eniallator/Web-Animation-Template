@@ -18,6 +18,7 @@ import {
   MinValidatedReturnType,
   Components3D,
   Components4D,
+  ArrayToNumber,
 } from "./types";
 
 export default class Vector<const C extends Components> {
@@ -27,10 +28,16 @@ export default class Vector<const C extends Components> {
    * Robust Vector class which has many available operations
    * @param {C | readonly [Vector<C>]} ...params Either a vector, or the literal components of the vector
    */
-  constructor(...params: C | readonly [Vector<C>]) {
-    this.components = (
-      isNumber(params[0]) ? params : [...params[0].components]
-    ) as C;
+  private constructor(params: C) {
+    this.components = params;
+  }
+
+  static create<C extends Components>(
+    ...components: C
+  ): Vector<ArrayToNumber<C>> {
+    return new Vector<ArrayToNumber<C>>(
+      components as unknown as ArrayToNumber<C>
+    );
   }
 
   /**
@@ -122,9 +129,9 @@ export default class Vector<const C extends Components> {
   lerp(other: Vector<C>, t: number): Vector<C> {
     isSameSize(this, other);
     return new Vector(
-      ...(this.components.map(
+      this.components.map(
         (component, i) => component - (component - other.components[i]) * t
-      ) as C)
+      ) as C
     );
   }
 
@@ -223,7 +230,7 @@ export default class Vector<const C extends Components> {
       this.components.reduce((acc, component) => acc + component * component, 0)
     );
     return new Vector(
-      ...(this.components.map((component) => component / magnitude) as C)
+      this.components.map((component) => component / magnitude) as C
     );
   }
 
@@ -258,7 +265,7 @@ export default class Vector<const C extends Components> {
    */
   getSign(): Vector<C> {
     return new Vector(
-      ...(this.components.map((component) => (component >= 0 ? 1 : -1)) as C)
+      this.components.map((component) => (component >= 0 ? 1 : -1)) as C
     );
   }
 
@@ -283,7 +290,7 @@ export default class Vector<const C extends Components> {
 
       return out as ValidatedReturnType<C, Components2D, number>;
     } else {
-      throw new IncompatibleOperation(`Requires at a 2D vector`);
+      throw new IncompatibleOperation("Requires a 2D vector");
     }
   }
 
@@ -307,7 +314,7 @@ export default class Vector<const C extends Components> {
 
       return this as ValidatedReturnType<C, Components2D, Vector<Components2D>>;
     } else {
-      throw new IncompatibleOperation(`Requires at a 2D vector`);
+      throw new IncompatibleOperation("Requires a 2D vector");
     }
   }
 
@@ -347,7 +354,7 @@ export default class Vector<const C extends Components> {
 
       return this as ValidatedReturnType<C, Components2D, Vector<Components2D>>;
     } else {
-      throw new IncompatibleOperation(`Requires at a 2D vector`);
+      throw new IncompatibleOperation("Requires a 2D vector");
     }
   }
 
@@ -356,7 +363,7 @@ export default class Vector<const C extends Components> {
    * @returns {Vector} Duplicated version of this vector
    */
   copy(): Vector<C> {
-    return new Vector(this);
+    return new Vector([...this.components] as C);
   }
 
   get size(): number {
@@ -372,7 +379,7 @@ export default class Vector<const C extends Components> {
     if (isMin2D(components)) {
       return components[1] as MinValidatedReturnType<C, Components2D, number>;
     } else {
-      throw new IncompatibleOperation(`Requires at least a 2D vector`);
+      throw new IncompatibleOperation("Requires at least a 2D vector");
     }
   }
 
@@ -381,7 +388,7 @@ export default class Vector<const C extends Components> {
     if (isMin3D(components)) {
       return components[1] as MinValidatedReturnType<C, Components3D, number>;
     } else {
-      throw new IncompatibleOperation(`Requires at least a 3D vector`);
+      throw new IncompatibleOperation("Requires at least a 3D vector");
     }
   }
 
@@ -390,7 +397,7 @@ export default class Vector<const C extends Components> {
     if (isMin4D(components)) {
       return components[1] as MinValidatedReturnType<C, Components4D, number>;
     } else {
-      throw new IncompatibleOperation(`Requires at least a 4D vector`);
+      throw new IncompatibleOperation("Requires at least a 4D vector");
     }
   }
 
@@ -423,30 +430,30 @@ export default class Vector<const C extends Components> {
     const match = /^Vector\d+D\[([^\]]+)\]$/.exec(str);
     const components = match != null ? match[1].split(", ").map(Number) : null;
     if (isComponents(components)) {
-      return new Vector(...components);
+      return new Vector(components);
     } else {
       return undefined;
     }
   }
 
   static get ZERO(): Vector<Components2D> {
-    return new Vector<Components2D>(0, 0);
+    return new Vector<Components2D>([0, 0]);
   }
   static get ONE(): Vector<Components2D> {
-    return new Vector<Components2D>(1, 1);
+    return new Vector<Components2D>([1, 1]);
   }
 
   static get RIGHT(): Vector<Components2D> {
-    return new Vector<Components2D>(1, 0);
+    return new Vector<Components2D>([1, 0]);
   }
   static get LEFT(): Vector<Components2D> {
-    return new Vector<Components2D>(-1, 0);
+    return new Vector<Components2D>([-1, 0]);
   }
   static get DOWN(): Vector<Components2D> {
-    return new Vector<Components2D>(0, 1);
+    return new Vector<Components2D>([0, 1]);
   }
   static get UP(): Vector<Components2D> {
-    return new Vector<Components2D>(0, -1);
+    return new Vector<Components2D>([0, -1]);
   }
 }
 
