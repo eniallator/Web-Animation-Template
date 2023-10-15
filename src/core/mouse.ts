@@ -49,8 +49,8 @@ export default class Mouse {
       if (pos != null) {
         this.pos.setHead(pos.clientX, pos.clientY);
         this.relativePos.setHead(
-          this.pos.x / this.elementBounds.width,
-          this.pos.y / this.elementBounds.height
+          this.pos.x() / this.elementBounds.width,
+          this.pos.y() / this.elementBounds.height
         );
       }
       callback?.call(this, evt);

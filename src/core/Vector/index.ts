@@ -15,10 +15,10 @@ import {
   VectorArg,
   ValidatedReturnType,
   Components2D,
-  MinValidatedReturnType,
   Components3D,
   Components4D,
   ArrayToNumber,
+  MinSize,
 } from "./types";
 
 export default class Vector<const C extends Components> {
@@ -274,7 +274,9 @@ export default class Vector<const C extends Components> {
    * @type {Vector<Components2D>}
    * @returns {number} Angle between 0 and 2 * PI
    */
-  getAngle(): ValidatedReturnType<C, Components2D, number> {
+  getAngle(
+    this: Vector<Components2D>
+  ): ValidatedReturnType<C, Components2D, number> {
     const { components } = this;
     if (is2D(components)) {
       const [x, y] = components;
@@ -333,8 +335,9 @@ export default class Vector<const C extends Components> {
     const { components } = this;
     if (is2D(components)) {
       const [x, y] = components;
-      const dx = x - pivot.x;
-      const dy = y - pivot.y;
+      const [px, py] = pivot.components;
+      const dx = x - px;
+      const dy = y - py;
       const dMag = Math.sqrt(dx * dx + dy * dy);
 
       let currAngle;
@@ -349,8 +352,8 @@ export default class Vector<const C extends Components> {
       const oX = dMag * Math.cos(currAngle + angle);
       const oY = dMag * Math.sin(currAngle + angle);
 
-      this.components[0] = oX + pivot.x;
-      this.components[1] = oY + pivot.y;
+      this.components[0] = oX + px;
+      this.components[1] = oY + py;
 
       return this as ValidatedReturnType<C, Components2D, Vector<Components2D>>;
     } else {
@@ -370,32 +373,50 @@ export default class Vector<const C extends Components> {
     return this.components.length;
   }
 
-  get x(): number {
+  x(): number {
     return this.components[0];
   }
 
-  get y(): MinValidatedReturnType<C, Components2D, number> {
+  y(
+    this: Vector<MinSize<Components2D>>
+  ): ValidatedReturnType<C, MinSize<Components2D>, number> {
     const { components } = this;
     if (isMin2D(components)) {
-      return components[1] as MinValidatedReturnType<C, Components2D, number>;
+      return components[1] as ValidatedReturnType<
+        C,
+        MinSize<Components2D>,
+        number
+      >;
     } else {
       throw new IncompatibleOperation("Requires at least a 2D vector");
     }
   }
 
-  get z(): MinValidatedReturnType<C, Components3D, number> {
+  z(
+    this: Vector<MinSize<Components3D>>
+  ): ValidatedReturnType<C, MinSize<Components3D>, number> {
     const components = this.components;
     if (isMin3D(components)) {
-      return components[1] as MinValidatedReturnType<C, Components3D, number>;
+      return components[1] as ValidatedReturnType<
+        C,
+        MinSize<Components3D>,
+        number
+      >;
     } else {
       throw new IncompatibleOperation("Requires at least a 3D vector");
     }
   }
 
-  get w(): MinValidatedReturnType<C, Components4D, number> {
+  w(
+    this: Vector<MinSize<Components4D>>
+  ): ValidatedReturnType<C, MinSize<Components4D>, number> {
     const components = this.components;
     if (isMin4D(components)) {
-      return components[1] as MinValidatedReturnType<C, Components4D, number>;
+      return components[1] as ValidatedReturnType<
+        C,
+        MinSize<Components4D>,
+        number
+      >;
     } else {
       throw new IncompatibleOperation("Requires at least a 4D vector");
     }
