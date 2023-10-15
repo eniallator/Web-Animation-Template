@@ -41,6 +41,10 @@ export function is2D(components: Components): components is Components2D {
   return components.length === 2;
 }
 
+export function is3D(components: Components): components is Components2D {
+  return components.length === 2;
+}
+
 export function isSameSize<C extends Components>(
   a: Vector<C>,
   b: Vector<Components>

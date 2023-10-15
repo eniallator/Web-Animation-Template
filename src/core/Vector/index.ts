@@ -3,6 +3,7 @@ import { isNumber } from "../utils";
 import { IncompatibleOperation, IncompatibleVectors } from "./error";
 import {
   is2D,
+  is3D,
   isComponents,
   isMin2D,
   isMin3D,
@@ -387,6 +388,34 @@ export default class Vector<const C extends Components> {
       return this;
     } else {
       throw new IncompatibleOperation("Requires a 2D vector");
+    }
+  }
+
+  /**
+   * Cross product of this vector and another
+   * @param this
+   * @param other
+   */
+  crossProduct(
+    this: Vector<Components3D>,
+    other: Vector<Components3D>
+  ): Vector<Components3D> {
+    if (is3D(this.components)) {
+      if (isSameSize(this, other)) {
+        const a = this.components;
+        const b = other.components;
+        return new Vector<Components3D>([
+          a[1] * b[2] - a[2] * b[1],
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0],
+        ]);
+      } else {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${other.size}`
+        );
+      }
+    } else {
+      throw new IncompatibleOperation("Requires a 3D vector");
     }
   }
 
