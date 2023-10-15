@@ -238,7 +238,7 @@ function initHtml<C extends ConfigPart<string>>(
       inp.style.display = "none";
 
       inp.onchange = changeCallback(
-        config as FileConfig<string>,
+        config,
         onUpdate as OnUpdate<FileConfig<string>>
       );
 
