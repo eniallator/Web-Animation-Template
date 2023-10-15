@@ -24,14 +24,14 @@ import {
 export default class Vector<const C extends Components> {
   private components: C;
 
-  /**
-   * Robust Vector class which has many available operations
-   * @param {C | readonly [Vector<C>]} ...params Either a vector, or the literal components of the vector
-   */
   private constructor(params: C) {
     this.components = params;
   }
 
+  /**
+   * Robust Vector class which has many available operations
+   * @param {Components} components The components of the vector, can be any size.
+   */
   static create<C extends Components>(
     ...components: C
   ): Vector<ArrayToNumber<C>> {
@@ -393,8 +393,9 @@ export default class Vector<const C extends Components> {
 
   /**
    * Cross product of this vector and another
-   * @param this
-   * @param other
+   * @param {Vector<Components3D>} this
+   * @param {Vector<Components3D>} other
+   * @returns {Vector<Components3D>} The resulting cross product vector of this and the other vector
    */
   crossProduct(
     this: Vector<Components3D>,
@@ -431,10 +432,18 @@ export default class Vector<const C extends Components> {
     return this.components.length;
   }
 
+  /**
+   * Get the value of the first component in this vector
+   * @returns {number}
+   */
   x(): number {
     return this.components[0];
   }
 
+  /**
+   * Get the value of the second component in this vector
+   * @returns {number}
+   */
   y(this: Vector<MinSize<Components2D>>): number {
     if (isMin2D(this.components)) {
       return this.components[1];
@@ -443,6 +452,10 @@ export default class Vector<const C extends Components> {
     }
   }
 
+  /**
+   * Get the value of the third component in this vector
+   * @returns {number}
+   */
   z(this: Vector<MinSize<Components3D>>): number {
     if (isMin3D(this.components)) {
       return this.components[2];
@@ -451,6 +464,10 @@ export default class Vector<const C extends Components> {
     }
   }
 
+  /**
+   * Get the value of the fourth component in this vector
+   * @returns {number}
+   */
   w(this: Vector<MinSize<Components4D>>): number {
     if (isMin4D(this.components)) {
       return this.components[3];
