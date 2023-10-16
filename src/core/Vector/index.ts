@@ -45,7 +45,7 @@ export default class Vector<const C extends Components> {
    * @param  {...VectorArg} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
    * @returns {this} this
    */
-  pow(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
+  pow(...args: Array<VectorArg<C>>): this {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
       if (vec != null && !isSameSize(this, vec)) {
@@ -65,7 +65,7 @@ export default class Vector<const C extends Components> {
    * @param  {...VectorArg} args If given a number, both components are added with this. If given a Vector, the add operation is component-wise
    * @returns {this} this
    */
-  add(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
+  add(...args: Array<VectorArg<C>>): this {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
       if (vec != null && !isSameSize(this, vec)) {
@@ -85,7 +85,7 @@ export default class Vector<const C extends Components> {
    * @param  {...VectorArg} args If given a number, both components have the number taken away from them. If given a Vector, the subtract operation is component-wise
    * @returns {this} this
    */
-  sub(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
+  sub(...args: Array<VectorArg<C>>): this {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
       if (vec != null && !isSameSize(this, vec)) {
@@ -105,7 +105,7 @@ export default class Vector<const C extends Components> {
    * @param  {...VectorArg} args If given a number, both components are multiplied by this. If given a Vector, the multiply operation is component-wise
    * @returns {this} this
    */
-  multiply(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
+  multiply(...args: Array<VectorArg<C>>): this {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
       if (vec != null && !isSameSize(this, vec)) {
@@ -125,7 +125,7 @@ export default class Vector<const C extends Components> {
    * @param  {...VectorArg} args If given a number, both components are divided by this. If given a Vector, the divide operation is component-wise
    * @returns {this} this
    */
-  divide(...args: Array<VectorArg<C>>): ThisType<Vector<C>> {
+  divide(...args: Array<VectorArg<C>>): this {
     for (let arg of args) {
       const [num, vec] = narrowArg(arg);
       if (vec != null && !isSameSize(this, vec)) {
@@ -199,7 +199,7 @@ export default class Vector<const C extends Components> {
    * @param {number} [y] Y component of the given coordinates
    * @returns {this} this
    */
-  setHead(...params: C | readonly [Vector<C>]): ThisType<Vector<C>> {
+  setHead(...params: C | readonly [Vector<C>]): this {
     if (!isNumber(params[0])) {
       if (isSameSize(this, params[0])) {
         this.components = [...params[0].components] as C;
@@ -240,7 +240,7 @@ export default class Vector<const C extends Components> {
    * @param {number} mag New magnitude to set to
    * @returns {this} this
    */
-  setMagnitude(magnitude: number): ThisType<Vector<C>> {
+  setMagnitude(magnitude: number): this {
     const magnitudeRatio =
       magnitude /
       Math.sqrt(
@@ -273,7 +273,7 @@ export default class Vector<const C extends Components> {
    * Normalises this vector
    * @returns {this} this
    */
-  normalise(): ThisType<Vector<C>> {
+  normalise(): this {
     const magnitude = Math.sqrt(
       this.components.reduce((acc, component) => acc + component * component, 0)
     );
@@ -287,7 +287,7 @@ export default class Vector<const C extends Components> {
    * Sets each component of this vector to it's absolute value
    * @returns {this} this
    */
-  abs(): ThisType<Vector<C>> {
+  abs(): this {
     for (const i in this.components) {
       this.components[i] = Math.abs(this.components[i]);
     }
