@@ -23,6 +23,7 @@ import {
   Components4D,
   ArrayToNumber,
   MinSize,
+  ComponentsND,
 } from "./types";
 
 export default class Vector<const C extends Components> {
@@ -545,11 +546,15 @@ export default class Vector<const C extends Components> {
     }
   }
 
-  static get ZERO(): Vector<Components2D> {
-    return new Vector<Components2D>([0, 0]);
+  static ZERO<N extends number>(size: N): Vector<ComponentsND<N>> {
+    return new Vector<ComponentsND<N>>(
+      new Array(size).fill(0) as ComponentsND<N>
+    );
   }
-  static get ONE(): Vector<Components2D> {
-    return new Vector<Components2D>([1, 1]);
+  static ONE<N extends number>(size: N): Vector<ComponentsND<N>> {
+    return new Vector<ComponentsND<N>>(
+      new Array(size).fill(1) as ComponentsND<N>
+    );
   }
 
   static get RIGHT(): Vector<Components2D> {

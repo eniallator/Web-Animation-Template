@@ -32,8 +32,8 @@ export default class Mouse {
   constructor(element: HTMLElement) {
     this._down = false;
     this._clicked = false;
-    this._relativePos = Vector.ZERO;
-    this._pos = Vector.ZERO;
+    this._relativePos = Vector.ZERO(2);
+    this._pos = Vector.ZERO(2);
 
     this.elementBounds = element.getBoundingClientRect();
 
