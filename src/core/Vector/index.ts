@@ -179,6 +179,14 @@ export default class Vector<const C extends Components> {
   }
 
   /**
+   * Compute sum of all components
+   * @returns {number}
+   */
+  sum(): number {
+    return this.components.reduce((acc, n) => acc + n);
+  }
+
+  /**
    * Returns the max of the components, whichever component is bigger
    * @returns {number} the value of the bigger component
    */
@@ -364,28 +372,34 @@ export default class Vector<const C extends Components> {
     angle: number
   ): ThisType<Vector<Components2D>> {
     if (is2D(this.components)) {
-      const [x, y] = this.components;
-      const [px, py] = pivot.components;
-      const dx = x - px;
-      const dy = y - py;
-      const dMag = Math.sqrt(dx * dx + dy * dy);
+      if (isSameSize(this, pivot)) {
+        const [x, y] = this.components;
+        const [px, py] = pivot.components;
+        const dx = x - px;
+        const dy = y - py;
+        const dMag = Math.sqrt(dx * dx + dy * dy);
 
-      let currAngle;
-      if (dx === 0 && dy === 0) currAngle = 0;
-      else if (dy === 0) currAngle = dx > 0 ? 0 : Math.PI;
-      else if (dx === 0) currAngle = dy > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
-      else if (dx > 0 && dy > 0) currAngle = Math.atan(dy / dx);
-      else if (dx > 0) currAngle = (Math.PI * 3) / 2 + Math.atan(dx / -dy);
-      else if (dy > 0) currAngle = Math.PI - Math.atan(dy / -dx);
-      else currAngle = (Math.PI * 3) / 2 - Math.atan(dx / dy);
+        let currAngle;
+        if (dx === 0 && dy === 0) currAngle = 0;
+        else if (dy === 0) currAngle = dx > 0 ? 0 : Math.PI;
+        else if (dx === 0) currAngle = dy > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
+        else if (dx > 0 && dy > 0) currAngle = Math.atan(dy / dx);
+        else if (dx > 0) currAngle = (Math.PI * 3) / 2 + Math.atan(dx / -dy);
+        else if (dy > 0) currAngle = Math.PI - Math.atan(dy / -dx);
+        else currAngle = (Math.PI * 3) / 2 - Math.atan(dx / dy);
 
-      const oX = dMag * Math.cos(currAngle + angle);
-      const oY = dMag * Math.sin(currAngle + angle);
+        const oX = dMag * Math.cos(currAngle + angle);
+        const oY = dMag * Math.sin(currAngle + angle);
 
-      this.components[0] = oX + px;
-      this.components[1] = oY + py;
+        this.components[0] = oX + px;
+        this.components[1] = oY + py;
 
-      return this;
+        return this;
+      } else {
+        throw new IncompatibleVectors(
+          `Received an incompatible vector of size ${pivot.size}`
+        );
+      }
     } else {
       throw new IncompatibleOperation("Requires a 2D vector");
     }
