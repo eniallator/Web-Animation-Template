@@ -16,7 +16,7 @@ import {
   narrowArg,
 } from "./helpers";
 import {
-  Components,
+  AnyComponents,
   VectorArg,
   Components2D,
   Components3D,
@@ -26,7 +26,7 @@ import {
   ComponentsND,
 } from "./types";
 
-export default class Vector<const C extends Components> {
+export default class Vector<const C extends AnyComponents> {
   private components: C;
 
   private constructor(params: C) {
@@ -35,9 +35,9 @@ export default class Vector<const C extends Components> {
 
   /**
    * Robust Vector class which has many available operations
-   * @param {Components} components The components of the vector, can be any size.
+   * @param {AnyComponents} components The components of the vector, can be any size.
    */
-  static create<C extends Components>(
+  static create<C extends AnyComponents>(
     ...components: C
   ): Vector<ArrayToNumber<C>> {
     return new Vector<ArrayToNumber<C>>(
@@ -520,7 +520,7 @@ export default class Vector<const C extends Components> {
    * @param {Vector} other
    * @returns {boolean} If they are equal
    */
-  equals(other: Vector<Components>): boolean {
+  equals(other: Vector<AnyComponents>): boolean {
     return (
       isSameSize(this, other) &&
       this.components.every((component, i) => component === other.components[i])
@@ -533,10 +533,10 @@ export default class Vector<const C extends Components> {
 
   /**
    * Parses a string and tries to make a vector out of it
-   * @param {string} str Vector string in the format of "x:NUMBER,y:NUMBER"
+   * @param {string} str Vector string in the format of "VectorND[component1, component2, ...]"
    * @returns {(Vector|undefined)} A vector if the x and y components have been found, else void
    */
-  static parseString(str: string): Vector<Components> | undefined {
+  static parseString(str: string): Vector<AnyComponents> | undefined {
     const match = /^Vector\d+D\[([^\]]+)\]$/.exec(str);
     const components = match != null ? match[1].split(", ").map(Number) : null;
     if (isComponents(components)) {
