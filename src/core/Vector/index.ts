@@ -1,6 +1,10 @@
 import TimeAnalysis from "../time_analysis";
 import { isNumber } from "../utils";
-import { IncompatibleOperation, IncompatibleVectors } from "./error";
+import {
+  IncompatibleOperation,
+  IncompatibleVectors,
+  OutOfBounds,
+} from "./error";
 import {
   is2D,
   is3D,
@@ -487,6 +491,22 @@ export default class Vector<const C extends Components> {
       return this.components[3];
     } else {
       throw new IncompatibleOperation("Requires at least a 4D vector");
+    }
+  }
+
+  /**
+   * Get the value of a component at a specified index
+   * @param index
+   * @returns {number}
+   */
+  valueOf(index: number): number {
+    const value = this.components[index];
+    if (value != null) {
+      return value;
+    } else {
+      throw new OutOfBounds(
+        `Index ${index} out of bounds for vector of size ${this.components.length}`
+      );
     }
   }
 

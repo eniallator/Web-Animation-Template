@@ -11,3 +11,10 @@ export class IncompatibleOperation extends Error {
     this.name = "IncompatibleOperation";
   }
 }
+
+export class OutOfBounds extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "OutOfBounds";
+  }
+}
