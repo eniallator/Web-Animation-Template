@@ -2,7 +2,7 @@ import ParamConfig from "./configParser";
 import Mouse from "./core/mouse";
 import dom from "./core/dom";
 import config from "./app/config";
-import { AppContext } from "./core/types";
+import { AppContext, DeriveAppState, OptReturnType } from "./core/types";
 import app from "./app";
 
 const canvas = dom.get<HTMLCanvasElement>("canvas");
@@ -21,6 +21,9 @@ const appContext: AppContext<typeof config> = {
   ctx,
   mouse,
 };
+
+let appState: OptReturnType<typeof app.init> =
+  app.init != null ? app.init(appContext) ?? null : null;
 paramConfig.addCopyToClipboardHandler("#share-btn");
 
 window.onresize = (evt) => {
@@ -28,7 +31,9 @@ window.onresize = (evt) => {
   canvas.width = width;
   canvas.height = height;
   if (app.onResize != null) {
-    app.onResize(evt, appContext);
+    appState =
+      app.onResize(evt, appContext, appState as DeriveAppState<typeof app>) ??
+      appState;
   }
 };
 
@@ -45,7 +50,7 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
 });
 
 dom.addListener(dom.get("#config-dropdown-btn"), "click", () =>
-  dom.get<HTMLDialogElement>("dialog#config-modal").showModal()
+  dom.get<HTMLDialogElement>("#config-modal").showModal()
 );
 
 dom.addListener(
@@ -58,12 +63,12 @@ dom.addListener(
   }
 );
 
-app.init(appContext);
-
 const { animationFrame } = app;
 if (animationFrame != null) {
   const animate = () => {
-    animationFrame(appContext);
+    appState =
+      animationFrame(appContext, appState as DeriveAppState<typeof app>) ??
+      appState;
     requestAnimationFrame(animate);
   };
   requestAnimationFrame(animate);

@@ -1,5 +1,5 @@
 import Vector from ".";
-import { isNumber } from "../utils";
+import { isNumber } from "../guard";
 import {
   AnyComponents,
   VectorArg,
