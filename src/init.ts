@@ -5,7 +5,14 @@ import config from "./app/config";
 import { AppContext } from "./core/types";
 import app from "./app";
 
+function updateCanvasBounds(canvas: HTMLCanvasElement) {
+  const { width, height } = canvas.getBoundingClientRect();
+  canvas.width = width;
+  canvas.height = height;
+}
+
 const canvas = dom.get<HTMLCanvasElement>("canvas");
+updateCanvasBounds(canvas);
 const ctx = canvas.getContext("2d");
 if (ctx == null) {
   throw new Error(`Could not get a 2D rendering context for element ${canvas}`);
@@ -30,6 +37,7 @@ if (app.type === "stateless") {
 paramConfig.addCopyToClipboardHandler("#share-btn");
 
 window.onresize = (evt) => {
+  updateCanvasBounds(canvas);
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = width;
   canvas.height = height;
