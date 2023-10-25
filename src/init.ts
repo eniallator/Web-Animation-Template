@@ -2,7 +2,7 @@ import ParamConfig from "./configParser";
 import Mouse from "./core/mouse";
 import dom from "./core/dom";
 import config from "./app/config";
-import { AppContext, DeriveAppState, OptReturnType } from "./core/types";
+import { AppContext } from "./core/types";
 import app from "./app";
 
 const canvas = dom.get<HTMLCanvasElement>("canvas");
@@ -22,18 +22,22 @@ const appContext: AppContext<typeof config> = {
   mouse,
 };
 
-let appState: OptReturnType<typeof app.init> =
-  app.init != null ? app.init(appContext) ?? null : null;
+let appState = app.type === "stateful" ? app.init(appContext) : null;
+if (app.type === "stateless") {
+  app.init?.(appContext);
+}
+
 paramConfig.addCopyToClipboardHandler("#share-btn");
 
 window.onresize = (evt) => {
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = width;
   canvas.height = height;
-  if (app.onResize != null) {
+  if (app.type === "stateful") {
     appState =
-      app.onResize(evt, appContext, appState as DeriveAppState<typeof app>) ??
-      appState;
+      app.onResize?.(evt, { ...appContext, state: appState! }) ?? appState;
+  } else {
+    app.onResize?.(evt, appContext);
   }
 };
 
@@ -63,12 +67,14 @@ dom.addListener(
   }
 );
 
-const { animationFrame } = app;
-if (animationFrame != null) {
+if (app.animationFrame != null) {
   const animate = () => {
-    appState =
-      animationFrame(appContext, appState as DeriveAppState<typeof app>) ??
-      appState;
+    if (app.type === "stateful") {
+      appState =
+        app.animationFrame?.({ ...appContext, state: appState! }) ?? appState;
+    } else {
+      app.animationFrame?.(appContext);
+    }
     requestAnimationFrame(animate);
   };
   requestAnimationFrame(animate);
