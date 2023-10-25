@@ -42,7 +42,7 @@ export function is2D(components: AnyComponents): components is Components2D {
 }
 
 export function is3D(components: AnyComponents): components is Components2D {
-  return components.length === 2;
+  return components.length === 3;
 }
 
 export function isSameSize<C extends AnyComponents>(
