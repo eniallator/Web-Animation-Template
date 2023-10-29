@@ -1,4 +1,4 @@
-import Vector, { Components2D } from "./Vector";
+import Vector from "./Vector";
 
 function isMouseEvent(evt: unknown): evt is MouseEvent {
   return (
@@ -18,8 +18,8 @@ type MouseCallback = (
 export default class Mouse {
   private _down: boolean;
   private _clicked: boolean;
-  private _pos: Vector<Components2D>;
-  private _relativePos: Vector<Components2D>;
+  private _pos: Vector<2>;
+  private _relativePos: Vector<2>;
   private elementBounds: DOMRect;
   private downCallback?: MouseCallback;
   private moveCallback?: MouseCallback;
@@ -47,10 +47,10 @@ export default class Mouse {
       pos?: Touch
     ) => {
       if (pos != null) {
-        this.pos.setHead(pos.clientX, pos.clientY);
-        this.relativePos.setHead(
-          this.pos.x() / this.elementBounds.width,
-          this.pos.y() / this.elementBounds.height
+        this._pos.setHead(pos.clientX, pos.clientY);
+        this._relativePos.setHead(
+          this._pos.x() / this.elementBounds.width,
+          this._pos.y() / this.elementBounds.height
         );
       }
       callback?.call(this, evt);
@@ -113,10 +113,10 @@ export default class Mouse {
   get clicked(): boolean {
     return this._clicked;
   }
-  get pos(): Vector<Components2D> {
+  get pos(): Vector<2> {
     return this._pos;
   }
-  get relativePos(): Vector<Components2D> {
+  get relativePos(): Vector<2> {
     return this._relativePos;
   }
 }
