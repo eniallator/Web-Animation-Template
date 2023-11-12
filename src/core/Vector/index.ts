@@ -538,6 +538,10 @@ export default class Vector<const N extends number | undefined> {
     );
   }
 
+  /**
+   * Converts this vector to a string in the format: VectorND[n1, n2, ...]
+   * @returns the formatted string
+   */
   toString(): string {
     return `Vector${this.size}D[${toAnyComponents(this.components).join(
       ", "
@@ -557,6 +561,18 @@ export default class Vector<const N extends number | undefined> {
     } else {
       return undefined;
     }
+  }
+
+  /**
+   * Guard function used to narrow a parsed Vector
+   * @param size the size to narrow to
+   * @returns true if the size of the parsed vector is the given size, false otherwise
+   */
+  isSize<const S extends number>(
+    this: Vector<undefined>,
+    size: S
+  ): this is Vector<S> {
+    return toAnyComponents(this.components).length === size;
   }
 
   static ZERO<N extends number>(size: N): Vector<N> {
