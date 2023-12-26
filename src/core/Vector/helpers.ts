@@ -1,11 +1,16 @@
 import Vector from ".";
-import { isNumber } from "../guard";
-import { VectorArg, MinSizeVector, Components, AnyComponents } from "./types";
+import { hasKey, isNumber } from "../guard";
+import {
+  VectorArg,
+  MinSizeComponents,
+  Components,
+  AnyComponents,
+} from "./types";
 
-export function narrowArg<N extends number | undefined>(
-  param: VectorArg<N>
+export function narrowVectorArg<N extends number | undefined>(
+  arg: VectorArg<N>
 ): [number, null] | [null, Vector<N>] {
-  return isNumber(param) ? [param, null] : [null, param];
+  return isNumber(arg) ? [arg, null] : [null, arg];
 }
 
 export function isComponents(value: unknown): value is AnyComponents {
@@ -14,19 +19,19 @@ export function isComponents(value: unknown): value is AnyComponents {
 
 export function isMin2D(
   components: AnyComponents
-): components is MinSizeVector<2, (typeof components)["length"]> {
+): components is MinSizeComponents<2, (typeof components)["length"]> {
   return components.length >= 2;
 }
 
 export function isMin3D(
   components: AnyComponents
-): components is MinSizeVector<3, (typeof components)["length"]> {
+): components is MinSizeComponents<3, (typeof components)["length"]> {
   return components.length >= 3;
 }
 
 export function isMin4D(
   components: AnyComponents
-): components is MinSizeVector<4, (typeof components)["length"]> {
+): components is MinSizeComponents<4, (typeof components)["length"]> {
   return components.length >= 4;
 }
 
@@ -49,4 +54,15 @@ export function toAnyComponents<N extends number | undefined>(
   c: Components<N>
 ): AnyComponents {
   return c;
+}
+
+export function isAnyVector(
+  value: unknown
+): value is Vector<number | undefined> {
+  return hasKey(value, "type", (type): type is "Vector" => type === "Vector");
+}
+
+export function isVector<N extends number | undefined>(n: N) {
+  return (value: unknown): value is Vector<N> =>
+    isAnyVector(value) && (n == null || value.size === n);
 }

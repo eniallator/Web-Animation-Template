@@ -17,12 +17,23 @@ export function isArrayOf<T>(guard: Guard<T>): Guard<Array<T>> {
     Array.isArray(value) && value.every(guard);
 }
 
+export function hasKey<K extends string>(
+  value: unknown,
+  key: K
+): value is { [k in K]: unknown };
 export function hasKey<K extends string, V>(
   value: unknown,
   key: K,
   guard: Guard<V>
+): value is { [k in K]: V };
+export function hasKey<K extends string, V>(
+  value: unknown,
+  key: K,
+  guard?: Guard<V>
 ): value is { [k in K]: V } {
-  return isObject(value) && key in value && guard(value[key]);
+  return (
+    isObject(value) && key in value && (guard == null || guard(value[key]))
+  );
 }
 
 export function isEqual<T>(a: T, b: T): boolean {

@@ -13,7 +13,7 @@ export type Components<
   ? A
   : Components<N, [...A, number]>;
 
-export type MinSizeVector<
+export type MinSizeComponents<
   S extends number,
   N extends number | undefined
 > = Components<N> extends [...Components<S>, ...Array<number>]

@@ -1,7 +1,7 @@
-export class IncompatibleVectors extends Error {
+export class IncompatibleVector extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "IncompatibleVectors";
+    this.name = "IncompatibleVector";
   }
 }
 
