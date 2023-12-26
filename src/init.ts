@@ -2,7 +2,11 @@ import ParamConfig from "./configParser";
 import Mouse from "./core/mouse";
 import dom from "./core/dom";
 import config from "./app/config";
-import { AppContext } from "./core/types";
+import {
+  AppContext,
+  StatefulAppMethods,
+  StatelessAppMethods,
+} from "./core/types";
 import app from "./app";
 
 function updateCanvasBounds(canvas: HTMLCanvasElement) {
@@ -13,6 +17,7 @@ function updateCanvasBounds(canvas: HTMLCanvasElement) {
 
 const canvas = dom.get<HTMLCanvasElement>("canvas");
 updateCanvasBounds(canvas);
+
 const ctx = canvas.getContext("2d");
 if (ctx == null) {
   throw new Error(`Could not get a 2D rendering context for element ${canvas}`);
@@ -34,25 +39,7 @@ const appContext: AppContext<typeof config> = {
   },
 };
 
-let appState = app.type === "stateful" ? app.init(appContext) : null;
-if (app.type === "stateless") {
-  app.init?.(appContext);
-}
-
 paramConfig.addCopyToClipboardHandler("#share-btn");
-
-window.onresize = (evt) => {
-  updateCanvasBounds(canvas);
-  const { width, height } = canvas.getBoundingClientRect();
-  canvas.width = width;
-  canvas.height = height;
-  if (app.type === "stateful") {
-    appState =
-      app.onResize?.(evt, { ...appContext, state: appState! }) ?? appState;
-  } else {
-    app.onResize?.(evt, appContext);
-  }
-};
 
 dom.addListener(dom.get("#download-btn"), "click", () => {
   const url = canvas.toDataURL();
@@ -80,20 +67,60 @@ dom.addListener(
   }
 );
 
-if (app.animationFrame != null) {
-  const animate = () => {
-    const { time } = appContext;
-    const now = Date.now();
-    time.delta = now - time.lastFrame;
-    if (app.type === "stateful") {
-      appState =
-        app.animationFrame?.({ ...appContext, state: appState! }) ?? appState;
-    } else {
-      app.animationFrame?.(appContext);
-    }
-    time.lastFrame = now;
-    appContext.time = time;
-    requestAnimationFrame(animate);
+function initStateful<S extends object>(
+  app: StatefulAppMethods<typeof config, S>
+) {
+  let state = app.init(appContext);
+
+  window.onresize = (evt) => {
+    updateCanvasBounds(canvas);
+    const { width, height } = canvas.getBoundingClientRect();
+    canvas.width = width;
+    canvas.height = height;
+    state = app.onResize?.(evt, { ...appContext, state }) ?? state;
   };
-  requestAnimationFrame(animate);
+
+  if (app.animationFrame != null) {
+    const animate = () => {
+      const { time } = appContext;
+      const now = Date.now();
+      time.delta = now - time.lastFrame;
+      state = app.animationFrame?.({ ...appContext, time, state }) ?? state;
+      time.lastFrame = now;
+      appContext.time = time;
+      requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }
+}
+
+function initStateLess(app: StatelessAppMethods<typeof config>) {
+  app.init?.(appContext);
+
+  window.onresize = (evt) => {
+    updateCanvasBounds(canvas);
+    const { width, height } = canvas.getBoundingClientRect();
+    canvas.width = width;
+    canvas.height = height;
+    app.onResize?.(evt, appContext);
+  };
+
+  if (app.animationFrame != null) {
+    const animate = () => {
+      const { time } = appContext;
+      const now = Date.now();
+      time.delta = now - time.lastFrame;
+      app.animationFrame?.({ ...appContext, time });
+      time.lastFrame = now;
+      appContext.time = time;
+      requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }
+}
+
+if (app.type === "stateful") {
+  initStateful(app);
+} else {
+  initStateLess(app);
 }
