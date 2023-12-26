@@ -1,5 +1,6 @@
 import Vector from ".";
 import { hasKey, isNumber } from "../guard";
+import { checkExhausted } from "../utils";
 import {
   VectorArg,
   MinSizeComponents,
@@ -7,10 +8,20 @@ import {
   AnyComponents,
 } from "./types";
 
-export function narrowVectorArg<N extends number | undefined>(
-  arg: VectorArg<N>
-): [number, null] | [null, Vector<N>] {
-  return isNumber(arg) ? [arg, null] : [null, arg];
+export function vectorArgAccessor<N extends number | undefined>(
+  arg: VectorArg<N>,
+  size: N
+): (i: number) => number {
+  switch (true) {
+    case isNumber(arg):
+      return () => arg;
+
+    case isVector(size)(arg):
+      return (i) => arg.valueOf(i);
+
+    default:
+      return checkExhausted(arg);
+  }
 }
 
 export function isComponents(value: unknown): value is AnyComponents {
