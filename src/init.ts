@@ -27,6 +27,11 @@ const appContext: AppContext<typeof config> = {
   canvas,
   ctx,
   mouse,
+  time: {
+    animationStart: Date.now(),
+    lastFrame: Date.now(),
+    delta: 0,
+  },
 };
 
 let appState = app.type === "stateful" ? app.init(appContext) : null;
@@ -77,12 +82,17 @@ dom.addListener(
 
 if (app.animationFrame != null) {
   const animate = () => {
+    const { time } = appContext;
+    const now = Date.now();
+    time.delta = now - time.lastFrame;
     if (app.type === "stateful") {
       appState =
         app.animationFrame?.({ ...appContext, state: appState! }) ?? appState;
     } else {
       app.animationFrame?.(appContext);
     }
+    time.lastFrame = now;
+    appContext.time = time;
     requestAnimationFrame(animate);
   };
   requestAnimationFrame(animate);

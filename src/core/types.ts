@@ -8,6 +8,11 @@ export interface AppContext<A extends Array<ConfigPart<string>>> {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;
+  time: {
+    lastFrame: number;
+    delta: number;
+    animationStart: number;
+  };
 }
 
 export interface AppContextWithState<
