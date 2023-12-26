@@ -628,9 +628,8 @@ export default class Vector<const N extends number | undefined> {
    * @returns the formatted string
    */
   toString(): string {
-    return `Vector${this.size}D[${toAnyComponents(this.components).join(
-      ", "
-    )}]`;
+    const components = toAnyComponents(this.components);
+    return `Vector${components.length}D[${components.join(", ")}]`;
   }
 
   /**
@@ -661,12 +660,14 @@ export default class Vector<const N extends number | undefined> {
   }
 
   /**
-   * Returns a vector with N number of components, all mapped on a unit circle (Or the N dimensional equivalent).
+   * Returns a vector with N number of components, all mapped on a unit circle (or the N dimensional equivalent).
    * @param size Number of components to return
    * @returns Random normalised vector.
    */
   static randomPointOnUnitCircle<N extends number>(size: N): Vector<N> {
-    const components = new Array(size).fill(undefined).map(Math.random);
+    const components = new Array(size)
+      .fill(undefined)
+      .map(() => Math.random() - 0.5);
     const magnitude = Math.sqrt(
       components.reduce((acc, component) => acc + component * component, 0)
     );
