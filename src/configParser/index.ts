@@ -1,11 +1,11 @@
 import { intToBase64 } from "../core/b64";
-import { formatDate } from "../core/utils";
+import { formatDate, isEqual } from "../core/utils";
 import dom from "../core/dom";
 import { DeriveId, DeriveStateType, PassedState } from "./derive";
 import { initStateItem } from "./init";
 import { isSerialisableStateItem, serialise } from "./serialise";
 import { ButtonConfig, ConfigPart, StateItem } from "./types";
-import { isEqual, isString } from "../core/guard";
+import { isString } from "../core/guard";
 
 export default class ParamConfig<const C extends ConfigPart<string>> {
   private static hashKeyLength: number = 6;

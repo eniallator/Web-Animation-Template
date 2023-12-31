@@ -1,5 +1,5 @@
 import dom from "../core/dom";
-import { filterAndMap, replaceItem } from "../core/utils";
+import { filterAndMap } from "../core/utils";
 import { inputType } from "./create";
 import { DeriveDefaults, DeriveStateType } from "./derive";
 import { changeCallback, inputCallback, inputValue } from "./event";
@@ -154,9 +154,9 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
         () => getCurrentValue()[idLookup[rowId]],
         (newRow) =>
           onUpdate(
-            replaceItem(
-              getCurrentValue(),
+            getCurrentValue().toSpliced(
               idLookup[rowId],
+              1,
               newRow
             ) as DeriveStateType<typeof config>
           )
@@ -176,9 +176,9 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
         () => getCurrentValue()[idLookup[rowId]],
         (newRow) =>
           onUpdate(
-            replaceItem(
-              getCurrentValue(),
+            getCurrentValue().toSpliced(
               idLookup[rowId],
+              1,
               newRow
             ) as DeriveStateType<typeof config>
           )

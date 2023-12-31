@@ -1,6 +1,6 @@
 import Vector from ".";
-import { hasKey, isNumber } from "../guard";
-import { checkExhausted } from "../utils";
+import { isNumber } from "../guard";
+import { checkExhausted, hasKey } from "../utils";
 import {
   VectorArg,
   MinSizeComponents,

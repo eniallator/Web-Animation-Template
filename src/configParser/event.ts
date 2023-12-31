@@ -1,5 +1,5 @@
-import { hasKey, isString } from "../core/guard";
-import { checkExhausted } from "../core/utils";
+import { isString } from "../core/guard";
+import { checkExhausted, hasKey } from "../core/utils";
 import { DeriveStateType } from "./derive";
 import { InputConfig, OnUpdate } from "./types";
 
