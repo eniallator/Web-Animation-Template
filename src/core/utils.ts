@@ -53,9 +53,9 @@ export function isEqual<T>(a: T, b: T): boolean {
         ? Array.isArray(b) &&
           a.length === b.length &&
           a.every((v, i) => isEqual(v, b[i]))
-        : isEqual(
-            Object.entries(a).sort(([i], [j]) => (i > j ? 1 : -1)),
-            Object.entries(b).sort(([i], [j]) => (i > j ? 1 : -1))
+        : Object.keys(a).length === Object.keys(b).length &&
+          Object.entries(a).every(
+            ([k, v]) => k in b && v === (b as Record<string, unknown>)[k]
           )))
   );
 }
