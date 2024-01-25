@@ -1,5 +1,5 @@
 export default class Monad<A> {
-  private _value: A;
+  private readonly _value: A;
 
   /**
    * Monad class for cleaner code
@@ -16,6 +16,15 @@ export default class Monad<A> {
    */
   map<B>(callback: (value: A) => B): Monad<B> {
     return new Monad(callback(this._value));
+  }
+
+  /**
+   *  Flat maps the Monad's value to a new value
+   * @param {function(A): Monad<B>} callback Mapping function
+   * @returns {Monad} Monad with the changed value
+   */
+  flatMap<B>(callback: (value: A) => Monad<B>): Monad<B> {
+    return callback(this._value);
   }
 
   /**

@@ -55,7 +55,7 @@ export function isEqual<T>(a: T, b: T): boolean {
           a.every((v, i) => isEqual(v, b[i]))
         : Object.keys(a).length === Object.keys(b).length &&
           Object.entries(a).every(
-            ([k, v]) => k in b && v === (b as Record<string, unknown>)[k]
+            ([k, v]) => k in b && isEqual(v, (b as Record<string, unknown>)[k])
           )))
   );
 }
