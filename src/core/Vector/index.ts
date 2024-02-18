@@ -366,7 +366,7 @@ export default class Vector<const N extends number | undefined> {
 
   /**
    * Gets the angle of this vector
-   * @type {Vector<Components<2>>}
+   * @type {Vector<2>}
    * @returns {number} Angle between 0 and 2 * PI
    */
   getAngle(this: Vector<2>): number {
@@ -377,9 +377,9 @@ export default class Vector<const N extends number | undefined> {
       if (x === 0 && y === 0) out = 0;
       else if (y === 0) out = x > 0 ? 0 : Math.PI;
       else if (x === 0) out = y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
-      else if (x > 0 && y > 0) out = Math.atan(y / x);
-      else if (x > 0) out = (Math.PI * 3) / 2 + Math.atan(x / -y);
+      else if (x > 0 && y > 0) out = Math.PI / 2 - Math.atan(x / y);
       else if (y > 0) out = Math.PI - Math.atan(y / -x);
+      else if (x > 0) out = (Math.PI * 3) / 2 + Math.atan(x / -y);
       else out = (Math.PI * 3) / 2 - Math.atan(x / y);
 
       return out;
@@ -428,14 +428,14 @@ export default class Vector<const N extends number | undefined> {
         const dy = y - py;
         const dMag = Math.sqrt(dx * dx + dy * dy);
 
-        let currAngle;
-        if (dx === 0 && dy === 0) currAngle = 0;
-        else if (dy === 0) currAngle = dx > 0 ? 0 : Math.PI;
-        else if (dx === 0) currAngle = dy > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
-        else if (dx > 0 && dy > 0) currAngle = Math.atan(dy / dx);
-        else if (dx > 0) currAngle = (Math.PI * 3) / 2 + Math.atan(dx / -dy);
-        else if (dy > 0) currAngle = Math.PI - Math.atan(dy / -dx);
-        else currAngle = (Math.PI * 3) / 2 - Math.atan(dx / dy);
+        let currAngle: number;
+        if (x === 0 && y === 0) currAngle = 0;
+        else if (y === 0) currAngle = x > 0 ? 0 : Math.PI;
+        else if (x === 0) currAngle = y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
+        else if (x > 0 && y > 0) currAngle = Math.PI / 2 - Math.atan(x / y);
+        else if (y > 0) currAngle = Math.PI - Math.atan(y / -x);
+        else if (x > 0) currAngle = (Math.PI * 3) / 2 + Math.atan(x / -y);
+        else currAngle = (Math.PI * 3) / 2 - Math.atan(x / y);
 
         const oX = dMag * Math.cos(currAngle + angle);
         const oY = dMag * Math.sin(currAngle + angle);
@@ -627,9 +627,12 @@ export default class Vector<const N extends number | undefined> {
    * Converts this vector to a string in the format: "VectorND[component1, component2, ...]"
    * @returns the formatted string
    */
-  toString(): string {
+  toString(fractionDigits?: number): string {
     const components = toAnyComponents(this.components);
-    return `Vector${components.length}D[${components.join(", ")}]`;
+    return `Vector${components.length}D[${(fractionDigits != null
+      ? components.map((n) => n.toFixed(fractionDigits))
+      : components
+    ).join(", ")}]`;
   }
 
   /**

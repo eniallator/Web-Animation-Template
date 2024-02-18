@@ -248,21 +248,5 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
         (searchParams.length > 0 ? "?" + searchParams : "");
       navigator.clipboard.writeText(sharableURL);
     });
-    // $(selector)
-    //   .data("toggle", "tooltip")
-    //   .data("placement", "top")
-    //   .data("trigger", "manual")
-    //   .attr("title", "Copied!")
-    //   .tooltip()
-    //   .click((evt) => {
-    //     if (location.href !== sharableURL) {
-    //       history.pushState(null, "", sharableURL);
-    //     }
-    //     navigator.clipboard.writeText(sharableURL).then(() => {
-    //       const copyBtn = $(evt.currentTarget);
-    //       copyBtn.tooltip("show");
-    //       setTimeout(() => copyBtn.tooltip("hide"), 1000);
-    //     });
-    //   });
   }
 }

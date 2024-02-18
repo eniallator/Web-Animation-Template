@@ -78,6 +78,7 @@ export type InputConfig<I extends string> =
   | SelectConfig<I, string>;
 
 export type ConfigCollectionFields = ReadonlyArray<InputConfig<string>>;
+
 export interface ConfigCollection<
   I extends string,
   F extends ConfigCollectionFields
