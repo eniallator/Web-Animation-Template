@@ -72,7 +72,7 @@ function initStateful<S extends object>(
 ) {
   let state = app.init(appContext);
 
-  window.onresize = (evt) => {
+  window.onresize = evt => {
     updateCanvasBounds(canvas);
     const { width, height } = canvas.getBoundingClientRect();
     canvas.width = width;
@@ -97,7 +97,7 @@ function initStateful<S extends object>(
 function initStateLess(app: StatelessAppMethods<typeof config>) {
   app.init?.(appContext);
 
-  window.onresize = (evt) => {
+  window.onresize = evt => {
     updateCanvasBounds(canvas);
     const { width, height } = canvas.getBoundingClientRect();
     canvas.width = width;

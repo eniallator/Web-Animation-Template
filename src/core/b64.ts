@@ -15,7 +15,7 @@ export function intToBase64(n: number, length?: number): string {
 
 export function base64ToPosInt(str: string): number {
   let n = 0;
-  for (let char of str) {
+  for (const char of str) {
     n = n * 64 + BASE_64_CHARS.indexOf(char);
   }
   return n;

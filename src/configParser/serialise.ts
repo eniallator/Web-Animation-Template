@@ -35,7 +35,7 @@ function serialiseRaw(
         ConfigCollection<string, ConfigCollectionFields>
       >;
       return value
-        .map((row) =>
+        .map(row =>
           row
             .map((value, i) =>
               serialise(

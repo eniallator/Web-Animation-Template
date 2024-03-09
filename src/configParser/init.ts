@@ -46,7 +46,7 @@ function initCollectionRowHtml<F extends ConfigCollectionFields>(
       config,
       rowValues[i],
       () => getCurrentValue()[i],
-      (newValue) => {
+      newValue => {
         onUpdate(
           getCurrentValue().map((oldValue, j) =>
             i === j ? newValue : oldValue
@@ -84,7 +84,7 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
                 }
                 ${config.fields
                   .map(
-                    (childConfig) =>
+                    childConfig =>
                       `<th scope="col" >${
                         isSerialisable(childConfig) ? childConfig.label : ""
                       }</th>`
@@ -128,13 +128,11 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
           }
         }
       );
-      for (let id in idLookup) {
+      for (const id in idLookup) {
         if (indicesToDelete.includes(idLookup[id])) {
           delete idLookup[id];
         } else {
-          idLookup[id] -= indicesToDelete.filter(
-            (i) => i < idLookup[id]
-          ).length;
+          idLookup[id] -= indicesToDelete.filter(i => i < idLookup[id]).length;
         }
       }
       onUpdate(
@@ -150,9 +148,9 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
       const rowValues = initCollectionRowHtml(
         dom.get("tbody", collection),
         config,
-        config.fields.map((field) => field.default) as DeriveDefaults<F>,
+        config.fields.map(field => field.default) as DeriveDefaults<F>,
         () => getCurrentValue()[idLookup[rowId]],
-        (newRow) =>
+        newRow =>
           onUpdate(
             getCurrentValue().toSpliced(
               idLookup[rowId],
@@ -174,7 +172,7 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
         config,
         row,
         () => getCurrentValue()[idLookup[rowId]],
-        (newRow) =>
+        newRow =>
           onUpdate(
             getCurrentValue().toSpliced(
               idLookup[rowId],
@@ -265,7 +263,7 @@ function initHtml<C extends ConfigPart<string>>(
       }
       inp.className = "form-select";
 
-      config.options?.forEach((option) => {
+      config.options?.forEach(option => {
         const el = document.createElement("option");
         el.value = option;
         el.innerText = option;

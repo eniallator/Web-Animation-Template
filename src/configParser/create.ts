@@ -54,7 +54,7 @@ export function datetimeConfig<const I extends string>(
 export function selectConfig<
   const I extends string,
   const T extends string,
-  const A extends readonly [T, ...T[]] = readonly [T, ...T[]]
+  const A extends readonly [T, ...T[]] = readonly [T, ...T[]],
 >(config: Omit<SelectConfig<I, T, A>, "type">): SelectConfig<I, T, A> {
   return { type: "Select", ...config };
 }
@@ -73,7 +73,7 @@ export function buttonConfig<const I extends string>(
 
 export function configCollection<
   const I extends string,
-  const F extends ConfigCollectionFields
+  const F extends ConfigCollectionFields,
 >(config: Omit<ConfigCollection<I, F>, "type">): ConfigCollection<I, F> {
   return { type: "Collection", ...config };
 }

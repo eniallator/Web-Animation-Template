@@ -35,14 +35,14 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
   ) {
     this.initialValues = this.parseUrlParams(initial, shortUrl);
     this.shortUrl = shortUrl;
-    this.state = configs.map((config) =>
+    this.state = configs.map(config =>
       initStateItem(
         baseEl,
         config,
         this.initialValues[this.urlKey(config.id)] ?? null,
         this.shortUrl,
         () => this.typedStateItem(config.id).value as DeriveStateType<C>,
-        (value) => {
+        value => {
           this.typedStateItem(config.id).value = value;
           this.updates.push(config.id);
           this.tellListeners();
@@ -63,7 +63,7 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
   private optTypedStateItem<const K extends DeriveId<C>>(
     id: K
   ): StateItem<Extract<C, ConfigPart<K>>> | null {
-    const item = this.state.find((item) => item.config.id === id) as
+    const item = this.state.find(item => item.config.id === id) as
       | StateItem<Extract<C, ConfigPart<K>>>
       | undefined;
     return item ?? null;
@@ -81,7 +81,7 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
   // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
   private hashString(str: string): number {
     let hash = 0;
-    if (str.length == 0) return hash;
+    if (str.length === 0) return hash;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = (hash << 5) - hash + char;
@@ -111,7 +111,7 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
     const subscriptions =
       updateSubscriptions != null
         ? (updateSubscriptions || Object.keys(this.state)).filter(
-            (update) => this.optTypedStateItem(update) !== undefined
+            update => this.optTypedStateItem(update) !== undefined
           )
         : null;
 
@@ -139,9 +139,9 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
     }
 
     for (const { listener, subscriptions } of this.listeners) {
-      let relevantSubscriptions =
+      const relevantSubscriptions =
         subscriptions != null
-          ? subscriptions.filter((update) => this.updates.includes(update))
+          ? subscriptions.filter(update => this.updates.includes(update))
           : [...this.updates];
 
       if (force || relevantSubscriptions.length > 0) {
@@ -195,8 +195,8 @@ export default class ParamConfig<const C extends ConfigPart<string>> {
   serialiseToURLParams(extra?: string): string {
     const urlPart = (key: string, value: string) =>
       [this.urlKey(key), value].join(this.shortUrl ? "" : "=");
-    let params: Array<string> = this.state
-      .map((item) => {
+    const params: Array<string> = this.state
+      .map(item => {
         if (
           isSerialisableStateItem(item) &&
           (item.config.default == null ||

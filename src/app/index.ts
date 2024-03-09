@@ -1,7 +1,7 @@
 import { AppContext, appMethods } from "../core/types";
 import config from "./config";
 
-// function init({ paramConfig, ctx, canvas, mouse }: AppContext<typeof config>) {
+// function init({ canvas, ctx }: AppContext<typeof config>) {
 //   ctx.fillStyle = "black";
 //   ctx.strokeStyle = "white";
 
@@ -13,13 +13,13 @@ import config from "./config";
 
 // export default appMethods.stateful({
 //   init,
-//   onResize: function (evt, appContext) {
+//   onResize: function (_evt, appContext) {
 //     appContext.state;
 //     return null;
 //   },
 // });
 
-function init({ paramConfig, ctx, canvas, mouse }: AppContext<typeof config>) {
+function init({ canvas, ctx }: AppContext<typeof config>) {
   ctx.fillStyle = "black";
   ctx.strokeStyle = "white";
 
@@ -30,7 +30,5 @@ function init({ paramConfig, ctx, canvas, mouse }: AppContext<typeof config>) {
 
 export default appMethods.stateless({
   init,
-  onResize: function (evt, appContext) {
-    this.init?.(appContext);
-  },
+  onResize: (_evt, appContext) => init(appContext),
 });

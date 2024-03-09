@@ -48,7 +48,7 @@ export default class Vector<const N extends number | undefined> {
    * @returns {this} this
    */
   pow(...args: Array<VectorArg<N>>): this {
-    for (let arg of args) {
+    for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
         throw new IncompatibleVector(
           `Received an incompatible vector of size ${arg.size}`
@@ -69,7 +69,7 @@ export default class Vector<const N extends number | undefined> {
    * @returns {this} this
    */
   add(...args: Array<VectorArg<N>>): this {
-    for (let arg of args) {
+    for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
         throw new IncompatibleVector(
           `Received an incompatible vector of size ${arg.size}`
@@ -90,7 +90,7 @@ export default class Vector<const N extends number | undefined> {
    * @returns {this} this
    */
   sub(...args: Array<VectorArg<N>>): this {
-    for (let arg of args) {
+    for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
         throw new IncompatibleVector(
           `Received an incompatible vector of size ${arg.size}`
@@ -111,7 +111,7 @@ export default class Vector<const N extends number | undefined> {
    * @returns {this} this
    */
   multiply(...args: Array<VectorArg<N>>): this {
-    for (let arg of args) {
+    for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
         throw new IncompatibleVector(
           `Received an incompatible vector of size ${arg.size}`
@@ -132,7 +132,7 @@ export default class Vector<const N extends number | undefined> {
    * @returns {this} this
    */
   divide(...args: Array<VectorArg<N>>): this {
-    for (let arg of args) {
+    for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
         throw new IncompatibleVector(
           `Received an incompatible vector of size ${arg.size}`
@@ -321,7 +321,7 @@ export default class Vector<const N extends number | undefined> {
       components.reduce((acc, component) => acc + component * component, 0)
     );
     return new Vector(
-      components.map((component) => component / magnitude) as Components<N>
+      components.map(component => component / magnitude) as Components<N>
     );
   }
 
@@ -358,7 +358,7 @@ export default class Vector<const N extends number | undefined> {
    */
   getSign(): Vector<N> {
     return new Vector(
-      toAnyComponents(this.components).map((component) =>
+      toAnyComponents(this.components).map(component =>
         component >= 0 ? 1 : -1
       ) as Components<N>
     );
@@ -559,11 +559,11 @@ export default class Vector<const N extends number | undefined> {
   /**
    * Calls array.forEach on the components of this vector
    * @param {Function} callback Function to run for each component
-   * @param {any} thisArg Optional this argument
+   * @param {ThisType<unknown>} thisArg Optional this argument
    */
   forEach(
     callback: (value: number, index: number, array: number[]) => number,
-    thisArg: any
+    thisArg?: ThisType<unknown>
   ): void {
     toAnyComponents(this.components).forEach(callback, thisArg);
   }
@@ -571,11 +571,11 @@ export default class Vector<const N extends number | undefined> {
   /**
    * Calls array.map on the components of this vector
    * @param {Function} mapper Function to run for each component
-   * @param {any} thisArg Optional this argument
+   * @param {ThisType<unknown>} thisArg Optional this argument
    */
   map(
     mapper: (value: number, index: number, array: number[]) => number,
-    thisArg?: any
+    thisArg?: ThisType<unknown>
   ): Vector<N> {
     return new Vector(
       toAnyComponents(this.components).map(mapper, thisArg) as Components<N>
@@ -630,7 +630,7 @@ export default class Vector<const N extends number | undefined> {
   toString(fractionDigits?: number): string {
     const components = toAnyComponents(this.components);
     return `Vector${components.length}D[${(fractionDigits != null
-      ? components.map((n) => n.toFixed(fractionDigits))
+      ? components.map(n => n.toFixed(fractionDigits))
       : components
     ).join(", ")}]`;
   }
@@ -675,7 +675,7 @@ export default class Vector<const N extends number | undefined> {
       components.reduce((acc, component) => acc + component * component, 0)
     );
     return new Vector(
-      components.map((component) => component / magnitude) as Components<N>
+      components.map(component => component / magnitude) as Components<N>
     );
   }
 
@@ -728,4 +728,6 @@ export default class Vector<const N extends number | undefined> {
 
 try {
   TimeAnalysis.registerMethods(Vector);
-} catch {}
+} catch (ex) {
+  console.error(ex);
+}

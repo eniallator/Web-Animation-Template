@@ -17,14 +17,14 @@ export interface AppContext<A extends Array<ConfigPart<string>>> {
 
 export interface AppContextWithState<
   A extends Array<ConfigPart<string>>,
-  S extends object
+  S extends object,
 > extends AppContext<A> {
   state: S;
 }
 
 export interface StatefulAppMethods<
   A extends Array<ConfigPart<string>>,
-  S extends object
+  S extends object,
 > {
   type: "stateful";
   init: (this: StatefulAppMethods<A, S>, appContext: AppContext<A>) => S;
@@ -55,7 +55,7 @@ export interface StatelessAppMethods<A extends Array<ConfigPart<string>>> {
 
 export type AppMethods<
   A extends Array<ConfigPart<string>>,
-  S extends object = never
+  S extends object = never,
 > = StatefulAppMethods<A, S> | StatelessAppMethods<A>;
 
 export const appMethods = {

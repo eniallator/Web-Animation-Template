@@ -21,18 +21,18 @@ export type DeriveStateType<C extends ConfigPart<string>> =
       : Exclude<C["default"], undefined>
     : null;
 
-export type PassedState<C extends ConfigPart<string, any>> = {
-  [P in C as P["id"]]: DeriveStateType<P>;
-};
+export type PassedState<C extends ConfigPart<string, ConfigCollectionFields>> =
+  {
+    [P in C as P["id"]]: DeriveStateType<P>;
+  };
 
 export type NarrowedPart<I extends C["id"], C extends ConfigPart<string>> = {
-  [P in C as P extends ConfigPart<I, any> ? "part" : never]: P;
+  [P in C as P extends ConfigPart<I, ConfigCollectionFields>
+    ? "part"
+    : never]: P;
 };
 
 export type DeriveId<C extends ConfigPart<string>> = C["id"];
 
-export type DeriveParts<A extends Array<ConfigPart<string>>> = A extends Array<
-  infer C
->
-  ? C
-  : never;
+export type DeriveParts<A extends Array<ConfigPart<string>>> =
+  A extends Array<infer C> ? C : never;

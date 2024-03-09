@@ -1,6 +1,6 @@
 function addListener<
   E extends HTMLElement,
-  const K extends keyof HTMLElementEventMap
+  const K extends keyof HTMLElementEventMap,
 >(
   element: E,
   event: K,

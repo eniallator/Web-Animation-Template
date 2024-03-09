@@ -41,16 +41,13 @@ export interface DatetimeConfig<I extends string>
   type: "Datetime";
 }
 
-type ArrayItems<A extends ReadonlyArray<unknown>> = A extends ReadonlyArray<
-  infer I
->
-  ? I
-  : never;
+type ArrayItems<A extends ReadonlyArray<unknown>> =
+  A extends ReadonlyArray<infer I> ? I : never;
 
 export interface SelectConfig<
   I extends string,
   T extends string = string,
-  A extends readonly [T, ...T[]] = readonly [T, ...T[]]
+  A extends readonly [T, ...T[]] = readonly [T, ...T[]],
 > extends BaseInputConfig<I, ArrayItems<A>> {
   type: "Select";
   options: A;
@@ -81,7 +78,7 @@ export type ConfigCollectionFields = ReadonlyArray<InputConfig<string>>;
 
 export interface ConfigCollection<
   I extends string,
-  F extends ConfigCollectionFields
+  F extends ConfigCollectionFields,
 > {
   type: "Collection";
   id: I;
@@ -93,7 +90,7 @@ export interface ConfigCollection<
 
 export type ConfigPart<
   I extends string,
-  F extends ConfigCollectionFields = ConfigCollectionFields
+  F extends ConfigCollectionFields = ConfigCollectionFields,
 > = InputConfig<I> | ButtonConfig<I> | ConfigCollection<I, F>;
 
 export type SerialisableConfig<I extends string> =
