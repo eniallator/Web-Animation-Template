@@ -1,12 +1,32 @@
+type UnpackTupledMonads<M extends readonly Monad<unknown>[]> = {
+  [K in keyof M]: M[K] extends Monad<infer T> ? T : M[K];
+};
+
 export default class Monad<A> {
   private readonly _value: A;
 
   /**
-   * Monad class for cleaner code
+   * Monad class
    * @param {A} value Initial value for the Monad to have
    */
-  constructor(value: A) {
+  private constructor(value: A) {
     this._value = value;
+  }
+
+  static from<A>(value: A): Monad<A> {
+    return new Monad(value);
+  }
+
+  static fromExact<const A>(value: A): Monad<A> {
+    return new Monad(value);
+  }
+
+  static tupled<const M extends readonly Monad<unknown>[]>(
+    monads: M
+  ): Monad<UnpackTupledMonads<M>> {
+    return new Monad(
+      monads.map(monad => monad._value) as UnpackTupledMonads<M>
+    );
   }
 
   /**
