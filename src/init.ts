@@ -84,7 +84,7 @@ function initStateful<S extends object>(
     const animate = () => {
       const { time } = appContext;
       const now = Date.now();
-      time.delta = now - time.lastFrame;
+      time.delta = (now - time.lastFrame) / 1000;
       state = app.animationFrame?.({ ...appContext, time, state }) ?? state;
       time.lastFrame = now;
       appContext.time = time;
