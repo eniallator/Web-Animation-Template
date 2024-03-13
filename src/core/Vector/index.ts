@@ -6,23 +6,15 @@ import {
   OutOfBounds,
 } from "./error";
 import {
-  is2D,
-  is3D,
   isAnyVector,
   isComponents,
-  isMin2D,
-  isMin3D,
-  isMin4D,
+  isMinSize,
   isSameSize,
+  isSize,
   toAnyComponents,
   vectorArgAccessor,
 } from "./helpers";
-import {
-  VectorArg,
-  MinSizeComponents,
-  Components,
-  AnyComponents,
-} from "./types";
+import { AnyComponents, Components, MinSize, VectorArg } from "./types";
 
 export default class Vector<const N extends number | undefined = undefined> {
   type = "Vector" as const;
@@ -370,7 +362,7 @@ export default class Vector<const N extends number | undefined = undefined> {
    * @returns {number} Angle between 0 and 2 * PI
    */
   getAngle(this: Vector<2>): number {
-    if (is2D(this.components)) {
+    if (isSize(2)(this.components)) {
       const [x, y] = this.components;
 
       let out: number;
@@ -395,7 +387,7 @@ export default class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   setAngle(this: Vector<2>, angle: number): ThisType<Vector<2>> {
-    if (is2D(this.components)) {
+    if (isSize(2)(this.components)) {
       const [x, y] = this.components;
 
       const magnitude = Math.sqrt(x ** 2 + y ** 2);
@@ -420,7 +412,7 @@ export default class Vector<const N extends number | undefined = undefined> {
     pivot: Vector<2>,
     angle: number
   ): ThisType<Vector<2>> {
-    if (is2D(this.components)) {
+    if (isSize(2)(this.components)) {
       if (isSameSize(this, pivot)) {
         const [x, y] = this.components;
         const [px, py] = pivot.components;
@@ -461,7 +453,7 @@ export default class Vector<const N extends number | undefined = undefined> {
    * @returns {Vector<3>} The resulting cross product vector of this and the other vector
    */
   crossProduct(this: Vector<3>, other: Vector<3>): Vector<3> {
-    if (is3D(this.components)) {
+    if (isSize(3)(this.components)) {
       if (isSameSize(this, other)) {
         const a = this.components;
         const b = other.components;
@@ -507,8 +499,8 @@ export default class Vector<const N extends number | undefined = undefined> {
    * Get the value of the second component in this vector
    * @returns {number}
    */
-  y(this: MinSizeComponents<2, N>): number {
-    if (isMin2D(this.components)) {
+  y(this: Vector<MinSize<2, N>>): number {
+    if (isMinSize(2)(this.components)) {
       return toAnyComponents(this.components)[1];
     } else {
       throw new IncompatibleOperation("Requires at least a 2D vector");
@@ -519,8 +511,8 @@ export default class Vector<const N extends number | undefined = undefined> {
    * Get the value of the third component in this vector
    * @returns {number}
    */
-  z(this: MinSizeComponents<3, N>): number {
-    if (isMin3D(this.components)) {
+  z(this: Vector<MinSize<3, N>>): number {
+    if (isMinSize(3)(this.components)) {
       return toAnyComponents(this.components)[2];
     } else {
       throw new IncompatibleOperation("Requires at least a 3D vector");
@@ -531,8 +523,8 @@ export default class Vector<const N extends number | undefined = undefined> {
    * Get the value of the fourth component in this vector
    * @returns {number}
    */
-  w(this: MinSizeComponents<4, N>): number {
-    if (isMin4D(this.components)) {
+  w(this: Vector<MinSize<4, N>>): number {
+    if (isMinSize(4)(this.components)) {
       return toAnyComponents(this.components)[3];
     } else {
       throw new IncompatibleOperation("Requires at least a 4D vector");

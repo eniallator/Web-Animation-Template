@@ -1,12 +1,7 @@
 import Vector from ".";
 import { isNumber } from "../guard";
 import { checkExhausted, hasKey } from "../utils";
-import {
-  VectorArg,
-  MinSizeComponents,
-  Components,
-  AnyComponents,
-} from "./types";
+import { AnyComponents, Components, MinSize, VectorArg } from "./types";
 
 export function vectorArgAccessor<N extends number | undefined>(
   arg: VectorArg<N>,
@@ -28,30 +23,16 @@ export function isComponents(value: unknown): value is AnyComponents {
   return Array.isArray(value) && value.length >= 1 && value.every(isNumber);
 }
 
-export function isMin2D(
-  components: AnyComponents
-): components is MinSizeComponents<2, (typeof components)["length"]> {
-  return components.length >= 2;
+export function isSize<const N extends number>(size: N) {
+  return (components: AnyComponents): components is Components<N> =>
+    components.length === size;
 }
 
-export function isMin3D(
-  components: AnyComponents
-): components is MinSizeComponents<3, (typeof components)["length"]> {
-  return components.length >= 3;
-}
-
-export function isMin4D(
-  components: AnyComponents
-): components is MinSizeComponents<4, (typeof components)["length"]> {
-  return components.length >= 4;
-}
-
-export function is2D(components: AnyComponents): components is Components<2> {
-  return components.length === 2;
-}
-
-export function is3D(components: AnyComponents): components is Components<3> {
-  return components.length === 3;
+export function isMinSize<const N extends number>(size: N) {
+  return (
+    components: AnyComponents
+  ): components is Components<MinSize<N, (typeof components)["length"]>> =>
+    components.length >= size;
 }
 
 export function isSameSize<
