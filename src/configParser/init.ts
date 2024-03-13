@@ -14,16 +14,10 @@ import {
   StateItem,
 } from "./types";
 
-function setAttributes(
-  el: HTMLElement,
-  attrs: Record<string, string>
-): HTMLElement {
-  if (attrs) {
-    for (let attr in attrs) {
-      el.setAttribute(attr, attrs[attr]);
-    }
+function setAttributes(el: HTMLElement, attrs: Record<string, string>): void {
+  for (const attr in attrs) {
+    el.setAttribute(attr, attrs[attr]);
   }
-  return el;
 }
 
 function initCollectionRowHtml<F extends ConfigCollectionFields>(
@@ -198,9 +192,7 @@ function initHtml<C extends ConfigPart<string>>(
     case "Button": {
       const inp = document.createElement("button");
       if (config.attrs != null) {
-        Object.entries(config.attrs).forEach(([attr, value]) =>
-          inp.setAttribute(attr, value)
-        );
+        setAttributes(inp, config.attrs);
       }
       inp.type = "button";
       if (hasId) {
@@ -225,9 +217,7 @@ function initHtml<C extends ConfigPart<string>>(
     case "File": {
       const inp = document.createElement("input");
       if (config.attrs != null) {
-        Object.entries(config.attrs).forEach(([attr, value]) =>
-          inp.setAttribute(attr, value)
-        );
+        setAttributes(inp, config.attrs);
       }
       if (hasId) {
         inp.setAttribute("id", config.id);
@@ -254,9 +244,7 @@ function initHtml<C extends ConfigPart<string>>(
     case "Select": {
       const inp = document.createElement("select");
       if (config.attrs != null) {
-        Object.entries(config.attrs).forEach(([attr, value]) =>
-          inp.setAttribute(attr, value)
-        );
+        setAttributes(inp, config.attrs);
       }
       if (hasId) {
         inp.setAttribute("id", config.id);
@@ -278,9 +266,7 @@ function initHtml<C extends ConfigPart<string>>(
     default: {
       const inp = document.createElement("input");
       if (config.attrs != null) {
-        Object.entries(config.attrs).forEach(([attr, value]) =>
-          inp.setAttribute(attr, value)
-        );
+        setAttributes(inp, config.attrs);
       }
 
       if (hasId) {
@@ -342,11 +328,6 @@ export function initStateItem<C extends ConfigPart<string>>(
     label.setAttribute("title", config.label);
     label.className = "wrap-text";
     label.innerText = config.label;
-    // if (config.tooltip != null) {
-    //   label.setAttribute("data-toggle", "tooltip");
-    //   label.setAttribute("data-placement", "top");
-    //   label.setAttribute("title", config.tooltip).tooltip();
-    // }
     container.appendChild(label);
   }
 
