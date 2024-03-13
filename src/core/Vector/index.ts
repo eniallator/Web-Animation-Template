@@ -24,7 +24,7 @@ import {
   AnyComponents,
 } from "./types";
 
-export default class Vector<const N extends number | undefined> {
+export default class Vector<const N extends number | undefined = undefined> {
   type = "Vector" as const;
   private components: Components<N>;
 
@@ -640,7 +640,7 @@ export default class Vector<const N extends number | undefined> {
    * @param {string} str Vector string in the format of "VectorND[component1, component2, ...]"
    * @returns {(Vector|undefined)} The parsed vector if it's valid, otherwise undefined.
    */
-  static parseString(str: string): Vector<undefined> | undefined {
+  static parseString(str: string): Vector | undefined {
     const match = /^Vector\d+D\[(?<components>[^\]]+)\]$/.exec(str);
     const components = match?.groups?.components.split(", ").map(Number);
     if (isComponents(components)) {
@@ -655,10 +655,7 @@ export default class Vector<const N extends number | undefined> {
    * @param size the size to narrow to
    * @returns true if the size of the parsed vector is the given size, false otherwise
    */
-  isSize<const S extends number>(
-    this: Vector<undefined>,
-    size: S
-  ): this is Vector<S> {
+  isSize<const S extends number>(this: Vector, size: S): this is Vector<S> {
     return toAnyComponents(this.components).length === size;
   }
 

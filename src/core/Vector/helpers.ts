@@ -17,7 +17,7 @@ export function vectorArgAccessor<N extends number | undefined>(
       return () => arg;
 
     case isVector(size)(arg):
-      return (i) => arg.valueOf(i);
+      return i => arg.valueOf(i);
 
     default:
       return checkExhausted(arg);
@@ -67,9 +67,7 @@ export function toAnyComponents<N extends number | undefined>(
   return c;
 }
 
-export function isAnyVector(
-  value: unknown
-): value is Vector<number | undefined> {
+export function isAnyVector(value: unknown): value is Vector {
   return hasKey(value, "type", (type): type is "Vector" => type === "Vector");
 }
 
