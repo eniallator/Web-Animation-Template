@@ -12,6 +12,7 @@ export interface AppContext<A extends Array<ConfigPart<string>>> {
     lastFrame: number;
     delta: number;
     animationStart: number;
+    now: number;
   };
 }
 

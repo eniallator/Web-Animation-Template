@@ -386,7 +386,7 @@ export default class Vector<const N extends number | undefined = undefined> {
    * @param {number} angle Angle to set to
    * @returns {this} this
    */
-  setAngle(this: Vector<2>, angle: number): ThisType<Vector<2>> {
+  setAngle(this: Vector<2>, angle: number): Vector<2> {
     if (isSize(2)(this.components)) {
       const [x, y] = this.components;
 
@@ -407,11 +407,7 @@ export default class Vector<const N extends number | undefined = undefined> {
    * @param {number} angle Angle to rotate by
    * @returns {this} this
    */
-  rotate(
-    this: Vector<2>,
-    pivot: Vector<2>,
-    angle: number
-  ): ThisType<Vector<2>> {
+  rotate(this: Vector<2>, pivot: Vector<2>, angle: number): Vector<2> {
     if (isSize(2)(this.components)) {
       if (isSameSize(this, pivot)) {
         const [x, y] = this.components;
@@ -594,6 +590,32 @@ export default class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
+   * Determines whether all components of this vector pass a specified test
+   * @param {Function} predicate function to run for each component
+   * @returns {boolean} true if all components pass, false otherwise
+   */
+  every(
+    predicate: (n: number, index: number, components: Components<N>) => boolean
+  ): boolean {
+    return toAnyComponents(this.components).every(
+      predicate as (n: number, index: number, arr: number[]) => boolean
+    );
+  }
+
+  /**
+   * Determines whether any of the components in this vector pass a specified test
+   * @param {Function} predicate function to run for each component
+   * @returns {boolean} true if some of the components pass, false otherwise
+   */
+  some(
+    predicate: (n: number, index: number, components: Components<N>) => boolean
+  ): boolean {
+    return toAnyComponents(this.components).some(
+      predicate as (n: number, index: number, arr: number[]) => boolean
+    );
+  }
+
+  /**
    * Converts this vector to an array
    * @returns The vector's components as an array
    */
@@ -673,7 +695,7 @@ export default class Vector<const N extends number | undefined = undefined> {
    * @param size How many components the vector should have
    * @returns The created vector
    */
-  static ZERO<N extends number>(size: N): Vector<N> {
+  static zero<N extends number>(size: N): Vector<N> {
     return new Vector(new Array(size).fill(0) as Components<N>);
   }
 
@@ -682,8 +704,18 @@ export default class Vector<const N extends number | undefined = undefined> {
    * @param size How many components the vector should have
    * @returns The created vector
    */
-  static ONE<N extends number>(size: N): Vector<N> {
+  static one<N extends number>(size: N): Vector<N> {
     return new Vector(new Array(size).fill(1) as Components<N>);
+  }
+
+  /**
+   * Creates a new vector filled with a given value
+   * @param size How many components the vector should have
+   * @param value the value to fill the vector with
+   * @returns The created vector
+   */
+  static fill<N extends number>(size: N, value: number): Vector<N> {
+    return new Vector(new Array(size).fill(value) as Components<N>);
   }
 
   /**

@@ -33,8 +33,9 @@ const appContext: AppContext<typeof config> = {
   ctx,
   mouse,
   time: {
-    animationStart: Date.now(),
-    lastFrame: Date.now(),
+    animationStart: Date.now() / 1000,
+    lastFrame: Date.now() / 1000,
+    now: Date.now() / 1000,
     delta: 0,
   },
 };
@@ -83,11 +84,11 @@ function initStateful<S extends object>(
   if (app.animationFrame != null) {
     const animate = () => {
       const { time } = appContext;
-      const now = Date.now();
-      time.delta = (now - time.lastFrame) / 1000;
+      time.lastFrame = time.now;
+      const now = Date.now() / 1000;
+      time.delta = now - time.lastFrame;
+      time.now = now;
       state = app.animationFrame?.({ ...appContext, time, state }) ?? state;
-      time.lastFrame = now;
-      appContext.time = time;
       requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
@@ -108,11 +109,11 @@ function initStateLess(app: StatelessAppMethods<typeof config>) {
   if (app.animationFrame != null) {
     const animate = () => {
       const { time } = appContext;
-      const now = Date.now();
+      time.lastFrame = time.now;
+      const now = Date.now() / 1000;
       time.delta = now - time.lastFrame;
+      time.now = now;
       app.animationFrame?.({ ...appContext, time });
-      time.lastFrame = now;
-      appContext.time = time;
       requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
