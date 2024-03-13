@@ -660,11 +660,11 @@ export default class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Returns a vector with N number of components, all mapped on a unit circle (or the N dimensional equivalent).
+   * Returns a random normalised vector with N number of components
    * @param size Number of components to return
    * @returns Random normalised vector.
    */
-  static randomPointOnUnitCircle<N extends number>(size: N): Vector<N> {
+  static randomNormalised<N extends number>(size: N): Vector<N> {
     const components = new Array(size)
       .fill(undefined)
       .map(() => Math.random() - 0.5);
