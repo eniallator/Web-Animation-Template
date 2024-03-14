@@ -36,7 +36,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Raises the current components to given power(s)
-   * @param  {...VectorArg} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
+   * @param  {...VectorArg<N>} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
    * @returns {this} this
    */
   pow(...args: Array<VectorArg<N>>): this {
@@ -57,7 +57,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Adds the current components with given operand(s)
-   * @param  {...VectorArg} args If given a number, all components are added with this. If given a Vector, the add operation is component-wise
+   * @param  {...VectorArg<N>} args If given a number, all components are added with this. If given a Vector, the add operation is component-wise
    * @returns {this} this
    */
   add(...args: Array<VectorArg<N>>): this {
@@ -78,7 +78,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Subtracts given operand(s) from the current components
-   * @param  {...VectorArg} args If given a number, all components have the number taken away from them. If given a Vector, the subtract operation is component-wise
+   * @param  {...VectorArg<N>} args If given a number, all components have the number taken away from them. If given a Vector, the subtract operation is component-wise
    * @returns {this} this
    */
   sub(...args: Array<VectorArg<N>>): this {
@@ -99,7 +99,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Multiplies the current components with given operand(s)
-   * @param  {...VectorArg} args If given a number, all components are multiplied by this. If given a Vector, the multiply operation is component-wise
+   * @param  {...VectorArg<N>} args If given a number, all components are multiplied by this. If given a Vector, the multiply operation is component-wise
    * @returns {this} this
    */
   multiply(...args: Array<VectorArg<N>>): this {
@@ -120,7 +120,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Divides the current components by the given operand(s)
-   * @param  {...VectorArg} args If given a number, all components are divided by this. If given a Vector, the divide operation is component-wise
+   * @param  {...VectorArg<N>} args If given a number, all components are divided by this. If given a Vector, the divide operation is component-wise
    * @returns {this} this
    */
   divide(...args: Array<VectorArg<N>>): this {
@@ -141,9 +141,9 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Linear interpolation between this vector and a given other vector
-   * @param {Vector} other Vector to interpolate to
+   * @param {Vector<N>} other Vector to interpolate to
    * @param {number} t Between 0 and 1, where 0 is this current vector and 1 is the supplied other vector
-   * @returns {Vector} Interpolated vector
+   * @returns {Vector<N>} Interpolated vector
    */
   lerp(other: Vector<N>, t: number): Vector<N> {
     if (isSameSize(this, other)) {
@@ -162,7 +162,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Computes the dot product with a supplied vector
-   * @param {Vector} other Vector to dot product with
+   * @param {Vector<N>} other Vector to dot product with
    * @returns {number} Dot product
    */
   dot(other: Vector<N>): number {
@@ -180,7 +180,7 @@ export default class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Compute sum of all components
+   * Computes the sum of all components
    * @returns {number}
    */
   sum(): number {
@@ -242,18 +242,19 @@ export default class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Sets the "head" of the current vector to a given value
-   * @param {VectorArg} xOrVec X component of the given coordinates. Or a vector to copy if supplied instead.
+   * Sets the "head" of the current vector to a given set of components or copies a given vector
+   * @param {Vector<N> | ...Components<N>} xOrVec New components to use, or the vector to copy
    * @param {number} [y] Y component of the given coordinates
    * @returns {this} this
    */
-  setHead(...params: AnyComponents | readonly [Vector<N>]): this {
-    const newComponents: AnyComponents = isArrayOf(isNumber)(params)
+  setHead(...params: Components<N> | readonly [Vector<N>]): this {
+    const newComponents = isArrayOf(isNumber)(params)
       ? params
-      : toAnyComponents(params[0].components);
-    if (newComponents.length !== toAnyComponents(this.components).length) {
+      : ([...params[0].components] as Components<N>);
+    const newSize = toAnyComponents(newComponents).length;
+    if (newSize !== toAnyComponents(this.components).length) {
       throw new IncompatibleVector(
-        `Received an incompatible vector of size ${newComponents.length}`
+        `Received an incompatible vector of size ${newSize}`
       );
     }
     this.components = newComponents as Components<N>;
@@ -305,7 +306,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Returns a new normalised version of this vector
-   * @returns {Vector} Normalised vector
+   * @returns {Vector<N>} Normalised vector
    */
   getNorm(): Vector<N> {
     const components = toAnyComponents(this.components);
@@ -346,7 +347,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Get the sign of each component in this vector
-   * @returns {Vector} The signs of this vector where 1 >= 0 and -1 < 0
+   * @returns {Vector<N>} The signs of this vector where the component will be 1 if >= 0, otherwise -1
    */
   getSign(): Vector<N> {
     return new Vector(
@@ -382,7 +383,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Sets the angle of this vector
-   * @type {Vector<Components2D>}
+   * @type {Vector<2>}
    * @param {number} angle Angle to set to
    * @returns {this} this
    */
@@ -403,7 +404,7 @@ export default class Vector<const N extends number | undefined = undefined> {
   /**
    * Rotates this vector about a pivot
    * @type {Vector<2>}
-   * @param {Vector} pivot Pivot to rotate around
+   * @param {Vector<2>} pivot Pivot to rotate around
    * @param {number} angle Angle to rotate by
    * @returns {this} this
    */
@@ -444,7 +445,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Cross product of this vector and another
-   * @param {Vector<3>} this
+   * @type {Vector<3>}
    * @param {Vector<3>} other
    * @returns {Vector<3>} The resulting cross product vector of this and the other vector
    */
@@ -470,7 +471,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Copies this vector into a duplicate
-   * @returns {Vector} Duplicated version of this vector
+   * @returns {Vector<N>} Duplicated version of this vector
    */
   copy(): Vector<N> {
     return new Vector([...this.components] as Components<N>);
@@ -478,6 +479,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * The size of this vector
+   * @returns {number}
    */
   get size(): number {
     return toAnyComponents(this.components).length;
@@ -529,7 +531,7 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Get the value of a component at a specified index
-   * @param index
+   * @param {number} index
    * @returns {number}
    */
   valueOf(index: number): number {
@@ -617,29 +619,52 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Converts this vector to an array
-   * @returns The vector's components as an array
+   * @returns {Components<N>} This vector's components as an array
    */
   toArray(): Components<N> {
     return [...toAnyComponents(this.components)] as Components<N>;
   }
 
   /**
-   * Tests if this vector and another have equal components
+   * Copies this vector, and overwrites the value at the provided index, with the given value
+   * @param {number} index Index to overwrite at
+   * @param {number} value New value to set
+   * @returns {Vector<N>} The new Vector
+   */
+  with(index: number, value: number): Vector<N> {
+    return new Vector<N>(
+      toAnyComponents(this.components).with(index, value) as Components<N>
+    );
+  }
+
+  /**
+   * Guard function used to narrow a parsed Vector
+   * @param {number} size the size to narrow to
+   * @returns {boolean} true if the size of the parsed vector is the given size, false otherwise
+   */
+  isSize<const S extends number>(this: Vector, size: S): this is Vector<S> {
+    return toAnyComponents(this.components).length === size;
+  }
+
+  /**
+   * Tests if this vector and another have equal size and components
    * @param {Vector} other
    * @returns {boolean} If they are equal
    */
-  equals(other: Vector<number>): boolean {
+  equals(other: Vector<undefined | number>): boolean {
+    const otherComponents = toAnyComponents(this.components);
     return (
       isSameSize(this, other) &&
       toAnyComponents(this.components).every(
-        (component, i) => component === other.components[i]
+        (component, i) => component === otherComponents[i]
       )
     );
   }
 
   /**
    * Converts this vector to a string in the format: "VectorND[component1, component2, ...]"
-   * @returns the formatted string
+   * @param {number} fractionDigits optional precision to format the components to
+   * @returns {string} the formatted string
    */
   toString(fractionDigits?: number): string {
     const components = toAnyComponents(this.components);
@@ -652,7 +677,7 @@ export default class Vector<const N extends number | undefined = undefined> {
   /**
    * Parses a string and tries to make a vector out of it
    * @param {string} str Vector string in the format of "VectorND[component1, component2, ...]"
-   * @returns {(Vector|undefined)} The parsed vector if it's valid, otherwise undefined.
+   * @returns {(Vector | undefined)} The parsed vector if it's valid, otherwise undefined.
    */
   static parseString(str: string): Vector | undefined {
     const match = /^Vector\d+D\[(?<components>[^\]]+)\]$/.exec(str);
@@ -665,18 +690,9 @@ export default class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Guard function used to narrow a parsed Vector
-   * @param size the size to narrow to
-   * @returns true if the size of the parsed vector is the given size, false otherwise
-   */
-  isSize<const S extends number>(this: Vector, size: S): this is Vector<S> {
-    return toAnyComponents(this.components).length === size;
-  }
-
-  /**
    * Returns a random normalised vector with N number of components
-   * @param size Number of components to return
-   * @returns Random normalised vector.
+   * @param {number} size Number of components to return
+   * @returns {Vector<N>} Random normalised vector.
    */
   static randomNormalised<N extends number>(size: N): Vector<N> {
     const components = new Array(size)
@@ -692,8 +708,8 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Creates a new vector filled with 0s
-   * @param size How many components the vector should have
-   * @returns The created vector
+   * @param {number} size How many components the vector should have
+   * @returns {Vector<N>} The created vector
    */
   static zero<N extends number>(size: N): Vector<N> {
     return new Vector(new Array(size).fill(0) as Components<N>);
@@ -701,8 +717,8 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Creates a new vector filled with 1s
-   * @param size How many components the vector should have
-   * @returns The created vector
+   * @param {number} size How many components the vector should have
+   * @returns {Vector<N>} The created vector
    */
   static one<N extends number>(size: N): Vector<N> {
     return new Vector(new Array(size).fill(1) as Components<N>);
@@ -710,9 +726,9 @@ export default class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Creates a new vector filled with a given value
-   * @param size How many components the vector should have
-   * @param value the value to fill the vector with
-   * @returns The created vector
+   * @param {number} size How many components the vector should have
+   * @param {number} value Value to fill the vector with
+   * @returns {Vector<N>} The created vector
    */
   static fill<N extends number>(size: N, value: number): Vector<N> {
     return new Vector(new Array(size).fill(value) as Components<N>);
