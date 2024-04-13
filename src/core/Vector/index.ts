@@ -257,7 +257,7 @@ export default class Vector<const N extends number | undefined = undefined> {
         `Received an incompatible vector of size ${newSize}`
       );
     }
-    this.components = newComponents as Components<N>;
+    this.components = newComponents;
     return this;
   }
 

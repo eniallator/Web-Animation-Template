@@ -36,7 +36,7 @@ export function hasKey<K extends string, V>(
   value: unknown,
   key: K,
   guard?: Guard<V>
-): value is { [k in K]: V } {
+): value is { [k in K]: unknown } {
   return (
     isObject(value) && key in value && (guard == null || guard(value[key]))
   );
@@ -58,4 +58,12 @@ export function isEqual<T>(a: T, b: T): boolean {
             ([k, v]) => k in b && isEqual(v, (b as Record<string, unknown>)[k])
           )))
   );
+}
+
+export function tuple<const T extends unknown[]>(...tuple: T): T {
+  return tuple;
+}
+
+export function raise<T = never>(err: Error): T {
+  throw err;
 }

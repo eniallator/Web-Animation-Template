@@ -8,6 +8,7 @@ import {
   StatelessAppMethods,
 } from "./core/types";
 import app from "./app";
+import { raise } from "./core/utils";
 
 function updateCanvasBounds(canvas: HTMLCanvasElement) {
   const { width, height } = canvas.getBoundingClientRect();
@@ -18,12 +19,11 @@ function updateCanvasBounds(canvas: HTMLCanvasElement) {
 const canvas = dom.get<HTMLCanvasElement>("canvas");
 updateCanvasBounds(canvas);
 
-const ctx = canvas.getContext("2d");
-if (ctx == null) {
-  throw new Error(`Could not get a 2D rendering context for element ${canvas}`);
-}
-
-const mouse = new Mouse(canvas);
+const ctx =
+  canvas.getContext("2d") ??
+  raise<CanvasRenderingContext2D>(
+    new Error(`Could not get a 2D rendering context for element ${canvas}`)
+  );
 
 const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"));
 
@@ -31,7 +31,7 @@ const appContext: AppContext<typeof config> = {
   paramConfig,
   canvas,
   ctx,
-  mouse,
+  mouse: new Mouse(canvas),
   time: {
     animationStart: Date.now() / 1000,
     lastFrame: Date.now() / 1000,
@@ -81,16 +81,19 @@ function initStateful<S extends object>(
     state = app.onResize?.(evt, { ...appContext, state }) ?? state;
   };
 
-  if (app.animationFrame != null) {
-    const animate = () => {
-      const { time } = appContext;
-      time.lastFrame = time.now;
-      const now = Date.now() / 1000;
-      time.delta = now - time.lastFrame;
-      time.now = now;
-      state = app.animationFrame?.({ ...appContext, time, state }) ?? state;
+  const animate = () => {
+    const { time } = appContext;
+    time.lastFrame = time.now;
+    const now = Date.now() / 1000;
+    time.delta = now - time.lastFrame;
+    time.now = now;
+    if (app.animationFrame != null) {
+      state = app.animationFrame({ ...appContext, time, state }) ?? state;
       requestAnimationFrame(animate);
-    };
+    }
+  };
+
+  if (app.animationFrame != null) {
     requestAnimationFrame(animate);
   }
 }
@@ -106,16 +109,19 @@ function initStateLess(app: StatelessAppMethods<typeof config>) {
     app.onResize?.(evt, appContext);
   };
 
-  if (app.animationFrame != null) {
-    const animate = () => {
-      const { time } = appContext;
-      time.lastFrame = time.now;
-      const now = Date.now() / 1000;
-      time.delta = now - time.lastFrame;
-      time.now = now;
-      app.animationFrame?.({ ...appContext, time });
+  const animate = () => {
+    const { time } = appContext;
+    time.lastFrame = time.now;
+    const now = Date.now() / 1000;
+    time.delta = now - time.lastFrame;
+    time.now = now;
+    if (app.animationFrame != null) {
+      app.animationFrame({ ...appContext, time });
       requestAnimationFrame(animate);
-    };
+    }
+  };
+
+  if (app.animationFrame != null) {
     requestAnimationFrame(animate);
   }
 }
