@@ -14,6 +14,20 @@ export function filterAndMap<I, O>(
   }, []);
 }
 
+export function findAndMap<I, O>(
+  arr: I[],
+  mapper: (val: I, index: number, arr: I[]) => O | null | undefined
+): O | null {
+  for (let i = 0; i < arr.length; i++) {
+    const output = mapper(arr[i], i, arr);
+
+    if (output != null) {
+      return output;
+    }
+  }
+  return null;
+}
+
 export function formatDate(date: Date): string {
   return date
     .toLocaleString()

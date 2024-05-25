@@ -180,7 +180,7 @@ export default class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Computes the sum of all components
+   * Compute sum of all components
    * @returns {number}
    */
   sum(): number {
@@ -283,6 +283,46 @@ export default class Vector<const N extends number | undefined = undefined> {
         0
       )
     );
+  }
+
+  /**
+   * Computes the squared magnitude of the difference between this vector and another vector
+   * @param {Vector<N>} other vector to difference with
+   * @returns {number} squared magnitude
+   */
+  sqrDistTo(other: Vector<N>): number {
+    if (isSameSize(this, other)) {
+      const otherComponents = toAnyComponents(other.components);
+      return toAnyComponents(this.components).reduce(
+        (acc, n, i) => acc + (n - otherComponents[i]) ** 2,
+        0
+      );
+    } else {
+      throw new IncompatibleVector(
+        `Received an incompatible vector of size ${other.size}`
+      );
+    }
+  }
+
+  /**
+   * Computes the magnitude of the difference between this vector and another vector
+   * @param {Vector<N>} other vector to difference with
+   * @returns {number} magnitude
+   */
+  distTo(other: Vector<N>): number {
+    if (isSameSize(this, other)) {
+      const otherComponents = toAnyComponents(other.components);
+      return Math.sqrt(
+        toAnyComponents(this.components).reduce(
+          (acc, n, i) => acc + (n - otherComponents[i]) ** 2,
+          0
+        )
+      );
+    } else {
+      throw new IncompatibleVector(
+        `Received an incompatible vector of size ${other.size}`
+      );
+    }
   }
 
   /**

@@ -4,6 +4,7 @@ import dom from "./core/dom";
 import config from "./app/config";
 import {
   AppContext,
+  AppContextWithState,
   StatefulAppMethods,
   StatelessAppMethods,
 } from "./core/types";
@@ -26,19 +27,6 @@ const ctx =
   );
 
 const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"));
-
-const appContext: AppContext<typeof config> = {
-  paramConfig,
-  canvas,
-  ctx,
-  mouse: new Mouse(canvas),
-  time: {
-    animationStart: Date.now() / 1000,
-    lastFrame: Date.now() / 1000,
-    now: Date.now() / 1000,
-    delta: 0,
-  },
-};
 
 paramConfig.addCopyToClipboardHandler("#share-btn");
 
@@ -68,27 +56,46 @@ dom.addListener(
   }
 );
 
+const appContext: AppContext<typeof config> = {
+  paramConfig,
+  canvas,
+  ctx,
+  mouse: new Mouse(canvas),
+  time: {
+    animationStart: Date.now() / 1000,
+    lastFrame: Date.now() / 1000,
+    now: Date.now() / 1000,
+    delta: 0,
+  },
+};
+
 function initStateful<S extends object>(
   app: StatefulAppMethods<typeof config, S>
 ) {
-  let state = app.init(appContext);
+  const statefulContext: AppContextWithState<typeof config, S> = {
+    ...appContext,
+    state: app.init(appContext),
+  };
 
   window.onresize = evt => {
     updateCanvasBounds(canvas);
     const { width, height } = canvas.getBoundingClientRect();
     canvas.width = width;
     canvas.height = height;
-    state = app.onResize?.(evt, { ...appContext, state }) ?? state;
+    statefulContext.state =
+      app.onResize?.(evt, statefulContext) ?? statefulContext.state;
   };
 
   const animate = () => {
-    const { time } = appContext;
+    const { time } = statefulContext;
     time.lastFrame = time.now;
     const now = Date.now() / 1000;
     time.delta = now - time.lastFrame;
     time.now = now;
+    statefulContext.state =
+      app.animationFrame?.(statefulContext) ?? statefulContext.state;
+
     if (app.animationFrame != null) {
-      state = app.animationFrame({ ...appContext, time, state }) ?? state;
       requestAnimationFrame(animate);
     }
   };

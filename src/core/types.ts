@@ -32,12 +32,12 @@ export interface StatefulAppMethods<
   animationFrame?: (
     this: StatefulAppMethods<A, S>,
     appContext: AppContextWithState<A, S>
-  ) => S | null;
+  ) => S | null | undefined | void;
   onResize?: (
     this: StatefulAppMethods<A, S>,
     evt: UIEvent,
     appContext: AppContextWithState<A, S>
-  ) => S | null;
+  ) => S | null | undefined | void;
 }
 
 export interface StatelessAppMethods<A extends Array<ConfigPart<string>>> {
