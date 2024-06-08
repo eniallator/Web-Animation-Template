@@ -1,4 +1,5 @@
 node_modules
 bundle.js
 dist
-.yarn
+.yarn/cache
+.yarn/install-state.gz
