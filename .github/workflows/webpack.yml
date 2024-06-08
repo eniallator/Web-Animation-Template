@@ -8,8 +8,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.2.0
-      - name: Setup yarn
-        run: yarn set version 3.8.2
       - name: Install dependencies
         run: yarn
       - name: Build bundle
