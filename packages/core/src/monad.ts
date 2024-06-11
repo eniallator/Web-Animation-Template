@@ -3,14 +3,14 @@ type UnpackTupledMonads<M extends readonly Monad<unknown>[]> = {
 };
 
 export class Monad<A> {
-  private readonly _value: A;
+  private readonly value: A;
 
   /**
    * Monad class
    * @param {A} value Initial value for the Monad to have
    */
   private constructor(value: A) {
-    this._value = value;
+    this.value = value;
   }
 
   static from<A>(value: A): Monad<A> {
@@ -24,36 +24,34 @@ export class Monad<A> {
   static tupled<const M extends readonly Monad<unknown>[]>(
     monads: M
   ): Monad<UnpackTupledMonads<M>> {
-    return new Monad(
-      monads.map(monad => monad._value) as UnpackTupledMonads<M>
-    );
+    return new Monad(monads.map(monad => monad.value) as UnpackTupledMonads<M>);
   }
 
   /**
    *  Maps the Monad's value to a new value
-   * @param {function(A): B} callback Mapping function
+   * @param {function(A): B} fn Mapping function
    * @returns {Monad} Monad with the changed value
    */
-  map<B>(callback: (value: A) => B): Monad<B> {
-    return new Monad(callback(this._value));
+  map<B>(fn: (value: A) => B): Monad<B> {
+    return new Monad(fn(this.value));
   }
 
   /**
    *  Flat maps the Monad's value to a new value
-   * @param {function(A): Monad<B>} callback Mapping function
+   * @param {function(A): Monad<B>} fn Mapping function
    * @returns {Monad} Monad with the changed value
    */
-  flatMap<B>(callback: (value: A) => Monad<B>): Monad<B> {
-    return callback(this._value);
+  flatMap<B>(fn: (value: A) => Monad<B>): Monad<B> {
+    return fn(this.value);
   }
 
   /**
    *  Call a given function with the current value
-   * @param {function(A): void} callback Function to call
+   * @param {function(A): void} fn Function to call
    * @returns {this} this
    */
-  tap(callback: (value: A) => void): ThisType<A> {
-    callback(this._value);
+  tap(fn: (value: A) => void): ThisType<A> {
+    fn(this.value);
     return this;
   }
 
@@ -61,7 +59,7 @@ export class Monad<A> {
    * Get the current value of this monad
    * @returns {A} The current value
    */
-  value(): A {
-    return this._value;
+  get(): A {
+    return this.value;
   }
 }

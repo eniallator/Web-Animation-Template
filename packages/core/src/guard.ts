@@ -22,17 +22,29 @@ export function isBoolean(value: unknown): value is boolean {
   return value === true || value === false;
 }
 
-export function isNullable<T>(guard: Guard<T>): Guard<T | undefined | null> {
-  return (value: unknown): value is T | null => value == null || guard(value);
+export function isNullable<T>(guard: Guard<T>): Guard<T | null | undefined> {
+  return (value: unknown): value is T | null | undefined =>
+    value == null || guard(value);
 }
 
-export function isOneOf<const T>(...values: T[]) {
+export function isOneOf<const T>(...values: T[]): Guard<T> {
   return (value: unknown): value is T => values.includes(value as T);
 }
 
 export function isArrayOf<T>(guard: Guard<T>): Guard<Array<T>> {
   return (value): value is Array<T> =>
     Array.isArray(value) && value.every(guard);
+}
+
+export function isRecordOf<K extends string | number | symbol, V>(
+  keyGuard: Guard<K>,
+  valueGuard: Guard<V>
+): Guard<Record<K, V>> {
+  return (value): value is Record<K, V> =>
+    isObject(value) &&
+    Object.entries(value).every(
+      ([key, value]) => keyGuard(key) && valueGuard(value)
+    );
 }
 
 export function guardOrThrow<T>(
