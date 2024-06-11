@@ -4,7 +4,7 @@ import { InputConfig, OnUpdate } from "./types.js";
 
 export function inputValue<C extends InputConfig<string>>(
   config: C,
-  el: HTMLInputElement
+  el: HTMLInputElement | HTMLTextAreaElement
 ): DeriveStateType<C> {
   switch (config.type) {
     case "Checkbox":

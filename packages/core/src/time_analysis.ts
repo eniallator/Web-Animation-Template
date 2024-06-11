@@ -43,7 +43,6 @@ export class TimeAnalysis {
    *  If called multiple times with the same method, the lower of the two debug levels is taken.
    */
   static registerMethods(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     target: any,
     methodNames: Array<string> | undefined = undefined,
     minDebugLevel: number = 1

@@ -34,6 +34,7 @@ export interface ColorConfig<I extends string>
 export interface TextConfig<I extends string>
   extends BaseInputConfig<I, string> {
   type: "Text";
+  area?: boolean;
 }
 
 export interface DatetimeConfig<I extends string>

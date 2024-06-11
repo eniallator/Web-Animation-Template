@@ -58,6 +58,7 @@ export default config(
     id: "example-text",
     label: "Example Text",
     default: "Hello",
+    area: true,
     attrs: {
       placeholder: "World!",
     },

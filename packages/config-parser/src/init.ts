@@ -279,7 +279,14 @@ function initHtml<C extends ConfigPart<string>>(
       return inp.value as DeriveStateType<C>;
     }
     default: {
-      const inp = document.createElement("input");
+      let inp: HTMLInputElement | HTMLTextAreaElement;
+      if (config.type === "Text" && config.area) {
+        inp = document.createElement("textarea");
+      } else {
+        inp = document.createElement("input");
+        inp.setAttribute("type", inputType(config.type));
+      }
+
       if (config.attrs != null) {
         setAttributes(inp, config.attrs);
       }
@@ -287,7 +294,6 @@ function initHtml<C extends ConfigPart<string>>(
       if (hasId) {
         inp.setAttribute("id", config.id);
       }
-      inp.setAttribute("type", inputType(config.type));
 
       inp.onchange = changeCallback(
         config,
