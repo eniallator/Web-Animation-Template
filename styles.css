@@ -15,17 +15,23 @@ main {
   --bg-secondary: #4b535c;
 }
 
-input:not([type="checkbox"]),
-select {
+select,
+textarea,
+input:not([type="checkbox"]) {
   border: 0;
   font: inherit;
   font-size: inherit;
   padding: 0 0.5rem;
   height: 1.75rem;
 }
+
+textarea,
 input:not([type="checkbox"]) {
   width: 11rem;
+  min-width: 11rem;
+  max-width: 11rem;
 }
+
 select,
 input[type="color"] {
   width: 12rem;
