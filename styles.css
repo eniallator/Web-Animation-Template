@@ -85,6 +85,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .icon {
+  width: 1em;
   height: 1em;
 }
 
@@ -236,13 +237,13 @@ canvas {
 
 .collection-container {
   margin: 0 1rem;
-  max-width: calc(100% - 2rem);
-  overflow-x: auto;
   position: relative;
 }
 
 .collection-content {
+  max-width: calc(100%);
   width: fit-content;
+  overflow-x: auto;
 }
 
 .collection-actions {
@@ -323,11 +324,6 @@ dialog {
     margin-top: 1.5rem !important;
   }
 
-  .collection-actions {
-    position: sticky;
-    left: 0;
-  }
-
   .config-item {
     display: flex;
     flex-direction: column;
@@ -348,12 +344,6 @@ dialog {
   }
   .dialog-actions {
     font-size: 1.5rem;
-  }
-}
-
-@media (max-width: 305px) {
-  .collection-actions {
-    width: fit-content;
   }
 }
 
