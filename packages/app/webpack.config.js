@@ -1,5 +1,5 @@
 import BrowserSyncPlugin from "browser-sync-webpack-plugin";
-import url from "url";
+import url, { URL } from "url";
 
 const currDir = url.fileURLToPath(new URL(".", import.meta.url));
 
