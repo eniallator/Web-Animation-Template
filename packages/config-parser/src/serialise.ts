@@ -54,7 +54,7 @@ function serialiseRaw(
 
     case "Color": {
       const { value } = state as StateItem<ColorConfig<string>>;
-      const col = String(value.slice(1).toUpperCase());
+      const col = String(value.toUpperCase());
       if (shortUrl) return intToBase64(parseInt(col, 16));
       return col;
     }

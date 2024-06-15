@@ -159,7 +159,7 @@ export class ParamConfig<const C extends ConfigPart<string>> {
     const parsed: Record<string, string> = {};
     let tokens;
     while ((tokens = paramRegex.exec(rawUrlParams))) {
-      parsed[tokens[1]] = tokens[2];
+      parsed[tokens[1]] = decodeURIComponent(tokens[2]);
     }
     return parsed;
   }
