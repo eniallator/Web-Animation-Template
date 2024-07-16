@@ -3,6 +3,7 @@ import {
   checkExhausted,
   formatDate,
   intToBase64,
+  raise,
 } from "@web-art/core";
 import { DeriveDefaults, DeriveStateType } from "./derive.js";
 import {
@@ -43,7 +44,12 @@ function serialiseRaw(
           row
             .map((value, i) =>
               serialise(
-                { config: config.fields[i], value, clicked: false },
+                {
+                  config:
+                    config.fields[i] ?? raise(new Error("No field found")),
+                  value,
+                  clicked: false,
+                },
                 shortUrl
               )
             )
@@ -126,14 +132,16 @@ export function deserialise<C extends SerialisableConfig<string>>(
         .fill(null)
         .map(
           (_, rowIndex) =>
-            new Array(config.fields.length).fill(null).map((_, colIndex) => {
-              const childConfig = config.fields[colIndex];
-              return deserialise(
-                childConfig,
-                flat[rowIndex * config.fields.length + colIndex],
-                shortUrl
-              );
-            }) as DeriveDefaults<typeof config.fields>
+            new Array(config.fields.length)
+              .fill(null)
+              .map((_, colIndex) =>
+                deserialise(
+                  config.fields[colIndex] ?? raise(new Error("No field found")),
+                  flat[rowIndex * config.fields.length + colIndex] ??
+                    raise(new Error("No value found")),
+                  shortUrl
+                )
+              ) as DeriveDefaults<typeof config.fields>
         ) as DeriveStateType<C>;
     }
     case "Datetime":

@@ -14,6 +14,10 @@ export function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
+export function isFunction(value: unknown): value is () => unknown {
+  return typeof value === "function";
+}
+
 export function isObject(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
@@ -27,13 +31,16 @@ export function isNullable<T>(guard: Guard<T>): Guard<T | null | undefined> {
     value == null || guard(value);
 }
 
+export function isNonNullable<T>(value: T | null | undefined): value is T {
+  return value != null;
+}
+
 export function isOneOf<const T>(...values: T[]): Guard<T> {
   return (value: unknown): value is T => values.includes(value as T);
 }
 
-export function isArrayOf<T>(guard: Guard<T>): Guard<Array<T>> {
-  return (value): value is Array<T> =>
-    Array.isArray(value) && value.every(guard);
+export function isArrayOf<T>(guard: Guard<T>): Guard<T[]> {
+  return (value): value is T[] => Array.isArray(value) && value.every(guard);
 }
 
 export function isRecordOf<K extends string | number | symbol, V>(

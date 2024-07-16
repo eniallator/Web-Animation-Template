@@ -1,4 +1,4 @@
-import { isArrayOf, isNumber, TimeAnalysis } from "@web-art/core";
+import { isArrayOf, isNumber, raise, TimeAnalysis } from "@web-art/core";
 import {
   IncompatibleOperation,
   IncompatibleVector,
@@ -33,12 +33,10 @@ export class Vector<const N extends number | undefined = undefined> {
     return new Vector([...components] as Components<A["length"]>);
   }
 
-  /**
-   * Raises the current components to given power(s)
-   * @param  {...VectorArg<N>} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
-   * @returns {this} this
-   */
-  pow(...args: Array<VectorArg<N>>): this {
+  private applyOperation(
+    operation: (a: number, b: number) => number,
+    ...args: Array<VectorArg<N>>
+  ): this {
     for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
         throw new IncompatibleVector(
@@ -48,10 +46,20 @@ export class Vector<const N extends number | undefined = undefined> {
       const components = toAnyComponents(this.components);
       const argAccessor = vectorArgAccessor(arg, components.length as N);
       for (let i = 0; i < components.length; i++) {
-        components[i] **= argAccessor(i);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        components[i] = operation(components[i]!, argAccessor(i));
       }
     }
     return this;
+  }
+
+  /**
+   * Raises the current components to given power(s)
+   * @param  {...VectorArg<N>} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
+   * @returns {this} this
+   */
+  pow(...args: Array<VectorArg<N>>): this {
+    return this.applyOperation((a, b) => a ** b, ...args);
   }
 
   /**
@@ -60,19 +68,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   add(...args: Array<VectorArg<N>>): this {
-    for (const arg of args) {
-      if (isAnyVector(arg) && !isSameSize(this, arg)) {
-        throw new IncompatibleVector(
-          `Received an incompatible vector of size ${arg.size}`
-        );
-      }
-      const components = toAnyComponents(this.components);
-      const argAccessor = vectorArgAccessor(arg, components.length as N);
-      for (let i = 0; i < components.length; i++) {
-        components[i] += argAccessor(i);
-      }
-    }
-    return this;
+    return this.applyOperation((a, b) => a + b, ...args);
   }
 
   /**
@@ -81,19 +77,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   sub(...args: Array<VectorArg<N>>): this {
-    for (const arg of args) {
-      if (isAnyVector(arg) && !isSameSize(this, arg)) {
-        throw new IncompatibleVector(
-          `Received an incompatible vector of size ${arg.size}`
-        );
-      }
-      const components = toAnyComponents(this.components);
-      const argAccessor = vectorArgAccessor(arg, components.length as N);
-      for (let i = 0; i < components.length; i++) {
-        components[i] -= argAccessor(i);
-      }
-    }
-    return this;
+    return this.applyOperation((a, b) => a - b, ...args);
   }
 
   /**
@@ -102,19 +86,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   multiply(...args: Array<VectorArg<N>>): this {
-    for (const arg of args) {
-      if (isAnyVector(arg) && !isSameSize(this, arg)) {
-        throw new IncompatibleVector(
-          `Received an incompatible vector of size ${arg.size}`
-        );
-      }
-      const components = toAnyComponents(this.components);
-      const argAccessor = vectorArgAccessor(arg, components.length as N);
-      for (let i = 0; i < components.length; i++) {
-        components[i] *= argAccessor(i);
-      }
-    }
-    return this;
+    return this.applyOperation((a, b) => a * b, ...args);
   }
 
   /**
@@ -123,19 +95,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   divide(...args: Array<VectorArg<N>>): this {
-    for (const arg of args) {
-      if (isAnyVector(arg) && !isSameSize(this, arg)) {
-        throw new IncompatibleVector(
-          `Received an incompatible vector of size ${arg.size}`
-        );
-      }
-      const components = toAnyComponents(this.components);
-      const argAccessor = vectorArgAccessor(arg, components.length as N);
-      for (let i = 0; i < components.length; i++) {
-        components[i] /= argAccessor(i);
-      }
-    }
-    return this;
+    return this.applyOperation((a, b) => a / b, ...args);
   }
 
   /**
@@ -149,7 +109,8 @@ export class Vector<const N extends number | undefined = undefined> {
       return new Vector(
         toAnyComponents(this.components).map(
           (component, i) =>
-            component - (component - toAnyComponents(other.components)[i]) * t
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            component - (component - toAnyComponents(other.components)[i]!) * t
         ) as Components<N>
       );
     } else {
@@ -168,7 +129,8 @@ export class Vector<const N extends number | undefined = undefined> {
     if (isSameSize(this, other)) {
       return toAnyComponents(this.components).reduce(
         (acc, component, i) =>
-          acc + component * toAnyComponents(other.components)[i],
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          acc + component * toAnyComponents(other.components)[i]!,
         0
       );
     } else {
@@ -208,17 +170,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   min(arg: VectorArg<N>): this {
-    if (isAnyVector(arg) && !isSameSize(this, arg)) {
-      throw new IncompatibleVector(
-        `Received an incompatible vector of size ${arg.size}`
-      );
-    }
-    const components = toAnyComponents(this.components);
-    const argAccessor = vectorArgAccessor(arg, components.length as N);
-    for (let i = 0; i < components.length; i++) {
-      components[i] = Math.min(components[i], argAccessor(i));
-    }
-    return this;
+    return this.applyOperation(Math.min, arg);
   }
 
   /**
@@ -227,17 +179,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   max(arg: VectorArg<N>): this {
-    if (isAnyVector(arg) && !isSameSize(this, arg)) {
-      throw new IncompatibleVector(
-        `Received an incompatible vector of size ${arg.size}`
-      );
-    }
-    const components = toAnyComponents(this.components);
-    const argAccessor = vectorArgAccessor(arg, components.length as N);
-    for (let i = 0; i < components.length; i++) {
-      components[i] = Math.max(components[i], argAccessor(i));
-    }
-    return this;
+    return this.applyOperation(Math.max, arg);
   }
 
   /**
@@ -293,7 +235,8 @@ export class Vector<const N extends number | undefined = undefined> {
     if (isSameSize(this, other)) {
       const otherComponents = toAnyComponents(other.components);
       return toAnyComponents(this.components).reduce(
-        (acc, n, i) => acc + (n - otherComponents[i]) ** 2,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        (acc, n, i) => acc + (n - otherComponents[i]!) ** 2,
         0
       );
     } else {
@@ -313,7 +256,8 @@ export class Vector<const N extends number | undefined = undefined> {
       const otherComponents = toAnyComponents(other.components);
       return Math.sqrt(
         toAnyComponents(this.components).reduce(
-          (acc, n, i) => acc + (n - otherComponents[i]) ** 2,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          (acc, n, i) => acc + (n - otherComponents[i]!) ** 2,
           0
         )
       );
@@ -337,7 +281,8 @@ export class Vector<const N extends number | undefined = undefined> {
         components.reduce((acc, component) => acc + component * component, 0)
       );
     for (const i in components) {
-      components[i] *= magnitudeRatio;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      components[i]! *= magnitudeRatio;
     }
 
     return this;
@@ -367,7 +312,8 @@ export class Vector<const N extends number | undefined = undefined> {
       components.reduce((acc, component) => acc + component * component, 0)
     );
     for (const i in components) {
-      components[i] /= magnitude;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      components[i]! /= magnitude;
     }
     return this;
   }
@@ -379,7 +325,8 @@ export class Vector<const N extends number | undefined = undefined> {
   abs(): this {
     const components = toAnyComponents(this.components);
     for (const i in components) {
-      components[i] = Math.abs(components[i]);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      components[i] = Math.abs(components[i]!);
     }
     return this;
   }
@@ -538,7 +485,8 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   y(this: Vector<MinSize<2, N>>): number {
     if (isMinSize(2)(this.components)) {
-      return toAnyComponents(this.components)[1];
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return toAnyComponents(this.components)[1]!;
     } else {
       throw new IncompatibleOperation("Requires at least a 2D vector");
     }
@@ -550,7 +498,8 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   z(this: Vector<MinSize<3, N>>): number {
     if (isMinSize(3)(this.components)) {
-      return toAnyComponents(this.components)[2];
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return toAnyComponents(this.components)[2]!;
     } else {
       throw new IncompatibleOperation("Requires at least a 3D vector");
     }
@@ -562,7 +511,8 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   w(this: Vector<MinSize<4, N>>): number {
     if (isMinSize(4)(this.components)) {
-      return toAnyComponents(this.components)[3];
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return toAnyComponents(this.components)[3]!;
     } else {
       throw new IncompatibleOperation("Requires at least a 4D vector");
     }
@@ -575,14 +525,14 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   valueOf(index: number): number {
     const components = toAnyComponents(this.components);
-    const value = components[index];
-    if (value != null) {
-      return value;
-    } else {
-      throw new OutOfBounds(
-        `Index ${index} out of bounds for vector of size ${components.length}`
-      );
-    }
+    return (
+      components[index] ??
+      raise(
+        new OutOfBounds(
+          `Index ${index} out of bounds for vector of size ${components.length}`
+        )
+      )
+    );
   }
 
   /**
@@ -720,7 +670,7 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   static parseString(str: string): Vector | undefined {
     const match = /^Vector\d+D\[(?<components>[^\]]+)\]$/.exec(str);
-    const components = match?.groups?.components.split(", ").map(Number);
+    const components = match?.groups?.components?.split(", ").map(Number);
     if (isComponents(components)) {
       return new Vector(components);
     } else {

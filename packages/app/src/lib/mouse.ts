@@ -55,18 +55,20 @@ export default class Mouse {
       }
       callback?.call(this, evt);
     };
-    element.onmousemove = (evt: MouseEvent | TouchEvent) =>
+    element.onmousemove = (evt: MouseEvent | TouchEvent) => {
       handleChange(this.moveCallback, evt);
-    element.ontouchmove = (evt: MouseEvent | TouchEvent) =>
+    };
+    element.ontouchmove = (evt: MouseEvent | TouchEvent) => {
       handleChange(
         this.moveCallback,
         evt,
         !isMouseEvent(evt) ? evt.touches[0] : undefined
       );
+    };
     element.onmousedown = element.ontouchstart = (
       evt: MouseEvent | TouchEvent
     ) => {
-      this._clicked = this._down === false;
+      this._clicked = !this._down;
       this._down = true;
       handleChange(this.downCallback, evt);
     };

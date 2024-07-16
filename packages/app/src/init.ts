@@ -22,7 +22,9 @@ updateCanvasBounds(canvas);
 const ctx =
   canvas.getContext("2d") ??
   raise<CanvasRenderingContext2D>(
-    new Error(`Could not get a 2D rendering context for element ${canvas}`)
+    new Error(
+      `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
+    )
   );
 
 const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"));
@@ -34,16 +36,16 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = `${
-    document.getElementsByTagName("title")?.[0].innerText ?? "download"
+    document.getElementsByTagName("title")[0]?.innerText ?? "download"
   }.png`;
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
 });
 
-dom.addListener(dom.get("#config-dropdown-btn"), "click", () =>
-  dom.get<HTMLDialogElement>("#config-modal").showModal()
-);
+dom.addListener(dom.get("#config-dropdown-btn"), "click", () => {
+  dom.get<HTMLDialogElement>("#config-modal").showModal();
+});
 
 dom.addListener(
   dom.get<HTMLDialogElement>("#config-modal"),

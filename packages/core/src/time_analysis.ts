@@ -1,3 +1,14 @@
+import { isFunction, isNonNullable, isString } from "./guard.js";
+import { Option } from "./option.js";
+import { hasKey, raise } from "./utils.js";
+
+class IndexError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "IndexError";
+  }
+}
+
 class AuditError extends Error {
   constructor(message: string) {
     super(message);
@@ -6,9 +17,10 @@ class AuditError extends Error {
 }
 
 interface Timeable {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  target: any;
-  methodNames: Array<string>;
+  target:
+    | { prototype: Record<string, () => unknown> }
+    | Record<string, () => unknown>;
+  methodNames: string[];
   minDebugLevel: number;
 }
 
@@ -26,7 +38,7 @@ interface Analytics {
 }
 
 export class TimeAnalysis {
-  private static methods: Array<Timeable> = [];
+  private static methods: Timeable[] = [];
   private static methodTimes: Record<string, Record<string, TimeableStats>> =
     {};
 
@@ -43,18 +55,24 @@ export class TimeAnalysis {
    *  If called multiple times with the same method, the lower of the two debug levels is taken.
    */
   static registerMethods(
-    target: any,
-    methodNames: Array<string> | undefined = undefined,
+    target: unknown,
+    methodNames: string[] | undefined = undefined,
     minDebugLevel: number = 1
   ): void {
     if (methodNames == null) {
       methodNames = Object.getOwnPropertyNames(
-        target.prototype || target
+        hasKey(target, "prototype", isNonNullable) ? target.prototype : target
       ).filter(
-        name => name !== "constructor" && typeof target[name] !== "function"
+        name => name !== "constructor" && hasKey(target, name, isFunction)
       );
     }
-    this.methods.push({ target, methodNames, minDebugLevel });
+    this.methods.push({
+      target: target as
+        | { prototype: Record<string, () => unknown> }
+        | Record<string, () => unknown>,
+      methodNames,
+      minDebugLevel,
+    });
   }
 
   /**
@@ -65,86 +83,90 @@ export class TimeAnalysis {
     this.debugLevel = debugLevel;
     TimeAnalysis.methods
       .filter(item => item.minDebugLevel < debugLevel)
-      .forEach(item =>
+      .forEach(item => {
         item.methodNames.forEach(methodName => {
-          const target = item.target;
-          const method = target[methodName] ?? target?.prototype?.[methodName];
-          const patchedMethod = this.timeMethod(
-            method,
-            methodName,
-            item.minDebugLevel,
-            target?.name
-          );
-          if (patchedMethod != null) {
-            try {
-              if (target.prototype) {
-                target.prototype[methodName] = patchedMethod;
+          const method = hasKey(item.target, methodName, isFunction)
+            ? item.target[methodName]
+            : hasKey(item.target.prototype, methodName, isFunction)
+              ? item.target.prototype[methodName]
+              : null;
+          if (method != null) {
+            const patchedMethod = this.timeMethod(
+              method,
+              methodName,
+              item.minDebugLevel,
+              hasKey(item.target, "name", isString)
+                ? item.target.name
+                : undefined
+            );
+            if (patchedMethod != null) {
+              if (hasKey(item.target, methodName, isFunction)) {
+                item.target[methodName] = patchedMethod;
               } else {
-                target[methodName] = patchedMethod;
+                item.target.prototype[methodName] = patchedMethod;
               }
-            } catch (e) {
-              return;
             }
           }
-        })
-      );
+        });
+      });
   }
 
   private timeMethod<
     T,
-    F extends (this: ThisType<T>, ...args: Array<unknown>) => unknown,
+    F extends (this: ThisType<T>, ...args: unknown[]) => unknown,
   >(
     method: F,
     methodName: string,
     minDebugLevel: number,
     targetName: string = "Anonymous"
   ): F | null {
-    if (TimeAnalysis.methodTimes[targetName] == null) {
-      TimeAnalysis.methodTimes[targetName] = {};
-    }
-    if (TimeAnalysis.methodTimes[targetName][methodName] == null) {
-      TimeAnalysis.methodTimes[targetName][methodName] = {
-        calls: 0,
-        totalExecutionTime: 0,
-        minDebugLevel: minDebugLevel,
-        setup: false,
-      };
-    } else if (
-      minDebugLevel <
-      TimeAnalysis.methodTimes[targetName][methodName].minDebugLevel
-    ) {
-      TimeAnalysis.methodTimes[targetName][methodName].minDebugLevel =
-        minDebugLevel;
+    const stats: TimeableStats = TimeAnalysis.methodTimes[targetName]?.[
+      methodName
+    ] ?? {
+      calls: 0,
+      totalExecutionTime: 0,
+      minDebugLevel: minDebugLevel,
+      setup: false,
+    };
+
+    TimeAnalysis.methodTimes[targetName] = {
+      ...(TimeAnalysis.methodTimes[targetName] ?? {}),
+      [methodName]: stats,
+    };
+
+    if (minDebugLevel < stats.minDebugLevel) {
+      stats.minDebugLevel = minDebugLevel;
     }
 
-    if (TimeAnalysis.methodTimes[targetName][methodName].setup) return null;
-    TimeAnalysis.methodTimes[targetName][methodName].setup = true;
+    return Option.from(!stats.setup || null)
+      .map(() => {
+        stats.setup = true;
 
-    const currTimes = TimeAnalysis.methodTimes[targetName][methodName];
-    return function (this: ThisType<T>, ...args: Array<unknown>): unknown {
-      const startTime = performance.now();
-      const ret = method.apply(this, args);
-      currTimes.totalExecutionTime += performance.now() - startTime;
-      currTimes.calls++;
-      return ret;
-    } as F;
+        return function (this: ThisType<T>, ...args: unknown[]): unknown {
+          const startTime = performance.now();
+          const ret = method.apply(this, args);
+          stats.totalExecutionTime += performance.now() - startTime;
+          stats.calls++;
+          return ret;
+        } as F;
+      })
+      .getOrNull();
   }
 
   private recordCurrentStats() {
     this.recordedStats = {};
-    for (const target of Object.keys(TimeAnalysis.methodTimes)) {
-      this.recordedStats[target] = {};
-      for (const methodName of Object.keys(TimeAnalysis.methodTimes[target])) {
-        if (
-          TimeAnalysis.methodTimes[target][methodName].minDebugLevel <
-          this.debugLevel
-        ) {
-          this.recordedStats[target][methodName] = {
-            calls: TimeAnalysis.methodTimes[target][methodName].calls,
-            totalExecutionTime:
-              TimeAnalysis.methodTimes[target][methodName].totalExecutionTime,
-            minDebugLevel:
-              TimeAnalysis.methodTimes[target][methodName].minDebugLevel,
+    for (const [targetName, targetStats] of Object.entries(
+      TimeAnalysis.methodTimes
+    )) {
+      for (const [methodName, methodStats] of Object.entries(targetStats)) {
+        if (methodStats.minDebugLevel < this.debugLevel) {
+          this.recordedStats[targetName] = {
+            ...(this.recordedStats[targetName] ?? {}),
+            [methodName]: {
+              calls: methodStats.calls,
+              totalExecutionTime: methodStats.totalExecutionTime,
+              minDebugLevel: methodStats.minDebugLevel,
+            },
           };
         }
       }
@@ -154,17 +176,25 @@ export class TimeAnalysis {
   generateStats(): Record<string, Record<string, Analytics>> {
     const stats: Record<string, Record<string, Analytics>> = {};
     if (this.recordedStats != null) {
-      for (const target of Object.keys(this.recordedStats)) {
-        stats[target] = {};
-        for (const methodName of Object.keys(this.recordedStats[target])) {
-          stats[target][methodName] = {
-            ...this.recordedStats[target][methodName],
-            calls:
-              TimeAnalysis.methodTimes[target][methodName].calls -
-              this.recordedStats[target][methodName].calls,
-            totalExecutionTime:
-              TimeAnalysis.methodTimes[target][methodName].totalExecutionTime -
-              this.recordedStats[target][methodName].totalExecutionTime,
+      for (const [targetName, targetStats] of Object.entries(
+        this.recordedStats
+      )) {
+        for (const [methodName, methodStats] of Object.entries(targetStats)) {
+          stats[targetName] = {
+            ...(stats[targetName] ?? {}),
+            [methodName]: {
+              ...methodStats,
+              calls:
+                (
+                  TimeAnalysis.methodTimes[targetName]?.[methodName] ??
+                  raise<TimeableStats>(new Error("Something went wrong"))
+                ).calls - methodStats.calls,
+              totalExecutionTime:
+                (
+                  TimeAnalysis.methodTimes[targetName]?.[methodName] ??
+                  raise<TimeableStats>(new Error("Something went wrong"))
+                ).totalExecutionTime - methodStats.totalExecutionTime,
+            },
           };
         }
       }
@@ -223,6 +253,16 @@ class TimeAudit {
     this.stats = stats;
   }
 
+  private safeAccessStats(target: string, methodName: string): Analytics {
+    return (
+      (this.stats[target] ??
+        raise<Record<string, Analytics>>(
+          new IndexError("Target does not exist")
+        ))[methodName] ??
+      raise<Analytics>(new IndexError("Method name does not exist on target"))
+    );
+  }
+
   /**
    * Get a specific call count for a given target/methodName pair
    * @param {string} target
@@ -230,7 +270,7 @@ class TimeAudit {
    * @returns {number}
    */
   calls(target: string, methodName: string): number {
-    return this.stats[target][methodName].calls;
+    return this.safeAccessStats(target, methodName).calls;
   }
 
   /**
@@ -240,7 +280,7 @@ class TimeAudit {
    * @returns {number}
    */
   totalExecutionTime(target: string, methodName: string): number {
-    return this.stats[target][methodName].totalExecutionTime;
+    return this.safeAccessStats(target, methodName).totalExecutionTime;
   }
 
   /**
@@ -250,7 +290,7 @@ class TimeAudit {
    * @returns {number}
    */
   minDebugLevel(target: string, methodName: string): number {
-    return this.stats[target][methodName].minDebugLevel;
+    return this.safeAccessStats(target, methodName).minDebugLevel;
   }
 
   /**
@@ -269,7 +309,12 @@ class TimeAudit {
    * @yields {string} Current methodName
    */
   *methodNames(target: string): Generator<string> {
-    for (const methodName of Object.keys(this.stats[target])) {
+    for (const methodName of Object.keys(
+      this.stats[target] ??
+        raise<Record<string, Analytics>>(
+          new IndexError("Target does not exist")
+        )
+    )) {
       yield methodName;
     }
   }
@@ -287,7 +332,11 @@ class TimeAudit {
   ): void {
     for (const target of this.targets()) {
       for (const methodName of this.methodNames(target)) {
-        callbackFn({ ...this.stats[target][methodName] }, target, methodName);
+        callbackFn(
+          { ...this.safeAccessStats(target, methodName) },
+          target,
+          methodName
+        );
       }
     }
   }
@@ -305,7 +354,7 @@ class TimeAudit {
       }
       let hasValues = false;
       for (const methodName of this.methodNames(target)) {
-        const currStats = this.stats[target][methodName];
+        const currStats = this.safeAccessStats(target, methodName);
         if (currStats.calls === 0) continue;
 
         hasValues = true;

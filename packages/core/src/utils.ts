@@ -19,7 +19,8 @@ export function findAndMap<I, O>(
   mapper: (val: I, index: number, arr: I[]) => O | null | undefined
 ): O | null {
   for (let i = 0; i < arr.length; i++) {
-    const output = mapper(arr[i], i, arr);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const output = mapper(arr[i]!, i, arr);
 
     if (output != null) {
       return output;
@@ -86,3 +87,22 @@ export type RemainingKeys<O extends object, T extends object> = Exclude<
   keyof O,
   keyof T
 >;
+
+export type Entry<O, K extends keyof O> = readonly [K, O[K]];
+
+export function typedToEntries<O extends object>(obj: O): Entry<O, keyof O>[] {
+  return Object.entries(obj) as unknown as Entry<O, keyof O>[];
+}
+
+export function typedFromEntries<O extends object>(
+  entries: Entry<O, keyof O>[]
+): O {
+  return Object.fromEntries(entries) as O;
+}
+
+export function mapObject<const O extends object, const N extends object>(
+  obj: O,
+  mapper: (entry: Entry<O, keyof O>) => Entry<N, keyof N>
+): N {
+  return typedFromEntries(typedToEntries(obj).map(mapper));
+}

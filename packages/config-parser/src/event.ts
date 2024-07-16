@@ -40,12 +40,13 @@ export function inputCallback<C extends InputConfig<string>>(
     case "Text":
       return null;
     case "Color":
-      return evt =>
+      return evt => {
         hasKey(evt.target, "value", isString)
           ? onUpdate(
               evt.target.value.slice(1).toUpperCase() as DeriveStateType<C>
             )
           : null;
+      };
     default:
       return checkExhausted(config);
   }
@@ -65,19 +66,21 @@ export function changeCallback<C extends InputConfig<string>>(
         );
       };
     case "Datetime":
-      return evt =>
+      return evt => {
         hasKey(evt.target, "value", isString)
           ? onUpdate(new Date(evt.target.value) as DeriveStateType<C>)
           : null;
+      };
     case "Select":
     case "Text":
-      return evt =>
+      return evt => {
         hasKey(evt.target, "value", isString)
           ? onUpdate(evt.target.value as DeriveStateType<C>)
           : null;
+      };
     case "File":
-      return evt =>
-        new Promise<void>(() => {
+      return evt => {
+        void new Promise<void>(() => {
           const target = evt.target as HTMLInputElement;
           if (target.files?.[0] != null) {
             const reader = new FileReader();
@@ -87,13 +90,15 @@ export function changeCallback<C extends InputConfig<string>>(
             reader.readAsDataURL(target.files[0]);
           }
         });
+      };
 
     case "Number":
     case "Range":
-      return evt =>
+      return evt => {
         hasKey(evt.target, "value", isString)
           ? onUpdate(+evt.target.value as DeriveStateType<C>)
           : null;
+      };
     default:
       return checkExhausted(config);
   }

@@ -107,8 +107,8 @@ export class ParamConfig<const C extends ConfigPart<string>> {
   ): void {
     const subscriptions =
       updateSubscriptions != null
-        ? (updateSubscriptions || Object.keys(this.state)).filter(
-            update => this.optTypedStateItem(update) !== undefined
+        ? updateSubscriptions.filter(
+            update => this.optTypedStateItem(update) != null
           )
         : null;
 
@@ -117,11 +117,8 @@ export class ParamConfig<const C extends ConfigPart<string>> {
   }
 
   private createdPassedState(): PassedState<C> {
-    return this.state.reduce(
-      (acc, item) => ({
-        ...acc,
-        [item.config.id]: item.value,
-      }),
+    return this.state.reduce<PassedState<C>>(
+      (acc: PassedState<C>, item) => ({ ...acc, [item.config.id]: item.value }),
       {} as PassedState<C>
     );
   }
@@ -159,7 +156,9 @@ export class ParamConfig<const C extends ConfigPart<string>> {
     const parsed: Record<string, string> = {};
     let tokens;
     while ((tokens = paramRegex.exec(rawUrlParams))) {
-      parsed[tokens[1]] = decodeURIComponent(tokens[2]);
+      if (tokens[1] != null && tokens[2] != null) {
+        parsed[tokens[1]] = decodeURIComponent(tokens[2]);
+      }
     }
     return parsed;
   }
@@ -235,7 +234,7 @@ export class ParamConfig<const C extends ConfigPart<string>> {
 
     dom.addListener(dom.get(selector), "click", () => {
       const searchParams = this.serialiseToURLParams(
-        extraDataFunc?.(this.createdPassedState())
+        extraDataFunc(this.createdPassedState())
       );
       const sharableURL =
         location.protocol +
@@ -243,7 +242,7 @@ export class ParamConfig<const C extends ConfigPart<string>> {
         location.host +
         location.pathname +
         (searchParams.length > 0 ? "?" + searchParams : "");
-      navigator.clipboard.writeText(sharableURL);
+      void navigator.clipboard.writeText(sharableURL);
     });
   }
 }

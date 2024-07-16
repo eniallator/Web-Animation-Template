@@ -73,7 +73,7 @@ export type InputConfig<I extends string> =
   | ColorConfig<I>
   | TextConfig<I>
   | DatetimeConfig<I>
-  | SelectConfig<I, string>;
+  | SelectConfig<I>;
 
 export type ConfigCollectionFields = ReadonlyArray<InputConfig<string>>;
 

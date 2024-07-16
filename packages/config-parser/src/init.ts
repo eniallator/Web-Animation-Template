@@ -1,4 +1,4 @@
-import { dom, filterAndMap } from "@web-art/core";
+import { Option, dom, filterAndMap, raise } from "@web-art/core";
 import { inputType } from "./create.js";
 import { DeriveDefaults, DeriveStateType } from "./derive.js";
 import { changeCallback, inputCallback, inputValue } from "./event.js";
@@ -14,8 +14,8 @@ import {
 } from "./types.js";
 
 function setAttributes(el: HTMLElement, attrs: Record<string, string>): void {
-  for (const attr in attrs) {
-    el.setAttribute(attr, attrs[attr]);
+  for (const [name, value] of Object.entries(attrs)) {
+    el.setAttribute(name, value);
   }
 }
 
@@ -37,8 +37,11 @@ function initCollectionRowHtml<F extends ConfigCollectionFields>(
     return initHtml(
       itemEl,
       config,
-      rowValues[i],
-      () => getCurrentValue()[i],
+      rowValues[i] ?? null,
+      () =>
+        Option.from(getCurrentValue()[i]).getOrThrow(
+          new Error("Received invalid value")
+        ),
       newValue => {
         onUpdate(
           getCurrentValue().map((oldValue, j) =>
@@ -122,7 +125,7 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
   );
 
   let id = 0;
-  const idLookup: Record<string, number> = {};
+  let idLookup: Record<string, number> = {};
 
   if (config.expandable) {
     dom.addListener(dom.get("button[data-action=delete]"), "click", () => {
@@ -137,13 +140,20 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
           }
         }
       );
-      for (const id in idLookup) {
-        if (indicesToDelete.includes(idLookup[id])) {
-          delete idLookup[id];
-        } else {
-          idLookup[id] -= indicesToDelete.filter(i => i < idLookup[id]).length;
-        }
-      }
+      idLookup = Object.fromEntries(
+        filterAndMap(Object.entries(idLookup), ([key, value]) =>
+          indicesToDelete.includes(value)
+            ? null
+            : [key, value - indicesToDelete.filter(i => i < value).length]
+        )
+      );
+      // for (const id in idLookup) {
+      //   if (indicesToDelete.includes(idLookup[id])) {
+      //     delete idLookup[id];
+      //   } else {
+      //     idLookup[id] -= indicesToDelete.filter(i => i < idLookup[id]).length;
+      //   }
+      // }
       onUpdate(
         getCurrentValue().filter(
           (_, i) => !indicesToDelete.includes(i)
@@ -158,15 +168,19 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
         dom.get("tbody", collection),
         config,
         config.fields.map(field => field.default) as DeriveDefaults<F>,
-        () => getCurrentValue()[idLookup[rowId]],
-        newRow =>
+        () =>
+          Option.from(idLookup[rowId])
+            .map(key => getCurrentValue()[key])
+            .getOrThrow(new Error("Received invalid value")),
+        newRow => {
           onUpdate(
             getCurrentValue().toSpliced(
-              idLookup[rowId],
+              idLookup[rowId] ?? raise(new Error("Received invalid value")),
               1,
               newRow
             ) as DeriveStateType<typeof config>
-          )
+          );
+        }
       );
       onUpdate([...currentValue, rowValues] as DeriveStateType<typeof config>);
     });
@@ -180,15 +194,19 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
         dom.get("tbody", collection),
         config,
         row,
-        () => getCurrentValue()[idLookup[rowId]],
-        newRow =>
+        () =>
+          Option.from(idLookup[rowId])
+            .map(key => getCurrentValue()[key])
+            .getOrThrow(new Error("Received invalid value")),
+        newRow => {
           onUpdate(
             getCurrentValue().toSpliced(
-              idLookup[rowId],
+              idLookup[rowId] ?? raise(new Error("Received invalid value")),
               1,
               newRow
             ) as DeriveStateType<typeof config>
-          )
+          );
+        }
       );
     }) ?? []
   );
@@ -249,7 +267,9 @@ function initHtml<C extends ConfigPart<string>>(
       btn.type = "button";
       btn.innerText = config.text ?? "";
       btn.className = "secondary wrap-text";
-      btn.onclick = () => inp.click();
+      btn.onclick = () => {
+        inp.click();
+      };
 
       baseEl.appendChild(inp);
       baseEl.appendChild(btn);
@@ -266,7 +286,7 @@ function initHtml<C extends ConfigPart<string>>(
       }
       inp.className = "form-select";
 
-      config.options?.forEach(option => {
+      config.options.forEach(option => {
         const el = document.createElement("option");
         el.value = option;
         el.innerText = option;

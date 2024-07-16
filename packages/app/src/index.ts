@@ -30,5 +30,7 @@ function init({ canvas, ctx }: AppContext<typeof config>) {
 
 export default appMethods.stateless({
   init,
-  onResize: (_evt, appContext) => init(appContext),
+  onResize: (_evt, appContext) => {
+    init(appContext);
+  },
 });
