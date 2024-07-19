@@ -35,6 +35,8 @@ input:not([type="checkbox"]) {
 select,
 input[type="color"] {
   width: 12rem;
+  min-width: 12rem;
+  max-width: 12rem;
 }
 
 .wrap-text {
