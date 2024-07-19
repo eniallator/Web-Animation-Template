@@ -10,6 +10,7 @@ import {
   FileConfig,
   InputConfig,
   OnUpdate,
+  SelectConfig,
   StateItem,
 } from "./types.js";
 
@@ -286,6 +287,11 @@ function initHtml<C extends ConfigPart<string>>(
       }
       inp.className = "form-select";
 
+      inp.onchange = changeCallback(
+        config,
+        onUpdate as OnUpdate<SelectConfig<string>>
+      );
+
       config.options.forEach(option => {
         const el = document.createElement("option");
         el.value = option;
@@ -383,7 +389,7 @@ export function initStateItem<C extends ConfigPart<string>>(
     config,
     initialValue ??
       ((isSerialisable(config)
-        ? config.default ?? null
+        ? (config.default ?? null)
         : null) as DeriveStateType<C> | null),
     getCurrentValue,
     onUpdate,
