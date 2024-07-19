@@ -106,3 +106,7 @@ export function mapObject<const O extends object, const N extends object>(
 ): N {
   return typedFromEntries(typedToEntries(obj).map(mapper));
 }
+
+export function posMod(a: number, b: number): number {
+  return ((a % b) + b) % b;
+}
