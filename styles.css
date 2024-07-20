@@ -63,6 +63,20 @@ input[type="color"]::-webkit-color-swatch {
   border: none;
 }
 
+.when-fullscreen {
+  display: none;
+}
+.fullscreen .when-fullscreen {
+  display: initial;
+}
+
+.when-not-fullscreen {
+  display: initial;
+}
+.fullscreen .when-not-fullscreen {
+  display: none;
+}
+
 #credit {
   position: relative;
   bottom: 6px;
