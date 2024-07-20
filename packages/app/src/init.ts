@@ -43,6 +43,19 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
   document.body.removeChild(anchor);
 });
 
+dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
+  if (document.fullscreenElement != null) {
+    void document
+      .exitFullscreen()
+      .then(() => document.body.classList.toggle("fullscreen", false));
+  } else {
+    void dom
+      .get("main")
+      .requestFullscreen()
+      .then(() => document.body.classList.toggle("fullscreen", true));
+  }
+});
+
 dom.addListener(dom.get("#config-dropdown-btn"), "click", () => {
   dom.get<HTMLDialogElement>("#config-modal").showModal();
 });
