@@ -1,4 +1,4 @@
-import { raise } from "./utils.js";
+import { hasKey, raise } from "./utils.js";
 
 export type Guard<T> = (value: unknown) => value is T;
 
@@ -35,7 +35,9 @@ export function isNonNullable<T>(value: T | null | undefined): value is T {
   return value != null;
 }
 
-export function isOneOf<const T>(...values: T[]): Guard<T> {
+export function isOneOf<
+  const T extends string | number | boolean | null | undefined,
+>(...values: T[]): Guard<T> {
   return (value: unknown): value is T => values.includes(value as T);
 }
 
@@ -60,4 +62,8 @@ export function guardOrThrow<T>(
   hint?: string
 ): T {
   return guard(value) ? value : raise<T>(new Error(hint ?? "Guard error"));
+}
+
+export function hasType<const S extends string>(name: S): Guard<{ type: S }> {
+  return val => hasKey(val, "type", (type): type is S => type === name);
 }

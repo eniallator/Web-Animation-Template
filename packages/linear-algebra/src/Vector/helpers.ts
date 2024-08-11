@@ -1,4 +1,4 @@
-import { checkExhausted, hasKey, isNumber } from "@web-art/core";
+import { checkExhausted, hasType, isNumber } from "@web-art/core";
 import { Vector } from "./index.js";
 import { AnyComponents, Components, MinSize, VectorArg } from "./types.js";
 
@@ -47,9 +47,8 @@ export function toAnyComponents<N extends number | undefined>(
   return c;
 }
 
-export function isAnyVector(value: unknown): value is Vector {
-  return hasKey(value, "type", (type): type is "Vector" => type === "Vector");
-}
+export const isAnyVector = (value: unknown): value is Vector =>
+  hasType("Vector")(value);
 
 export function isVector<N extends number | undefined>(n: N) {
   return (value: unknown): value is Vector<N> =>

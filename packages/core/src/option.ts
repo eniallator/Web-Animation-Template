@@ -1,4 +1,5 @@
 import { Guard } from "./guard.js";
+import { Monad } from "./monad.js";
 import { raise } from "./utils.js";
 
 export class Option<A> {
@@ -12,11 +13,11 @@ export class Option<A> {
     return new Option<A>(null);
   }
 
-  static from<A>(value: A | null | undefined): Option<A> {
+  static some<A>(value: A | null | undefined): Option<A> {
     return new Option(value);
   }
 
-  static fromExact<const A>(value: A | null | undefined): Option<A> {
+  static someExact<const A>(value: A | null | undefined): Option<A> {
     return new Option(value);
   }
 
@@ -69,5 +70,9 @@ export class Option<A> {
 
   getOrElse<R>(orElse: () => R): A | R {
     return this.value ?? orElse();
+  }
+
+  toMonad(): Monad<A | null> {
+    return Monad.from(this.value ?? null);
   }
 }

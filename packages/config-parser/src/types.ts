@@ -42,8 +42,9 @@ export interface DatetimeConfig<I extends string>
   type: "Datetime";
 }
 
-type ArrayItems<A extends ReadonlyArray<unknown>> =
-  A extends ReadonlyArray<infer I> ? I : never;
+type ArrayItems<A extends readonly unknown[]> = A extends readonly (infer I)[]
+  ? I
+  : never;
 
 export interface SelectConfig<
   I extends string,
@@ -75,7 +76,7 @@ export type InputConfig<I extends string> =
   | DatetimeConfig<I>
   | SelectConfig<I>;
 
-export type ConfigCollectionFields = ReadonlyArray<InputConfig<string>>;
+export type ConfigCollectionFields = readonly InputConfig<string>[];
 
 export interface ConfigCollection<
   I extends string,
@@ -86,7 +87,7 @@ export interface ConfigCollection<
   label?: string;
   expandable?: boolean;
   fields: F;
-  default?: ReadonlyArray<DeriveDefaults<F>>;
+  default?: readonly DeriveDefaults<F>[];
 }
 
 export type ConfigPart<

@@ -25,7 +25,7 @@ export class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Robust Vector class which has many available operations
-   * @param {ReadonlyArray<number>} components The components of the vector, can be any size.
+   * @param {readonly number[]} components The components of the vector, can be any size.
    */
   static create<A extends AnyComponents>(
     ...components: A
@@ -35,7 +35,7 @@ export class Vector<const N extends number | undefined = undefined> {
 
   private applyOperation(
     operation: (a: number, b: number) => number,
-    ...args: Array<VectorArg<N>>
+    ...args: VectorArg<N>[]
   ): this {
     for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
@@ -58,7 +58,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @param  {...VectorArg<N>} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
    * @returns {this} this
    */
-  pow(...args: Array<VectorArg<N>>): this {
+  pow(...args: VectorArg<N>[]): this {
     return this.applyOperation((a, b) => a ** b, ...args);
   }
 
@@ -67,7 +67,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @param  {...VectorArg<N>} args If given a number, all components are added with this. If given a Vector, the add operation is component-wise
    * @returns {this} this
    */
-  add(...args: Array<VectorArg<N>>): this {
+  add(...args: VectorArg<N>[]): this {
     return this.applyOperation((a, b) => a + b, ...args);
   }
 
@@ -76,7 +76,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @param  {...VectorArg<N>} args If given a number, all components have the number taken away from them. If given a Vector, the subtract operation is component-wise
    * @returns {this} this
    */
-  sub(...args: Array<VectorArg<N>>): this {
+  sub(...args: VectorArg<N>[]): this {
     return this.applyOperation((a, b) => a - b, ...args);
   }
 
@@ -85,7 +85,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @param  {...VectorArg<N>} args If given a number, all components are multiplied by this. If given a Vector, the multiply operation is component-wise
    * @returns {this} this
    */
-  multiply(...args: Array<VectorArg<N>>): this {
+  multiply(...args: VectorArg<N>[]): this {
     return this.applyOperation((a, b) => a * b, ...args);
   }
 
@@ -94,7 +94,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @param  {...VectorArg<N>} args If given a number, all components are divided by this. If given a Vector, the divide operation is component-wise
    * @returns {this} this
    */
-  divide(...args: Array<VectorArg<N>>): this {
+  divide(...args: VectorArg<N>[]): this {
     return this.applyOperation((a, b) => a / b, ...args);
   }
 
@@ -647,6 +647,21 @@ export class Vector<const N extends number | undefined = undefined> {
       toAnyComponents(this.components).every(
         (component, i) => component === otherComponents[i]
       )
+    );
+  }
+
+  /** Checks if this vector is within the given bounds, where the position is inclusive
+   * and the dimensions are exclusive
+   *
+   * @param dimensions Dimensions of the bounds
+   * @param positions Starting positions of the bounds. Defaults to zero
+   * @returns if this vector is within the given bounds
+   */
+  inBounds(dimensions: Vector<N>, positions?: Vector<N>): boolean {
+    return toAnyComponents(this.components).every(
+      (n, i) =>
+        n >= (positions?.valueOf(i) ?? 0) &&
+        n < (positions?.valueOf(i) ?? 0) + dimensions.valueOf(i)
     );
   }
 

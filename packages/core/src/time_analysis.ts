@@ -50,7 +50,7 @@ export class TimeAnalysis {
   /**
    * Registers a class for analyzing execution time
    * @param {class} target The class/object to analyze
-   * @param {Array<string>} [methodNames] The method names of the class/object to analyze. Defaults to all except the constructor.
+   * @param {string[]} [methodNames] The method names of the class/object to analyze. Defaults to all except the constructor.
    * @param {number} [minDebugLevel=1] The minimum debug level of these methods, where the lower it is, the higher priority it is to be included.
    *  If called multiple times with the same method, the lower of the two debug levels is taken.
    */
@@ -138,7 +138,7 @@ export class TimeAnalysis {
       stats.minDebugLevel = minDebugLevel;
     }
 
-    return Option.from(!stats.setup || null)
+    return Option.some(!stats.setup || null)
       .map(() => {
         stats.setup = true;
 

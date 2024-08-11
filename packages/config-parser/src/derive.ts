@@ -17,7 +17,7 @@ export type DeriveDefaults<R extends ConfigCollectionFields> = {
 export type DeriveStateType<C extends ConfigPart<string>> =
   C extends SerialisableConfig<string>
     ? C extends ConfigCollection<string, infer F>
-      ? Array<DeriveDefaults<F>>
+      ? DeriveDefaults<F>[]
       : Exclude<C["default"], undefined>
     : null;
 
@@ -31,5 +31,6 @@ export type NarrowedPart<I extends C["id"], C extends ConfigPart<string>> = {
 
 export type DeriveId<C extends ConfigPart<string>> = C["id"];
 
-export type DeriveParts<A extends Array<ConfigPart<string>>> =
-  A extends Array<infer C> ? C : never;
+export type DeriveParts<A extends ConfigPart<string>[]> = A extends (infer C)[]
+  ? C
+  : never;

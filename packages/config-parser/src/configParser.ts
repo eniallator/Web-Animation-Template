@@ -7,16 +7,13 @@ import { ButtonConfig, ConfigPart, StateItem } from "./types.js";
 export class ParamConfig<const C extends ConfigPart<string>> {
   private static hashKeyLength: number = 6;
   private shortUrl: boolean;
-  private state: Array<StateItem<C>>;
+  private state: StateItem<C>[];
   private initialValues: Record<string, string>;
-  private listeners: Array<{
-    listener: (
-      passedState: PassedState<C>,
-      updates: Array<DeriveId<C>>
-    ) => void;
-    subscriptions: Array<DeriveId<C>> | null;
-  }> = [];
-  private updates: Array<DeriveId<C>> = [];
+  private listeners: {
+    listener: (passedState: PassedState<C>, updates: DeriveId<C>[]) => void;
+    subscriptions: DeriveId<C>[] | null;
+  }[] = [];
+  private updates: DeriveId<C>[] = [];
 
   /**
    * Config parsing to/from URL parameters and an interactive page element
@@ -25,7 +22,7 @@ export class ParamConfig<const C extends ConfigPart<string>> {
    * @param {boolean} [shortUrl=false] Whether to make the URLs short or not
    */
   constructor(
-    configs: ReadonlyArray<C>,
+    configs: readonly C[],
     baseEl: HTMLElement,
     shortUrl: boolean = false,
     initial: string = location.search
@@ -99,11 +96,8 @@ export class ParamConfig<const C extends ConfigPart<string>> {
    * @param {string[]} [updateSubscriptions] IDs of the config items to listen to. Defaults to all config items
    */
   addListener(
-    listener: (
-      passedState: PassedState<C>,
-      updates: Array<DeriveId<C>>
-    ) => void,
-    updateSubscriptions?: Array<DeriveId<C>>
+    listener: (passedState: PassedState<C>, updates: DeriveId<C>[]) => void,
+    updateSubscriptions?: DeriveId<C>[]
   ): void {
     const subscriptions =
       updateSubscriptions != null
@@ -191,7 +185,7 @@ export class ParamConfig<const C extends ConfigPart<string>> {
   serialiseToURLParams(extra?: string): string {
     const urlPart = (key: string, value: string) =>
       [this.urlKey(key), value].join(this.shortUrl ? "" : "=");
-    const params: Array<string> = this.state
+    const params: string[] = this.state
       .map(item => {
         if (
           isSerialisableStateItem(item) &&

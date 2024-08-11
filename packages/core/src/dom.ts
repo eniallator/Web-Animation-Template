@@ -1,3 +1,5 @@
+import { raise } from "./utils.js";
+
 function addListener<
   E extends HTMLElement,
   const K extends keyof HTMLElementEventMap,
@@ -16,11 +18,10 @@ function get<E extends HTMLElement>(
   selector: string,
   baseEl: ParentNode = document
 ): E {
-  const element = baseEl.querySelector<E>(selector);
-  if (element == null) {
-    throw new Error(`Could not find element with selector "${selector}"`);
-  }
-  return element;
+  return (
+    baseEl.querySelector<E>(selector) ??
+    raise(new Error(`Could not find element with selector "${selector}"`))
+  );
 }
 
 export const dom = { addListener, get };

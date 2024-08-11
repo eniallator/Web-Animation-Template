@@ -1,7 +1,7 @@
 import { ConfigPart, DeriveParts, ParamConfig } from "@web-art/config-parser";
 import Mouse from "./mouse";
 
-export interface AppContext<A extends Array<ConfigPart<string>>> {
+export interface AppContext<A extends ConfigPart<string>[]> {
   paramConfig: ParamConfig<DeriveParts<A>>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -15,14 +15,14 @@ export interface AppContext<A extends Array<ConfigPart<string>>> {
 }
 
 export interface AppContextWithState<
-  A extends Array<ConfigPart<string>>,
+  A extends ConfigPart<string>[],
   S extends object,
 > extends AppContext<A> {
   state: S;
 }
 
 export interface StatefulAppMethods<
-  A extends Array<ConfigPart<string>>,
+  A extends ConfigPart<string>[],
   S extends object,
 > {
   type: "stateful";
@@ -40,7 +40,7 @@ export interface StatefulAppMethods<
   ) => S | null | undefined | void;
 }
 
-export interface StatelessAppMethods<A extends Array<ConfigPart<string>>> {
+export interface StatelessAppMethods<A extends ConfigPart<string>[]> {
   type: "stateless";
   init?: (this: StatelessAppMethods<A>, appContext: AppContext<A>) => void;
   animationFrame?: (
@@ -55,15 +55,15 @@ export interface StatelessAppMethods<A extends Array<ConfigPart<string>>> {
 }
 
 export type AppMethods<
-  A extends Array<ConfigPart<string>>,
+  A extends ConfigPart<string>[],
   S extends object = never,
 > = StatefulAppMethods<A, S> | StatelessAppMethods<A>;
 
 export const appMethods = {
-  stateful: <A extends Array<ConfigPart<string>>, const S extends object>(
+  stateful: <A extends ConfigPart<string>[], const S extends object>(
     methods: Omit<StatefulAppMethods<A, S>, "type">
   ): AppMethods<A, S> => ({ type: "stateful", ...methods }),
-  stateless: <A extends Array<ConfigPart<string>>>(
+  stateless: <A extends ConfigPart<string>[]>(
     methods: Omit<StatelessAppMethods<A>, "type">
   ): AppMethods<A> => ({ type: "stateless", ...methods }),
 };

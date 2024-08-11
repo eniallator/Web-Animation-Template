@@ -40,7 +40,7 @@ function initCollectionRowHtml<F extends ConfigCollectionFields>(
       config,
       rowValues[i] ?? null,
       () =>
-        Option.from(getCurrentValue()[i]).getOrThrow(
+        Option.some(getCurrentValue()[i]).getOrThrow(
           new Error("Received invalid value")
         ),
       newValue => {
@@ -59,10 +59,10 @@ function initCollectionRowHtml<F extends ConfigCollectionFields>(
 function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
   baseEl: HTMLElement,
   config: ConfigCollection<I, F>,
-  value: Array<DeriveDefaults<F>> | null,
-  getCurrentValue: () => Array<DeriveDefaults<F>>,
+  value: DeriveDefaults<F>[] | null,
+  getCurrentValue: () => DeriveDefaults<F>[],
   onUpdate: OnUpdate<ConfigCollection<I, F>>
-): Array<DeriveDefaults<F>> {
+): DeriveDefaults<F>[] {
   const html = `
     <div id="${config.id}" class="collection">
       <a class="heading">
@@ -170,7 +170,7 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
         config,
         config.fields.map(field => field.default) as DeriveDefaults<F>,
         () =>
-          Option.from(idLookup[rowId])
+          Option.some(idLookup[rowId])
             .map(key => getCurrentValue()[key])
             .getOrThrow(new Error("Received invalid value")),
         newRow => {
@@ -196,7 +196,7 @@ function initCollectionHtml<I extends string, F extends ConfigCollectionFields>(
         config,
         row,
         () =>
-          Option.from(idLookup[rowId])
+          Option.some(idLookup[rowId])
             .map(key => getCurrentValue()[key])
             .getOrThrow(new Error("Received invalid value")),
         newRow => {
@@ -243,8 +243,8 @@ function initHtml<C extends ConfigPart<string>>(
       return initCollectionHtml(
         baseEl,
         config,
-        value as Array<DeriveDefaults<typeof config.fields>> | null,
-        getCurrentValue as () => Array<DeriveDefaults<ConfigCollectionFields>>,
+        value as DeriveDefaults<typeof config.fields>[] | null,
+        getCurrentValue as () => DeriveDefaults<ConfigCollectionFields>[],
         onUpdate as OnUpdate<ConfigCollection<string, ConfigCollectionFields>>
       ) as DeriveStateType<C>;
     }

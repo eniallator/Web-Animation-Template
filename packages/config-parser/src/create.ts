@@ -78,7 +78,7 @@ export function configCollection<
   return { type: "Collection", ...config };
 }
 
-export function config<C extends ReadonlyArray<ConfigPart<string>>>(
+export function config<C extends readonly ConfigPart<string>[]>(
   ...parts: C
 ): C {
   return parts;
