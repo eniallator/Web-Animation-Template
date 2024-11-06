@@ -36,7 +36,7 @@ export function isNonNullable<T>(value: T | null | undefined): value is T {
 }
 
 export function isOneOf<
-  const T extends string | number | boolean | null | undefined,
+  const T extends string | number | boolean | symbol | null | undefined,
 >(...values: T[]): Guard<T> {
   return (value: unknown): value is T => values.includes(value as T);
 }

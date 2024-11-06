@@ -44,11 +44,10 @@ export class Vector<const N extends number | undefined = undefined> {
         );
       }
       const components = toAnyComponents(this.components);
-      const argAccessor = vectorArgAccessor(arg, components.length as N);
-      for (let i = 0; i < components.length; i++) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        components[i] = operation(components[i]!, argAccessor(i));
-      }
+      const accessor = vectorArgAccessor(arg, components.length as N);
+      this.components = components.map((n, i) =>
+        operation(n, accessor(i))
+      ) as Components<N>;
     }
     return this;
   }
@@ -106,11 +105,12 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   lerp(other: Vector<N>, t: number): Vector<N> {
     if (isSameSize(this, other)) {
+      const otherComponents = toAnyComponents(other.components);
       return new Vector(
         toAnyComponents(this.components).map(
           (component, i) =>
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            component - (component - toAnyComponents(other.components)[i]!) * t
+            component - (component - otherComponents[i]!) * t
         ) as Components<N>
       );
     } else {
@@ -127,10 +127,11 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   dot(other: Vector<N>): number {
     if (isSameSize(this, other)) {
+      const otherComponents = toAnyComponents(other.components);
       return toAnyComponents(this.components).reduce(
         (acc, component, i) =>
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          acc + component * toAnyComponents(other.components)[i]!,
+          acc + component * otherComponents[i]!,
         0
       );
     } else {
@@ -280,11 +281,7 @@ export class Vector<const N extends number | undefined = undefined> {
       Math.sqrt(
         components.reduce((acc, component) => acc + component * component, 0)
       );
-    for (const i in components) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      components[i]! *= magnitudeRatio;
-    }
-
+    this.components = components.map(n => n * magnitudeRatio) as Components<N>;
     return this;
   }
 
@@ -311,10 +308,7 @@ export class Vector<const N extends number | undefined = undefined> {
     const magnitude = Math.sqrt(
       components.reduce((acc, component) => acc + component * component, 0)
     );
-    for (const i in components) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      components[i]! /= magnitude;
-    }
+    this.components = components.map(n => n / magnitude) as Components<N>;
     return this;
   }
 
@@ -323,11 +317,9 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   abs(): this {
-    const components = toAnyComponents(this.components);
-    for (const i in components) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      components[i] = Math.abs(components[i]!);
-    }
+    this.components = toAnyComponents(this.components).map(
+      Math.abs
+    ) as Components<N>;
     return this;
   }
 
@@ -660,8 +652,8 @@ export class Vector<const N extends number | undefined = undefined> {
   inBounds(dimensions: Vector<N>, positions?: Vector<N>): boolean {
     return toAnyComponents(this.components).every(
       (n, i) =>
-        n >= (positions?.valueOf(i) ?? 0) &&
-        n < (positions?.valueOf(i) ?? 0) + dimensions.valueOf(i)
+        n > (positions?.valueOf(i) ?? 0) &&
+        n - (positions?.valueOf(i) ?? 0) < dimensions.valueOf(i)
     );
   }
 
