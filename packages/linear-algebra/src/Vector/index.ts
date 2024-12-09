@@ -1,4 +1,4 @@
-import { isArrayOf, isNumber, raise, TimeAnalysis } from "@web-art/core";
+import { raise, TimeAnalysis } from "@web-art/core";
 import {
   IncompatibleOperation,
   IncompatibleVector,
@@ -14,6 +14,7 @@ import {
   vectorArgAccessor,
 } from "./helpers.js";
 import { AnyComponents, Components, MinSize, VectorArg } from "./types.js";
+import { isArrayOf, isNumber } from "deep-guards";
 
 export class Vector<const N extends number | undefined = undefined> {
   type = "Vector" as const;

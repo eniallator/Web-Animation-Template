@@ -1,4 +1,5 @@
-import { checkExhausted, hasType, isNumber } from "@web-art/core";
+import { checkExhausted } from "@web-art/core";
+import { Guard, isExact, isNumber, isObjectOf } from "deep-guards";
 import { Vector } from "./index.js";
 import { AnyComponents, Components, MinSize, VectorArg } from "./types.js";
 
@@ -47,8 +48,9 @@ export function toAnyComponents<N extends number | undefined>(
   return c;
 }
 
-export const isAnyVector = (value: unknown): value is Vector =>
-  hasType("Vector")(value);
+export const isAnyVector = isObjectOf({
+  type: isExact("Vector", false),
+}) as unknown as Guard<Vector>;
 
 export function isVector<N extends number | undefined>(n: N) {
   return (value: unknown): value is Vector<N> =>

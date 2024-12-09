@@ -1,6 +1,12 @@
-import { isFunction, isNonNullable, isString } from "./guard.js";
+import {
+  isFunction,
+  isObjectOf,
+  isRecordOf,
+  isString,
+  isUnknown,
+} from "deep-guards";
 import { Option } from "./option.js";
-import { hasKey, raise } from "./utils.js";
+import { raise } from "./utils.js";
 
 class IndexError extends Error {
   constructor(message: string) {
@@ -17,9 +23,10 @@ class AuditError extends Error {
 }
 
 interface Timeable {
-  target:
-    | { prototype: Record<string, () => unknown> }
-    | Record<string, () => unknown>;
+  target: { prototype: Record<string, () => unknown> } & Record<
+    string,
+    () => unknown
+  >;
   methodNames: string[];
   minDebugLevel: number;
 }
@@ -37,14 +44,18 @@ interface Analytics {
   minDebugLevel: number;
 }
 
+const isObjectWithPrototype = isObjectOf({
+  prototype: isRecordOf(isString, isUnknown),
+});
+
 export class TimeAnalysis {
-  private static methods: Timeable[] = [];
+  private static readonly methods: Timeable[] = [];
   private static methodTimes: Record<string, Record<string, TimeableStats>> =
     {};
 
   private recordedStats: Record<string, Record<string, Analytics>> | null =
     null;
-  private debugLevel: number;
+  private readonly debugLevel: number;
   private auditing: boolean = false;
 
   /**
@@ -61,15 +72,18 @@ export class TimeAnalysis {
   ): void {
     if (methodNames == null) {
       methodNames = Object.getOwnPropertyNames(
-        hasKey(target, "prototype", isNonNullable) ? target.prototype : target
+        isObjectWithPrototype(target) ? target.prototype : target
       ).filter(
-        name => name !== "constructor" && hasKey(target, name, isFunction)
+        name =>
+          name !== "constructor" &&
+          isFunction((target as Record<string, unknown>)[name])
       );
     }
     this.methods.push({
-      target: target as
-        | { prototype: Record<string, () => unknown> }
-        | Record<string, () => unknown>,
+      target: target as { prototype: Record<string, () => unknown> } & Record<
+        string,
+        () => unknown
+      >,
       methodNames,
       minDebugLevel,
     });
@@ -85,22 +99,21 @@ export class TimeAnalysis {
       .filter(item => item.minDebugLevel < debugLevel)
       .forEach(item => {
         item.methodNames.forEach(methodName => {
-          const method = hasKey(item.target, methodName, isFunction)
+          const method = isFunction(item.target[methodName])
             ? item.target[methodName]
-            : hasKey(item.target.prototype, methodName, isFunction)
+            : isFunction(item.target.prototype[methodName])
               ? item.target.prototype[methodName]
               : null;
           if (method != null) {
+            const isObjectWithName = isObjectOf({ name: isString });
             const patchedMethod = this.timeMethod(
               method,
               methodName,
               item.minDebugLevel,
-              hasKey(item.target, "name", isString)
-                ? item.target.name
-                : undefined
+              isObjectWithName(item.target) ? item.target.name : undefined
             );
             if (patchedMethod != null) {
-              if (hasKey(item.target, methodName, isFunction)) {
+              if (isFunction(item.target[methodName])) {
                 item.target[methodName] = patchedMethod;
               } else {
                 item.target.prototype[methodName] = patchedMethod;
@@ -247,7 +260,7 @@ export class TimeAnalysis {
 }
 
 class TimeAudit {
-  private stats: Record<string, Record<string, Analytics>>;
+  private readonly stats: Record<string, Record<string, Analytics>>;
 
   constructor(stats: Record<string, Record<string, Analytics>>) {
     this.stats = stats;

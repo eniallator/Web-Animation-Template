@@ -10,7 +10,8 @@
   "types": "dist/index.d.ts",
   "version": "1.0.0",
   "dependencies": {
-    "@web-art/core": "^workspace:"
+    "@web-art/core": "^workspace:",
+    "deep-guards": "^1.0.5"
   },
   "devDependencies": {
     "@types/eslint": "^8.56.10",

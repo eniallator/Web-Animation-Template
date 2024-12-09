@@ -1,8 +1,8 @@
-import { ConfigPart, DeriveParts, ParamConfig } from "@web-art/config-parser";
+import { ConfigPart, ParamConfig, WithId } from "@web-art/config-parser";
 import Mouse from "./mouse";
 
-export interface AppContext<A extends ConfigPart<string>[]> {
-  paramConfig: ParamConfig<DeriveParts<A>>;
+export interface AppContext<A extends readonly WithId<ConfigPart, string>[]> {
+  paramConfig: ParamConfig<A>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;
@@ -15,14 +15,14 @@ export interface AppContext<A extends ConfigPart<string>[]> {
 }
 
 export interface AppContextWithState<
-  A extends ConfigPart<string>[],
+  A extends readonly WithId<ConfigPart, string>[],
   S extends object,
 > extends AppContext<A> {
   state: S;
 }
 
 export interface StatefulAppMethods<
-  A extends ConfigPart<string>[],
+  A extends readonly WithId<ConfigPart, string>[],
   S extends object,
 > {
   type: "stateful";
@@ -40,7 +40,9 @@ export interface StatefulAppMethods<
   ) => S | null | undefined | void;
 }
 
-export interface StatelessAppMethods<A extends ConfigPart<string>[]> {
+export interface StatelessAppMethods<
+  A extends readonly WithId<ConfigPart, string>[],
+> {
   type: "stateless";
   init?: (this: StatelessAppMethods<A>, appContext: AppContext<A>) => void;
   animationFrame?: (
@@ -55,15 +57,18 @@ export interface StatelessAppMethods<A extends ConfigPart<string>[]> {
 }
 
 export type AppMethods<
-  A extends ConfigPart<string>[],
+  A extends readonly WithId<ConfigPart, string>[],
   S extends object = never,
 > = StatefulAppMethods<A, S> | StatelessAppMethods<A>;
 
 export const appMethods = {
-  stateful: <A extends ConfigPart<string>[], const S extends object>(
+  stateful: <
+    A extends readonly WithId<ConfigPart, string>[],
+    const S extends object,
+  >(
     methods: Omit<StatefulAppMethods<A, S>, "type">
   ): AppMethods<A, S> => ({ type: "stateful", ...methods }),
-  stateless: <A extends ConfigPart<string>[]>(
+  stateless: <A extends readonly WithId<ConfigPart, string>[]>(
     methods: Omit<StatelessAppMethods<A>, "type">
   ): AppMethods<A> => ({ type: "stateless", ...methods }),
 };

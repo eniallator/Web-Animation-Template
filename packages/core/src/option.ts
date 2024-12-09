@@ -1,4 +1,4 @@
-import { Guard } from "./guard.js";
+import { Guard } from "deep-guards";
 import { Monad } from "./monad.js";
 import { raise } from "./utils.js";
 

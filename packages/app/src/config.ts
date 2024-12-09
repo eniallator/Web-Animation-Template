@@ -80,7 +80,6 @@ export default config(
     expandable: true,
     fields: [
       rangeConfig({
-        id: "example-collection-range",
         label: "Range",
         default: 2,
         attrs: {
@@ -90,12 +89,10 @@ export default config(
         },
       }),
       checkboxConfig({
-        id: "example-collection-checkbox",
         label: "Checkbox",
         default: false,
       }),
       selectConfig({
-        id: "example-collection-select",
         label: "Select",
         default: "Maybe",
         options: ["Yes", "No", "Maybe"],

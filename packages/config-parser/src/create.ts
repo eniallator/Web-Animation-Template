@@ -1,108 +1,76 @@
-import { checkExhausted } from "@web-art/core";
 import {
-  CheckboxConfig,
-  NumberConfig,
-  RangeConfig,
-  ColorConfig,
-  DatetimeConfig,
-  SelectConfig,
-  FileConfig,
   ButtonConfig,
+  CheckboxConfig,
+  ColorConfig,
   ConfigCollection,
   ConfigPart,
-  TextConfig,
-  ConfigCollectionFields,
+  DatetimeConfig,
+  FileConfig,
   InputConfig,
+  NumberConfig,
+  RangeConfig,
+  SelectConfig,
+  TextConfig,
+  WithId,
 } from "./types.js";
 
-export function checkboxConfig<const I extends string>(
-  config: Omit<CheckboxConfig<I>, "type">
-): CheckboxConfig<I> {
-  return { type: "Checkbox", ...config };
+function simpleCreateFn<const P extends ConfigPart>(type: P["type"]) {
+  function createPart<const I extends string>(
+    cfg: Omit<WithId<P, I>, "type">
+  ): WithId<P, I>;
+  function createPart(cfg: Omit<P, "type">): P;
+  function createPart(cfg: object) {
+    return { ...cfg, type };
+  }
+
+  return createPart;
 }
 
-export function numberConfig<const I extends string>(
-  config: Omit<NumberConfig<I>, "type">
-): NumberConfig<I> {
-  return { type: "Number", ...config };
-}
-
-export function rangeConfig<const I extends string>(
-  config: Omit<RangeConfig<I>, "type">
-): RangeConfig<I> {
-  return { type: "Range", ...config };
-}
-
-export function colorConfig<const I extends string>(
-  config: Omit<ColorConfig<I>, "type">
-): ColorConfig<I> {
-  return { type: "Color", ...config };
-}
-
-export function textConfig<const I extends string>(
-  config: Omit<TextConfig<I>, "type">
-): TextConfig<I> {
-  return { type: "Text", ...config };
-}
-
-export function datetimeConfig<const I extends string>(
-  config: Omit<DatetimeConfig<I>, "type">
-): DatetimeConfig<I> {
-  return { type: "Datetime", ...config };
-}
+export const checkboxConfig = simpleCreateFn<CheckboxConfig>("Checkbox");
+export const numberConfig = simpleCreateFn<NumberConfig>("Number");
+export const rangeConfig = simpleCreateFn<RangeConfig>("Range");
+export const colorConfig = simpleCreateFn<ColorConfig>("Color");
+export const textConfig = simpleCreateFn<TextConfig>("Text");
+export const datetimeConfig = simpleCreateFn<DatetimeConfig>("Datetime");
 
 export function selectConfig<
+  const A extends readonly [string, ...string[]],
   const I extends string,
-  const T extends string,
-  const A extends readonly [T, ...T[]] = readonly [T, ...T[]],
->(config: Omit<SelectConfig<I, T, A>, "type">): SelectConfig<I, T, A> {
-  return { type: "Select", ...config };
+>(cfg: Omit<WithId<SelectConfig<A>, I>, "type">): WithId<SelectConfig<A>, I>;
+export function selectConfig<const A extends readonly [string, ...string[]]>(
+  cfg: Omit<SelectConfig<A>, "type">
+): SelectConfig<A>;
+export function selectConfig<const A extends readonly [string, ...string[]]>(
+  cfg: Omit<SelectConfig<A>, "type">
+): SelectConfig<A> {
+  return { ...cfg, type: "Select" };
 }
 
-export function fileConfig<const I extends string>(
-  config: Omit<FileConfig<I>, "type">
-): FileConfig<I> {
-  return { type: "File", ...config };
-}
-
-export function buttonConfig<const I extends string>(
-  config: Omit<ButtonConfig<I>, "type">
-): ButtonConfig<I> {
-  return { type: "Button", ...config };
-}
+export const fileConfig = simpleCreateFn<FileConfig>("File");
+export const buttonConfig = simpleCreateFn<ButtonConfig>("Button");
 
 export function configCollection<
+  const F extends readonly [InputConfig, ...InputConfig[]],
   const I extends string,
-  const F extends ConfigCollectionFields,
->(config: Omit<ConfigCollection<I, F>, "type">): ConfigCollection<I, F> {
-  return { type: "Collection", ...config };
+>(
+  cfg: Omit<WithId<ConfigCollection<F>, I>, "type">
+): WithId<ConfigCollection<F>, I>;
+export function configCollection<
+  const F extends readonly [InputConfig, ...InputConfig[]],
+>(cfg: Omit<ConfigCollection<F>, "type">): ConfigCollection<F>;
+export function configCollection<
+  const F extends readonly [InputConfig, ...InputConfig[]],
+>(cfg: Omit<ConfigCollection<F>, "type">): ConfigCollection<F> {
+  return { ...cfg, type: "Collection" };
 }
 
-export function config<C extends readonly ConfigPart<string>[]>(
+export function config<const C extends readonly WithId<ConfigPart, string>[]>(
   ...parts: C
 ): C {
   return parts;
 }
 
-export function inputType(type: InputConfig<string>["type"]): string {
-  switch (type) {
-    case "Checkbox":
-      return "checkbox";
-    case "Color":
-      return "color";
-    case "Datetime":
-      return "datetime-local";
-    case "File":
-      return "file";
-    case "Number":
-      return "number";
-    case "Range":
-      return "range";
-    case "Select":
-      return "select";
-    case "Text":
-      return "text";
-    default:
-      return checkExhausted(type);
-  }
-}
+config(
+  checkboxConfig({ id: "maybe" }),
+  selectConfig({ id: "selecty", options: ["Hello", "world!"] })
+);

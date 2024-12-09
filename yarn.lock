@@ -2103,6 +2103,7 @@ __metadata:
     browser-sync: ^3.0.2
     browser-sync-webpack-plugin: ^2.3.0
     bs-fullscreen-message: ^1.1.0
+    deep-guards: ^1.0.5
     eslint: ^9.7.0
     eslint-config-prettier: ^9.1.0
     eslint-plugin-eslint-comments: ^3.2.0
@@ -2127,6 +2128,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^7.16.1
     "@typescript-eslint/parser": ^7.16.1
     "@web-art/core": "^workspace:"
+    deep-guards: ^1.0.5
     eslint: ^9.7.0
     eslint-config-prettier: ^9.1.0
     eslint-plugin-eslint-comments: ^3.2.0
@@ -2146,6 +2148,7 @@ __metadata:
     "@types/eslint": ^8.56.10
     "@typescript-eslint/eslint-plugin": ^7.16.1
     "@typescript-eslint/parser": ^7.16.1
+    deep-guards: ^1.0.5
     eslint: ^9.7.0
     eslint-config-prettier: ^9.1.0
     eslint-plugin-eslint-comments: ^3.2.0
@@ -2166,6 +2169,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^7.16.1
     "@typescript-eslint/parser": ^7.16.1
     "@web-art/core": "^workspace:"
+    deep-guards: ^1.0.5
     eslint: ^9.7.0
     eslint-config-prettier: ^9.1.0
     eslint-plugin-eslint-comments: ^3.2.0
@@ -3312,6 +3316,13 @@ __metadata:
     supports-color:
       optional: true
   checksum: 3dbad3f94ea64f34431a9cbf0bafb61853eda57bff2880036153438f50fb5a84f27683ba0d8e5426bf41a8c6ff03879488120cf5b3a761e77953169c0600a708
+  languageName: node
+  linkType: hard
+
+"deep-guards@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "deep-guards@npm:1.0.5"
+  checksum: ab3113cd8c614048e697312a22c34483720af3fabaebbf672a7a36fff85b5d68698f9e2c0370be13be917e4846b1d91e25da9917483cb023ec46c717e68257ba
   languageName: node
   linkType: hard
 
