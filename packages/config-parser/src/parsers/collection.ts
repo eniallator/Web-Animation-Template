@@ -1,123 +1,105 @@
 import { dom, filterAndMap, raise } from "@web-art/core";
-import { stringToHTML } from "../helpers.js";
-import {
-  ConfigCollection,
-  InputConfig,
-  Parser,
-  DefaultType,
-  TupledStateType,
-} from "../types.js";
-import { inputParser } from "./input.js";
 import { isExact } from "deep-guards";
+import { stringToHTML, valueParser } from "../helpers.js";
+import { ValueParserTuple } from "../types.js";
 
-const getRowValues = <const F extends readonly [InputConfig, ...InputConfig[]]>(
-  baseEl: HTMLElement,
-  parsers: { [K in keyof F]: Parser<DefaultType<F[K]>> },
+const getRowValues = <const F extends readonly [unknown, ...unknown[]]>(
+  baseEl: Element,
+  parsers: ValueParserTuple<F>,
   expandable: boolean
-): readonly TupledStateType<F>[] => {
+): F[] => {
   const container = dom.get("tbody", baseEl);
   return [...container.querySelectorAll("tr")].map(el => {
-    const itemEls = [...el.children] as HTMLElement[];
+    const itemEls = [...el.children].map(el =>
+      el.children.item(0)
+    ) as (HTMLElement | null)[];
     return parsers.map((parser, i) =>
-      "getValue" in parser
-        ? parser.getValue(
-            itemEls[i + (expandable ? 1 : 0)] ??
-              raise(
-                new Error(
-                  "Did not find an item element when getting a collections values"
-                )
-              )
+      parser.getValue(
+        itemEls[i + (expandable ? 1 : 0)] ??
+          raise(
+            new Error(
+              "Did not find an item element when getting a collections values"
+            )
           )
-        : null
-    ) as TupledStateType<F>;
+      )
+    ) as unknown as F;
   });
 };
 
-const newRow = <const F extends readonly [InputConfig, ...InputConfig[]]>(
-  baseEl: HTMLElement,
-  onChange: ((value: readonly TupledStateType<F>[]) => void) | null,
-  parsers: { [K in keyof F]: Parser<DefaultType<F[K]>> },
-  values: TupledStateType<F> | null,
+const newRow = <const F extends readonly [unknown, ...unknown[]]>(
+  baseEl: Element,
+  onChange: ((value: F[]) => void) | null,
+  parsers: ValueParserTuple<F>,
+  values: F | null,
   expandable: boolean
 ) => {
   const rowEl = stringToHTML(
     '<tr><td><input data-row-selector type="checkbox" /></td></tr>'
   );
   parsers.forEach((parser, i) => {
-    if ("setValue" in parser) {
-      const itemEl = parser.html(null, values?.[i] ?? null, () => {
+    const td = document.createElement("td");
+    td.appendChild(
+      // rowEl.appendChild(
+      parser.html(null, values?.[i] ?? null, () => {
         onChange?.(getRowValues(baseEl, parsers, expandable));
-      });
-      rowEl.appendChild(itemEl);
-    }
+      })
+    );
+    rowEl.appendChild(td);
   });
   return rowEl;
 };
 
+interface CollectionConfig<F extends readonly [unknown, ...unknown[]]> {
+  label?: string;
+  expandable?: boolean;
+  fields: ValueParserTuple<F>;
+  default?: NoInfer<F>[];
+}
+
 export const collectionParser = <
-  const F extends readonly [InputConfig, ...InputConfig[]],
+  const F extends readonly [unknown, ...unknown[]],
 >(
-  cfg: ConfigCollection<F>
-): Parser<Required<typeof cfg>["default"]> => {
-  const childParsers = cfg.fields.map(inputParser);
-  const isDefault = isExact(cfg.default);
-  return {
+  cfg: CollectionConfig<F>
+) =>
+  valueParser<F[]>({
+    default: cfg.default ?? [],
     serialise: (value, shortUrl) =>
       value
         .map(row =>
-          filterAndMap(childParsers, (parser, i) =>
-            "serialise" in parser
-              ? parser.serialise(
-                  row[i] ?? raise(new Error("Value not found in collection")),
-                  shortUrl
-                )
-              : null
+          filterAndMap(cfg.fields, (parser, i) =>
+            parser.serialise(
+              row[i] ?? raise(new Error("Value not found in collection")),
+              shortUrl
+            )
           ).join(",")
         )
         .join(","),
     deserialise: (value, shortUrl) => {
       const flatValues = value.split(",");
-      const rowLength = childParsers.reduce(
-        (acc, parser) => acc + Number("deserialise" in parser),
-        0
-      );
-      return new Array(Math.floor(flatValues.length / rowLength))
+      return new Array(Math.floor(flatValues.length / cfg.fields.length))
         .fill(null)
         .map(
           (_, rowIdx) =>
-            childParsers.map((parser, parserIdx) =>
-              "deserialise" in parser
-                ? parser.deserialise(
-                    flatValues[rowIdx * rowLength + parserIdx] ??
-                      raise(new Error("Something went wrong deserialising")),
-                    shortUrl
-                  )
-                : (cfg.fields[parserIdx]?.default ?? null)
-            ) as TupledStateType<F>
+            cfg.fields.map((parser, parserIdx) =>
+              parser.deserialise(
+                flatValues[rowIdx * cfg.fields.length + parserIdx] ??
+                  raise(new Error("Something went wrong deserialising")),
+                shortUrl
+              )
+            ) as unknown as F
         );
     },
-    getValue: el =>
-      getRowValues(
-        el,
-        childParsers as { [K in keyof F]: Parser<DefaultType<F[K]>> },
-        cfg.expandable ?? false
-      ),
+    getValue: el => getRowValues(el, cfg.fields, cfg.expandable ?? false),
     setValue: (el, value, onChange) => {
       const container = dom.get("tbody", el);
       container.innerHTML = "";
       const rows = value.map(rowValues =>
-        newRow(
-          el,
-          onChange,
-          childParsers as { [K in keyof F]: Parser<DefaultType<F[K]>> },
-          rowValues,
-          cfg.expandable ?? false
-        )
+        newRow(el, onChange, cfg.fields, rowValues, cfg.expandable ?? false)
       );
       container.append(...rows);
     },
     hasChanged: value =>
-      (cfg.default == null && value.length > 0) || !isDefault(value),
+      (cfg.default == null && value.length > 0) || !isExact(cfg.default)(value),
     html: (id, initial, onChange) => {
       const baseEl = stringToHTML(`
       <div id="${id}" class="collection">
@@ -136,10 +118,7 @@ export const collectionParser = <
                       : ""
                   }
                   ${cfg.fields
-                    .map(
-                      childCfg =>
-                        `<th scope="col" >${childCfg.label ?? ""}</th>`
-                    )
+                    .map(field => `<th scope="col" >${field.label ?? ""}</th>`)
                     .join("")}
                 </tr>
               </thead>
@@ -179,7 +158,7 @@ export const collectionParser = <
           newRow(
             baseEl,
             onChange,
-            childParsers as { [K in keyof F]: Parser<DefaultType<F[K]>> },
+            cfg.fields,
             rowDefaults,
             cfg.expandable ?? false
           )
@@ -187,38 +166,39 @@ export const collectionParser = <
       dom.get("tbody", baseEl).append(...defaultRows);
 
       if (cfg.expandable) {
-        dom.addListener(dom.get("button[data-action=delete]"), "click", () => {
-          [...dom.get("tbody", baseEl).children].forEach(row => {
-            if (dom.get<HTMLInputElement>("[data-row-selector]", row).checked) {
-              row.remove();
-            }
-          });
-          onChange(
-            getRowValues(
-              baseEl,
-              childParsers as {
-                [K in keyof F]: Parser<DefaultType<F[K]>>;
-              },
-              cfg.expandable ?? false
-            )
-          );
-        });
-        dom.addListener(dom.get("button[data-action=add]"), "click", () => {
-          dom.get("tbody", baseEl).appendChild(
-            newRow(
-              baseEl,
-              onChange,
-              childParsers as {
-                [K in keyof F]: Parser<DefaultType<F[K]>>;
-              },
-              null,
-              cfg.expandable ?? false
-            )
-          );
-        });
+        dom.addListener(
+          dom.get("button[data-action=delete]", baseEl),
+          "click",
+          () => {
+            [...dom.get("tbody", baseEl).children].forEach(row => {
+              if (
+                dom.get<HTMLInputElement>("[data-row-selector]", row).checked
+              ) {
+                row.remove();
+              }
+            });
+            onChange(getRowValues(baseEl, cfg.fields, cfg.expandable ?? false));
+          }
+        );
+        dom.addListener(
+          dom.get("button[data-action=add]", baseEl),
+          "click",
+          () => {
+            dom
+              .get("tbody", baseEl)
+              .appendChild(
+                newRow(
+                  baseEl,
+                  onChange,
+                  cfg.fields,
+                  null,
+                  cfg.expandable ?? false
+                )
+              );
+          }
+        );
       }
 
-      return baseEl;
+      return baseEl as HTMLElement;
     },
-  };
-};
+  });

@@ -3,8 +3,8 @@ export function checkExhausted(value: never): never {
 }
 
 export function filterAndMap<I, O>(
-  arr: I[],
-  mapper: (val: I, index: number, arr: I[]) => O | null | undefined
+  arr: readonly I[],
+  mapper: (val: I, index: number, arr: readonly I[]) => O | null | undefined
 ): O[] {
   return arr.reduce((acc: O[], item, i, arr) => {
     const mapped = mapper(item, i, arr);
@@ -13,8 +13,8 @@ export function filterAndMap<I, O>(
 }
 
 export function findAndMap<I, O>(
-  arr: I[],
-  mapper: (val: I, index: number, arr: I[]) => O | null | undefined
+  arr: readonly I[],
+  mapper: (val: I, index: number, arr: readonly I[]) => O | null | undefined
 ): O | null {
   for (let i = 0; i < arr.length; i++) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

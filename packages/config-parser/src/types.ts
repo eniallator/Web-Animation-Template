@@ -1,138 +1,69 @@
-export type WithId<T, I extends string> = T & { id: I };
-
-export type DefaultType<C> = C extends { default?: infer T } ? T : null;
-
-export type TupledStateType<C extends readonly unknown[]> = {
-  [K in keyof C]: DefaultType<C[K]>;
-};
-export interface BaseConfig {
+export interface Config {
+  label?: string;
   tooltip?: string;
   attrs?: Record<string, string>;
 }
 
-export interface BaseInputConfig<T> extends BaseConfig {
-  label?: string;
+export interface ValueConfig<T> extends Config {
   default?: T;
 }
 
-export interface CheckboxConfig extends BaseInputConfig<boolean> {
-  type: "Checkbox";
+export interface ContentParser<T = unknown> {
+  type: "Content";
+  html: (id: string, onChange: (value: T) => void) => HTMLElement;
 }
 
-export interface NumberConfig extends BaseInputConfig<number> {
-  type: "Number";
-}
-
-export interface RangeConfig extends BaseInputConfig<number> {
-  type: "Range";
-}
-
-export interface ColorConfig extends BaseInputConfig<string> {
-  type: "Color";
-}
-
-export interface TextConfig extends BaseInputConfig<string> {
-  type: "Text";
-  area?: boolean;
-}
-
-export interface DatetimeConfig extends BaseInputConfig<Date> {
-  type: "Datetime";
-}
-
-export interface SelectConfig<
-  A extends readonly [string, ...string[]] = readonly [string, ...string[]],
-> extends BaseInputConfig<A[number]> {
-  type: "Select";
-  options: A;
-}
-
-export interface FileConfig extends BaseInputConfig<string | null> {
-  type: "File";
-  text?: string;
-}
-
-export interface ButtonConfig extends BaseConfig {
-  type: "Button";
-  text?: string;
-}
-
-export type InputConfig =
-  | CheckboxConfig
-  | FileConfig
-  | NumberConfig
-  | RangeConfig
-  | ColorConfig
-  | TextConfig
-  | DatetimeConfig
-  | SelectConfig;
-
-export interface ConfigCollection<
-  F extends readonly [InputConfig, ...InputConfig[]] = readonly [
-    InputConfig,
-    ...InputConfig[],
-  ],
-> {
-  type: "Collection";
+export interface ValueParser<T> {
+  type: "Value";
   label?: string;
-  expandable?: boolean;
-  fields: F;
-  default?: readonly TupledStateType<F>[];
-}
-
-export type ConfigPart<
-  F extends readonly [InputConfig, ...InputConfig[]] = readonly [
-    InputConfig,
-    ...InputConfig[],
-  ],
-> = InputConfig | ButtonConfig | ConfigCollection<F>;
-
-export type Parser<T> = {
+  default: T;
   html: (
     id: string | null,
     initialValue: T | null,
     onChange: (value: T) => void
   ) => HTMLElement;
-} & (
-  | {
-      serialise: (value: T, shortUrl: boolean) => string;
-      deserialise: (value: string, shortUrl: boolean) => T;
-      setValue: (
-        el: HTMLElement,
-        value: T,
-        onChange: ((value: T) => void) | null
-      ) => void;
-      getValue: (el: HTMLElement) => T;
-      hasChanged: (value: T) => boolean;
-    }
-  | object
-);
+  serialise: (value: T, shortUrl: boolean) => string;
+  deserialise: (value: string, shortUrl: boolean) => T;
+  setValue: (
+    el: HTMLElement,
+    value: T,
+    onChange: ((value: T) => void) | null
+  ) => void;
+  getValue: (el: HTMLElement) => T;
+  hasChanged: (value: T) => boolean;
+}
 
-export type CreateParser<C extends BaseConfig> = (
-  cfg: C
-) => Parser<DefaultType<C>>;
+export type Parser<T> = ContentParser<T> | ValueParser<T>;
 
-export interface StateItem<C> {
-  cfg: C;
-  parser: Parser<DefaultType<C>>;
-  value: DefaultType<C>;
+export type ParserValue<P extends Parser<unknown>> =
+  P extends ValueParser<infer T>
+    ? T
+    : P extends ContentParser<infer T>
+      ? T | null
+      : never;
+
+export type AnyStringObject = { [K in string]: unknown };
+
+export type AnyParserConfig = { [K in string]: Parser<unknown> };
+
+export type ParserObject<O extends AnyStringObject> = {
+  [K in keyof O]: Parser<O[K]>;
+};
+
+export type ValueParserTuple<O extends readonly unknown[]> = {
+  [K in keyof O]: ValueParser<O[K]>;
+};
+
+export type ParserValues<R extends AnyParserConfig> = {
+  [K in keyof R]: ParserValue<R[K]>;
+};
+
+export interface StateItem<P extends Parser<unknown>> {
+  parser: P;
+  value: ParserValue<P>;
   el: HTMLElement;
 }
 
-export type State<A extends readonly WithId<ConfigPart, string>[]> =
-  A extends readonly [WithId<infer C, infer I>, ...infer Rest]
-    ? { [S in I]: StateItem<C> } & (Rest extends readonly WithId<
-        ConfigPart,
-        string
-      >[]
-        ? State<Rest>
-        : unknown)
-    : unknown;
-
-export type ExtractIds<C extends readonly WithId<unknown, string>[]> = {
-  [K in keyof C]: C[K]["id"];
-}[number];
-
-export type StateValues<C extends readonly WithId<unknown, string>[]> = {
-  [P in C[number] as P["id"]]: DefaultType<P>;
+export type State<R extends AnyParserConfig> = {
+  [K in keyof R]: StateItem<R[K]>;
 };

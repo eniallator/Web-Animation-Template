@@ -1,8 +1,8 @@
-import { ConfigPart, ParamConfig, WithId } from "@web-art/config-parser";
+import { AnyParserConfig, ParamConfig } from "@web-art/config-parser";
 import Mouse from "./mouse";
 
-export interface AppContext<A extends readonly WithId<ConfigPart, string>[]> {
-  paramConfig: ParamConfig<A>;
+export interface AppContext<R extends AnyParserConfig> {
+  paramConfig: ParamConfig<R>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;
@@ -15,60 +15,54 @@ export interface AppContext<A extends readonly WithId<ConfigPart, string>[]> {
 }
 
 export interface AppContextWithState<
-  A extends readonly WithId<ConfigPart, string>[],
+  R extends AnyParserConfig,
   S extends object,
-> extends AppContext<A> {
+> extends AppContext<R> {
   state: S;
 }
 
 export interface StatefulAppMethods<
-  A extends readonly WithId<ConfigPart, string>[],
+  R extends AnyParserConfig,
   S extends object,
 > {
   type: "stateful";
-  init: (this: StatefulAppMethods<A, S>, appContext: AppContext<A>) => S;
+  init: (this: StatefulAppMethods<R, S>, appContext: AppContext<R>) => S;
   animationFrame?: (
-    this: StatefulAppMethods<A, S>,
-    appContext: AppContextWithState<A, S>
+    this: StatefulAppMethods<R, S>,
+    appContext: AppContextWithState<R, S>
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   ) => S | null | undefined | void;
   onResize?: (
-    this: StatefulAppMethods<A, S>,
+    this: StatefulAppMethods<R, S>,
     evt: UIEvent,
-    appContext: AppContextWithState<A, S>
+    appContext: AppContextWithState<R, S>
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   ) => S | null | undefined | void;
 }
 
-export interface StatelessAppMethods<
-  A extends readonly WithId<ConfigPart, string>[],
-> {
+export interface StatelessAppMethods<R extends AnyParserConfig> {
   type: "stateless";
-  init?: (this: StatelessAppMethods<A>, appContext: AppContext<A>) => void;
+  init?: (this: StatelessAppMethods<R>, appContext: AppContext<R>) => void;
   animationFrame?: (
-    this: StatelessAppMethods<A>,
-    appContext: AppContext<A>
+    this: StatelessAppMethods<R>,
+    appContext: AppContext<R>
   ) => void;
   onResize?: (
-    this: StatelessAppMethods<A>,
+    this: StatelessAppMethods<R>,
     evt: UIEvent,
-    appContext: AppContext<A>
+    appContext: AppContext<R>
   ) => void;
 }
 
-export type AppMethods<
-  A extends readonly WithId<ConfigPart, string>[],
-  S extends object = never,
-> = StatefulAppMethods<A, S> | StatelessAppMethods<A>;
+export type AppMethods<R extends AnyParserConfig, S extends object = never> =
+  | StatefulAppMethods<R, S>
+  | StatelessAppMethods<R>;
 
 export const appMethods = {
-  stateful: <
-    A extends readonly WithId<ConfigPart, string>[],
-    const S extends object,
-  >(
-    methods: Omit<StatefulAppMethods<A, S>, "type">
-  ): AppMethods<A, S> => ({ type: "stateful", ...methods }),
-  stateless: <A extends readonly WithId<ConfigPart, string>[]>(
-    methods: Omit<StatelessAppMethods<A>, "type">
-  ): AppMethods<A> => ({ type: "stateless", ...methods }),
+  stateful: <R extends AnyParserConfig, const S extends object>(
+    methods: Omit<StatefulAppMethods<R, S>, "type">
+  ): AppMethods<R, S> => ({ type: "stateful", ...methods }),
+  stateless: <R extends AnyParserConfig>(
+    methods: Omit<StatelessAppMethods<R>, "type">
+  ): AppMethods<R> => ({ type: "stateless", ...methods }),
 };

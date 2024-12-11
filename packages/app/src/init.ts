@@ -1,7 +1,7 @@
 import { ParamConfig } from "@web-art/config-parser";
 import { dom, raise } from "@web-art/core";
 import app from ".";
-import config from "./config";
+import { config } from "./config";
 import Mouse from "./lib/mouse";
 import {
   AppContext,

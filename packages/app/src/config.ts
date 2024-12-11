@@ -1,26 +1,24 @@
 import {
-  buttonConfig,
-  checkboxConfig,
-  colorConfig,
-  config,
-  configCollection,
-  datetimeConfig,
-  fileConfig,
-  numberConfig,
-  rangeConfig,
-  selectConfig,
-  textConfig,
+  buttonParser,
+  checkboxParser,
+  collectionParser,
+  colorParser,
+  createParsers,
+  datetimeParser,
+  fileParser,
+  numberParser,
+  rangeParser,
+  selectParser,
+  textParser,
 } from "@web-art/config-parser";
 
-export default config(
-  checkboxConfig({
-    id: "example-checkbox",
+export const config = createParsers({
+  "example-checkbox": checkboxParser({
     label: "Example Checkbox",
     tooltip: "Example tooltip",
     default: true,
   }),
-  rangeConfig({
-    id: "example-range",
+  "example-range": rangeParser({
     label: "Example Range",
     default: 5,
     attrs: {
@@ -29,8 +27,7 @@ export default config(
       step: "0.5",
     },
   }),
-  numberConfig({
-    id: "example-number",
+  "example-number": numberParser({
     label: "Example Number",
     default: 5,
     attrs: {
@@ -38,24 +35,20 @@ export default config(
       max: "10",
     },
   }),
-  colorConfig({
-    id: "example-colour",
+  "example-colour": colorParser({
     label: "Example Colour",
     default: "FF5A5F",
   }),
-  buttonConfig({
-    id: "example-button",
+  "example-button": buttonParser({
     text: "Example Button",
   }),
-  fileConfig({
-    id: "example-file",
+  "example-file": fileParser({
     text: "Example File",
     attrs: {
       accept: "image/*",
     },
   }),
-  textConfig({
-    id: "example-text",
+  "example-text": textParser({
     label: "Example Text",
     default: "Hello",
     area: true,
@@ -63,23 +56,20 @@ export default config(
       placeholder: "World!",
     },
   }),
-  datetimeConfig({
-    id: "example-datetime",
+  "example-datetime": datetimeParser({
     label: "Example Date Time",
     default: new Date("2018-06-14T10:03"),
   }),
-  selectConfig({
-    id: "example-select",
+  "example-select": selectParser({
     label: "Example Select",
     default: "bar",
     options: ["foo", "bar", "baz", "another option"],
   }),
-  configCollection({
-    id: "example-collection",
+  "example-collection": collectionParser({
     label: "Example Collection",
     expandable: true,
     fields: [
-      rangeConfig({
+      rangeParser({
         label: "Range",
         default: 2,
         attrs: {
@@ -88,11 +78,11 @@ export default config(
           step: "1",
         },
       }),
-      checkboxConfig({
+      checkboxParser({
         label: "Checkbox",
         default: false,
       }),
-      selectConfig({
+      selectParser({
         label: "Select",
         default: "Maybe",
         options: ["Yes", "No", "Maybe"],
@@ -102,5 +92,5 @@ export default config(
       [4, true, "Yes"],
       [1, false, "No"],
     ],
-  })
-);
+  }),
+});

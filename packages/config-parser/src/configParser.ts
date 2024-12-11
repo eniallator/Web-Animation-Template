@@ -4,38 +4,29 @@ import {
   intToBase64,
   mapObject,
   tuple,
+  typedToEntries,
 } from "@web-art/core";
-import { configParser } from "./parsers/index.js";
-import {
-  ConfigPart,
-  DefaultType,
-  ExtractIds,
-  State,
-  StateItem,
-  StateValues,
-  WithId,
-} from "./types.js";
+import { configItem } from "./helpers.js";
+import { AnyParserConfig, ParserValue, ParserValues, State } from "./types.js";
 
 type ParamConfigOptions = {
   query?: string;
 } & ({ shortUrl?: false } | { shortUrl: true; hashKeyLength?: number });
 
-export class ParamConfig<
-  const C extends readonly WithId<ConfigPart, string>[],
-> {
-  private readonly state: State<C>;
+export class ParamConfig<const R extends AnyParserConfig> {
+  private readonly state: State<R>;
   private readonly shortUrl: boolean;
   private readonly listeners: {
-    cb: (values: StateValues<C>, updates: ExtractIds<C>[]) => void;
-    subscriptions: Set<ExtractIds<C>> | null;
+    cb: (values: ParserValues<R>, updates: (keyof R)[]) => void;
+    subscriptions: Set<keyof R> | null;
   }[];
   private readonly extraValue: string | undefined;
   private readonly hashKeyLength: number;
 
-  private updates: ExtractIds<C>[];
+  private updates: (keyof R)[];
 
   constructor(
-    configs: C,
+    parsers: R,
     baseEl: HTMLElement,
     options: ParamConfigOptions = {}
   ) {
@@ -43,28 +34,41 @@ export class ParamConfig<
     const hashKeyLength =
       (options.shortUrl ? options.hashKeyLength : null) ?? 6;
     const initialValues = this.parseQuery(query, shortUrl);
-    const stateEntries = configs.map(({ id, ...cfg }) => {
-      const parser = configParser(cfg);
-      const initialStr = initialValues[this.queryKey(id)];
-      const initial =
-        initialStr != null && "deserialise" in parser
-          ? parser.deserialise(initialStr, shortUrl)
-          : null;
-      const el = parser.html(id, initial, value => {
-        if (value != null) {
-          (
-            (this.state as Record<string, unknown>)[id] as StateItem<typeof cfg>
-          ).value = value;
-        }
-        this.updates.push(id);
-        this.tellListeners();
-      });
-      baseEl.appendChild(el);
-      const value = "getValue" in parser ? parser.getValue(el) : null;
-      return tuple(id, { parser, el, value });
-    });
 
-    this.state = Object.fromEntries(stateEntries) as State<C>;
+    this.state = mapObject<R, State<R>>(parsers, ([id, parser]) => {
+      if (parser.type === "Value") {
+        const initialStr = initialValues[this.queryKey(id as string)];
+        const initial =
+          initialStr != null ? parser.deserialise(initialStr, shortUrl) : null;
+        const el = parser.html(id as string, initial, value => {
+          if (value != null) {
+            this.state[id].value = value as ParserValue<typeof parser>;
+          }
+          this.updates.push(id);
+          this.tellListeners();
+        });
+        baseEl.appendChild(configItem(id as string, parser.label ?? null, el));
+        return tuple(id, {
+          parser,
+          el,
+          value: parser.getValue(el) as ParserValue<typeof parser>,
+        });
+      } else {
+        const el = parser.html(id as string, value => {
+          if (value != null) {
+            this.state[id].value = value as ParserValue<typeof parser>;
+          }
+          this.updates.push(id);
+          this.tellListeners();
+        });
+        baseEl.appendChild(configItem(id as string, null, el));
+        return tuple(id, {
+          parser,
+          el,
+          value: null as ParserValue<typeof parser>,
+        });
+      }
+    });
     this.extraValue = initialValues[this.queryKey("extra")];
     this.shortUrl = shortUrl;
     this.hashKeyLength = hashKeyLength;
@@ -73,16 +77,12 @@ export class ParamConfig<
     this.updates = [];
   }
 
-  getValue<I extends ExtractIds<C>>(id: I): StateValues<C>[I] {
-    return ((this.state as Record<string, StateItem<C[number]>>)[id]?.value ??
-      null) as StateValues<C>[I];
+  getValue<I extends keyof R>(id: I): ParserValues<R>[I] {
+    return this.state[id].value;
   }
 
-  setValue<I extends ExtractIds<C>>(id: I, value: StateValues<C>[I]): void {
-    const stateItem = (this.state as Record<string, StateItem<C[number]>>)[id];
-    if (stateItem != null) {
-      stateItem.value = value as DefaultType<C[number]>;
-    }
+  setValue<I extends keyof R>(id: I, value: ParserValues<R>[I]): void {
+    this.state[id].value = value;
   }
 
   get extra() {
@@ -90,8 +90,8 @@ export class ParamConfig<
   }
 
   addListener(
-    cb: (values: StateValues<C>, updates: ExtractIds<C>[]) => void,
-    subscriptions: ExtractIds<C>[] | null = null
+    cb: (values: ParserValues<R>, updates: (keyof R)[]) => void,
+    subscriptions: (keyof R)[] | null = null
   ): void {
     this.listeners.push({
       cb,
@@ -114,27 +114,25 @@ export class ParamConfig<
     }
   }
 
-  getAllValues(): StateValues<C> {
-    return mapObject(this.state as object, ([id, stateItem]) =>
-      tuple(
-        id,
-        structuredClone(
-          (stateItem as StateItem<C[number]>)
-            .value as StateValues<C>[keyof StateValues<C>]
-        )
-      )
+  getAllValues(): ParserValues<R> {
+    return mapObject<State<R>, ParserValues<R>>(this.state, ([id, stateItem]) =>
+      tuple(id, structuredClone(stateItem.value))
     );
   }
 
   serialiseToUrlParams(extra?: string): string {
     const urlPart = (key: string, value: string) =>
-      this.shortUrl ? `${key}${value}` : `${key}=${value}`;
+      this.shortUrl
+        ? `${this.queryKey(key)}${value}`
+        : `${this.queryKey(key)}=${value}`;
     return filterAndMap(
-      Object.entries(this.state as Record<string, StateItem<C[number]>>),
+      typedToEntries(this.state),
       ([id, { value, parser }]) => {
-        if ("serialise" in parser) {
+        if ("serialise" in parser && "hasChanged" in parser) {
           const serialised = parser.serialise(value, this.shortUrl);
-          return parser.hasChanged(value) ? urlPart(id, serialised) : null;
+          return parser.hasChanged(value)
+            ? urlPart(id as string, serialised)
+            : null;
         } else {
           return null;
         }
@@ -148,7 +146,7 @@ export class ParamConfig<
 
   addCopyToClipboardHandler(
     selector: string,
-    extra?: ((state: StateValues<C>) => string) | string
+    extra?: ((state: ParserValues<R>) => string) | string
   ) {
     const query = this.serialiseToUrlParams(
       typeof extra === "function" ? extra(this.getAllValues()) : extra
@@ -174,7 +172,7 @@ export class ParamConfig<
   private queryKey(key: string): string {
     return this.shortUrl
       ? intToBase64(this.hashString(key), this.hashKeyLength)
-      : key;
+      : encodeURIComponent(key);
   }
 
   private parseQuery(query: string, shortUrl: boolean): Record<string, string> {
