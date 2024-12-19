@@ -13,11 +13,11 @@ export class Option<A> {
     return new Option<A>(null);
   }
 
-  static some<A>(value: A | null | undefined): Option<A> {
+  static from<A>(value: A | null | undefined): Option<A> {
     return new Option(value);
   }
 
-  static someExact<const A>(value: A | null | undefined): Option<A> {
+  static fromExact<const A>(value: A | null | undefined): Option<A> {
     return new Option(value);
   }
 
@@ -46,9 +46,7 @@ export class Option<A> {
   }
 
   tap(fn: (value: A) => void): this {
-    if (this.value != null) {
-      fn(this.value);
-    }
+    if (this.value != null) fn(this.value);
     return this;
   }
 

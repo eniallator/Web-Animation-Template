@@ -20,7 +20,7 @@ export const config = createParsers({
   }),
   "example-range": rangeParser({
     label: "Example Range",
-    default: 5,
+    default: 7.5,
     attrs: {
       min: "1",
       max: "10",

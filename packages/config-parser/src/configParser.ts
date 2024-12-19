@@ -7,17 +7,17 @@ import {
   typedToEntries,
 } from "@web-art/core";
 import { configItem } from "./helpers.js";
-import { AnyParserConfig, ParserValue, ParserValues, State } from "./types.js";
+import { AnyStringObject, InitParserObject, State } from "./types.js";
 
 type ParamConfigOptions = {
   query?: string;
 } & ({ shortUrl?: false } | { shortUrl: true; hashKeyLength?: number });
 
-export class ParamConfig<const R extends AnyParserConfig> {
+export class ParamConfig<const R extends AnyStringObject> {
   private readonly state: State<R>;
   private readonly shortUrl: boolean;
   private readonly listeners: {
-    cb: (values: ParserValues<R>, updates: (keyof R)[]) => void;
+    cb: (values: R, updates: (keyof R)[]) => void;
     subscriptions: Set<keyof R> | null;
   }[];
   private readonly extraValue: string | undefined;
@@ -26,7 +26,7 @@ export class ParamConfig<const R extends AnyParserConfig> {
   private updates: (keyof R)[];
 
   constructor(
-    parsers: R,
+    parsers: InitParserObject<R>,
     baseEl: HTMLElement,
     options: ParamConfigOptions = {}
   ) {
@@ -35,40 +35,43 @@ export class ParamConfig<const R extends AnyParserConfig> {
       (options.shortUrl ? options.hashKeyLength : null) ?? 6;
     const initialValues = this.parseQuery(query, shortUrl);
 
-    this.state = mapObject<R, State<R>>(parsers, ([id, parser]) => {
-      if (parser.type === "Value") {
-        const initialStr = initialValues[this.queryKey(id as string)];
-        const initial =
-          initialStr != null ? parser.deserialise(initialStr, shortUrl) : null;
-        const el = parser.html(id as string, initial, value => {
-          if (value != null) {
-            this.state[id].value = value as ParserValue<typeof parser>;
-          }
-          this.updates.push(id);
-          this.tellListeners();
-        });
-        baseEl.appendChild(configItem(id as string, parser.label ?? null, el));
-        return tuple(id, {
-          parser,
-          el,
-          value: parser.getValue(el) as ParserValue<typeof parser>,
-        });
-      } else {
-        const el = parser.html(id as string, value => {
-          if (value != null) {
-            this.state[id].value = value as ParserValue<typeof parser>;
-          }
-          this.updates.push(id);
-          this.tellListeners();
-        });
-        baseEl.appendChild(configItem(id as string, null, el));
-        return tuple(id, {
-          parser,
-          el,
-          value: null as ParserValue<typeof parser>,
-        });
+    this.state = mapObject<InitParserObject<R>, State<R>>(
+      parsers,
+      ([id, { label, methods }]) => {
+        const parser = methods(
+          value => {
+            if (value != null) {
+              this.state[id].value = value as R[typeof id];
+            }
+            this.updates.push(id);
+            this.tellListeners();
+          },
+          () => this.state[id].value,
+          null
+        );
+        if (parser.type === "Value") {
+          const el = parser.html(
+            id as string,
+            initialValues[this.queryKey(id as string)] ?? null,
+            shortUrl
+          );
+          baseEl.appendChild(configItem(id as string, label ?? null, el));
+          return tuple(id, {
+            parser,
+            el,
+            value: parser.getValue(el),
+          });
+        } else {
+          const el = parser.html(id as string);
+          baseEl.appendChild(configItem(id as string, null, el));
+          return tuple(id, {
+            parser,
+            el,
+            value: null as R[typeof id],
+          });
+        }
       }
-    });
+    );
     this.extraValue = initialValues[this.queryKey("extra")];
     this.shortUrl = shortUrl;
     this.hashKeyLength = hashKeyLength;
@@ -77,12 +80,15 @@ export class ParamConfig<const R extends AnyParserConfig> {
     this.updates = [];
   }
 
-  getValue<I extends keyof R>(id: I): ParserValues<R>[I] {
+  getValue<I extends keyof R>(id: I): R[I] {
     return this.state[id].value;
   }
 
-  setValue<I extends keyof R>(id: I, value: ParserValues<R>[I]): void {
+  setValue<I extends keyof R>(id: I, value: R[I]): void {
     this.state[id].value = value;
+    if (this.state[id].parser.type === "Value") {
+      this.state[id].parser.updateValue(this.state[id].el, this.shortUrl);
+    }
   }
 
   get extra() {
@@ -90,7 +96,7 @@ export class ParamConfig<const R extends AnyParserConfig> {
   }
 
   addListener(
-    cb: (values: ParserValues<R>, updates: (keyof R)[]) => void,
+    cb: (values: R, updates: (keyof R)[]) => void,
     subscriptions: (keyof R)[] | null = null
   ): void {
     this.listeners.push({
@@ -114,8 +120,8 @@ export class ParamConfig<const R extends AnyParserConfig> {
     }
   }
 
-  getAllValues(): ParserValues<R> {
-    return mapObject<State<R>, ParserValues<R>>(this.state, ([id, stateItem]) =>
+  getAllValues(): R {
+    return mapObject<State<R>, R>(this.state, ([id, stateItem]) =>
       tuple(id, structuredClone(stateItem.value))
     );
   }
@@ -125,19 +131,14 @@ export class ParamConfig<const R extends AnyParserConfig> {
       this.shortUrl
         ? `${this.queryKey(key)}${value}`
         : `${this.queryKey(key)}=${value}`;
-    return filterAndMap(
-      typedToEntries(this.state),
-      ([id, { value, parser }]) => {
-        if ("serialise" in parser && "hasChanged" in parser) {
-          const serialised = parser.serialise(value, this.shortUrl);
-          return parser.hasChanged(value)
-            ? urlPart(id as string, serialised)
-            : null;
-        } else {
-          return null;
-        }
+    return filterAndMap(typedToEntries(this.state), ([id, { parser }]) => {
+      if (parser.type === "Value") {
+        const serialised = parser.serialise(this.shortUrl);
+        return serialised != null ? urlPart(id as string, serialised) : null;
+      } else {
+        return null;
       }
-    )
+    })
       .concat(
         ...(extra != null ? [urlPart("extra", encodeURIComponent(extra))] : [])
       )
@@ -146,12 +147,12 @@ export class ParamConfig<const R extends AnyParserConfig> {
 
   addCopyToClipboardHandler(
     selector: string,
-    extra?: ((state: ParserValues<R>) => string) | string
+    extra?: ((state: R) => string) | string
   ) {
-    const query = this.serialiseToUrlParams(
-      typeof extra === "function" ? extra(this.getAllValues()) : extra
-    );
     dom.addListener(dom.get(selector), "click", () => {
+      const query = this.serialiseToUrlParams(
+        typeof extra === "function" ? extra(this.getAllValues()) : extra
+      );
       const shareUrl = `${location.protocol}//${location.host}${location.pathname}${query.length > 0 ? "?" + query : ""}`;
       void navigator.clipboard.writeText(shareUrl);
     });

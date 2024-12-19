@@ -1,4 +1,4 @@
-import config from "./config";
+import { config } from "./config";
 import { AppContext, appMethods } from "./lib/types";
 
 // function init({ canvas, ctx }: AppContext<typeof config>) {

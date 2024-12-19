@@ -66,6 +66,6 @@ export class Monad<A> {
   }
 
   toOption<B>(this: { get(): B | null | undefined }): Option<B> {
-    return Option.some(this.get());
+    return Option.from(this.get());
   }
 }

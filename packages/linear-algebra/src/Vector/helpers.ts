@@ -1,5 +1,5 @@
 import { checkExhausted } from "@web-art/core";
-import { Guard, isExact, isNumber, isObjectOf } from "deep-guards";
+import { Guard, isArrayOf, isExact, isNumber, isObjectOf } from "deep-guards";
 import { Vector } from "./index.js";
 import { AnyComponents, Components, MinSize, VectorArg } from "./types.js";
 
@@ -20,7 +20,7 @@ export function vectorArgAccessor<N extends number | undefined>(
 }
 
 export function isComponents(value: unknown): value is AnyComponents {
-  return Array.isArray(value) && value.length >= 1 && value.every(isNumber);
+  return isArrayOf(isNumber)(value) && value.length >= 1;
 }
 
 export function isSize<const N extends number>(size: N) {

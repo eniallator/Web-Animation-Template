@@ -110,8 +110,7 @@ export class Vector<const N extends number | undefined = undefined> {
       return new Vector(
         toAnyComponents(this.components).map(
           (component, i) =>
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            component - (component - otherComponents[i]!) * t
+            component - (component - (otherComponents[i] as number)) * t
         ) as Components<N>
       );
     } else {
@@ -130,9 +129,7 @@ export class Vector<const N extends number | undefined = undefined> {
     if (isSameSize(this, other)) {
       const otherComponents = toAnyComponents(other.components);
       return toAnyComponents(this.components).reduce(
-        (acc, component, i) =>
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          acc + component * otherComponents[i]!,
+        (acc, component, i) => acc + component * (otherComponents[i] as number),
         0
       );
     } else {
@@ -147,7 +144,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   sum(): number {
-    return toAnyComponents(this.components).reduce((acc, n) => acc + n);
+    return toAnyComponents(this.components).reduce((acc, n) => acc + n, 0);
   }
 
   /**
@@ -237,8 +234,7 @@ export class Vector<const N extends number | undefined = undefined> {
     if (isSameSize(this, other)) {
       const otherComponents = toAnyComponents(other.components);
       return toAnyComponents(this.components).reduce(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        (acc, n, i) => acc + (n - otherComponents[i]!) ** 2,
+        (acc, n, i) => acc + (n - (otherComponents[i] as number)) ** 2,
         0
       );
     } else {
@@ -258,8 +254,7 @@ export class Vector<const N extends number | undefined = undefined> {
       const otherComponents = toAnyComponents(other.components);
       return Math.sqrt(
         toAnyComponents(this.components).reduce(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          (acc, n, i) => acc + (n - otherComponents[i]!) ** 2,
+          (acc, n, i) => acc + (n - (otherComponents[i] as number)) ** 2,
           0
         )
       );
@@ -478,8 +473,7 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   y(this: Vector<MinSize<2, N>>): number {
     if (isMinSize(2)(this.components)) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return toAnyComponents(this.components)[1]!;
+      return toAnyComponents(this.components)[1] as number;
     } else {
       throw new IncompatibleOperation("Requires at least a 2D vector");
     }
@@ -491,8 +485,7 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   z(this: Vector<MinSize<3, N>>): number {
     if (isMinSize(3)(this.components)) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return toAnyComponents(this.components)[2]!;
+      return toAnyComponents(this.components)[2] as number;
     } else {
       throw new IncompatibleOperation("Requires at least a 3D vector");
     }
@@ -504,8 +497,7 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   w(this: Vector<MinSize<4, N>>): number {
     if (isMinSize(4)(this.components)) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return toAnyComponents(this.components)[3]!;
+      return toAnyComponents(this.components)[3] as number;
     } else {
       throw new IncompatibleOperation("Requires at least a 4D vector");
     }

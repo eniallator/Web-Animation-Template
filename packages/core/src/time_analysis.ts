@@ -151,7 +151,7 @@ export class TimeAnalysis {
       stats.minDebugLevel = minDebugLevel;
     }
 
-    return Option.some(!stats.setup || null)
+    return Option.from(!stats.setup || null)
       .map(() => {
         stats.setup = true;
 

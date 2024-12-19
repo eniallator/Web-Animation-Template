@@ -1,265 +1,403 @@
 import {
   base64ToPosInt,
+  dom,
   formatDate,
   intToBase64,
   Option,
   tuple,
 } from "@web-art/core";
-import { isOneOf } from "deep-guards";
+import { isOneOf, isString } from "deep-guards";
 import { stringToHTML, toAttrs, valueParser } from "../helpers.js";
-import { ValueConfig, ValueParser } from "../types.js";
+import { ValueConfig } from "../types.js";
 
-export const checkboxParser = (cfg: ValueConfig<boolean>) =>
-  valueParser({
-    label: cfg.label,
-    default: cfg.default ?? false,
-    serialise: (value, shortUrl) => `${shortUrl ? +value : value}`,
-    deserialise: (str, shortUrl) => (shortUrl ? str === "1" : str === "true"),
-    setValue: (el, value) => {
-      if (value) {
-        el.setAttribute("checked", "");
-      } else {
-        el.removeAttribute("checked");
-      }
-    },
-    getValue: el => el.hasAttribute("checked"),
-    hasChanged: value => value !== cfg.default,
-    html: (id, _initial, onChange) => {
-      const initial = _initial ?? cfg.default;
+export const checkboxParser = (cfg: ValueConfig<boolean>) => {
+  const defaultValue = cfg.default ?? false;
+  return valueParser(
+    cfg.label,
+    (
+      onChange: (value: boolean) => void,
+      getValue: () => boolean,
+      _initial: boolean | null
+    ) => ({
+      default: defaultValue,
+      serialise: shortUrl =>
+        getValue() !== defaultValue
+          ? `${shortUrl ? +getValue() : getValue()}`
+          : null,
+      updateValue: el => {
+        if (getValue()) {
+          el.setAttribute("checked", "");
+        } else {
+          el.removeAttribute("checked");
+        }
+      },
+      getValue: el => el.hasAttribute("checked"),
+      html: (id, query, shortUrl) => {
+        const initial = Option.from(query)
+          .map(q => (shortUrl ? q === "1" : q === "true"))
+          .getOrElse(() => _initial ?? defaultValue);
 
-      const attrs = [
-        Option.some(id).map(id => [tuple("id", id)]),
-        Option.some([tuple("checked", null)]).filter(() => initial != null),
-        Option.some(cfg.attrs).map<[string, string][]>(Object.entries),
-      ]
-        .map(opt => opt.map(toAttrs).getOrElse(() => ""))
-        .join("");
+        const attrs = [
+          Option.from(id).map(id => [tuple("id", id)]),
+          Option.from([tuple("checked", null)]).filter(() => initial),
+          Option.from(cfg.attrs).map<[string, string][]>(Object.entries),
+        ]
+          .map(opt => opt.map(toAttrs).getOrElse(() => ""))
+          .join("");
 
-      const el = stringToHTML(
-        `<input type="checkbox"${attrs} />`
-      ) as HTMLInputElement;
-      el.onchange = () => {
-        onChange(el.checked);
-      };
-      return el;
-    },
-  });
-
-export const numberParser = (cfg: ValueConfig<number>) =>
-  valueParser({
-    label: cfg.label,
-    default: cfg.default ?? Number(cfg.attrs?.["min"] ?? 0),
-    serialise: String,
-    deserialise: Number,
-    setValue: (el, value) => {
-      (el as HTMLInputElement).value = String(value);
-    },
-    getValue: el => Number((el as HTMLInputElement).value),
-    hasChanged: value => value !== cfg.default,
-    html: (id, _initial, onChange) => {
-      const initial = _initial ?? cfg.default;
-
-      const attrs = [
-        Option.some(id).map(id => [tuple("id", id)]),
-        Option.some(initial).map(initial => [tuple("value", `${initial}`)]),
-        Option.some(cfg.attrs).map<[string, string][]>(Object.entries),
-      ]
-        .map(opt => opt.map(toAttrs).getOrElse(() => ""))
-        .join("");
-
-      const el = stringToHTML(
-        `<input type="number"${attrs} />`
-      ) as HTMLInputElement;
-      el.onchange = () => {
-        onChange(Number(el.value));
-      };
-      return el;
-    },
-  });
-
-export const rangeParser = (cfg: ValueConfig<number>) => {
-  return valueParser({
-    label: cfg.label,
-    // Calc ceil(middle of range) instead of 0
-    default: cfg.default ?? 0,
-    serialise: String,
-    deserialise: Number,
-    setValue: (el, value) => {
-      (el as HTMLInputElement).value = String(value);
-    },
-    getValue: el => Number((el as HTMLInputElement).value),
-    hasChanged: value => value !== cfg.default,
-    html: (id, _initial, onChange) => {
-      const initial = _initial ?? cfg.default;
-
-      const attrs = [
-        Option.some(id).map(id => [tuple("id", id)]),
-        Option.some(initial).map(initial => [tuple("value", `${initial}`)]),
-        Option.some(cfg.attrs).map<[string, string][]>(Object.entries),
-      ]
-        .map(opt => opt.map(toAttrs).getOrElse(() => ""))
-        .join("");
-
-      const el = stringToHTML(
-        `<input type="range"${attrs} />`
-      ) as HTMLInputElement;
-      el.onchange = () => {
-        onChange(Number(el.value));
-      };
-      return el;
-    },
-  });
+        const el = stringToHTML(
+          `<input type="checkbox"${attrs} />`
+        ) as HTMLInputElement;
+        el.onchange = () => {
+          onChange(el.checked);
+        };
+        return el;
+      },
+    })
+  );
 };
 
-export const colorParser = (cfg: ValueConfig<string>) =>
-  valueParser({
-    label: cfg.label,
-    default: cfg.default ?? "000000",
-    serialise: (value, shortUrl) =>
-      shortUrl ? intToBase64(parseInt(value, 16)) : value,
-    deserialise: (str, shortUrl) =>
-      shortUrl ? base64ToPosInt(str).toString(16) : str.toUpperCase(),
-    setValue: (el, value) => {
-      (el as HTMLInputElement).value = `#${value}`;
-    },
-    getValue: el => (el as HTMLInputElement).value.slice(1).toUpperCase(),
-    hasChanged: value => value !== cfg.default,
-    html: (id, _initial, onChange) => {
-      const initial = _initial ?? cfg.default;
+const defaultNumber = (attrs?: Record<string, string>) => {
+  const min = Number(attrs?.["min"] ?? 0);
+  const max = Number(attrs?.["max"] ?? 100);
+  const step = Number(attrs?.["step"] ?? 1);
 
-      const attrs = [
-        Option.some(id).map(id => [tuple("id", id)]),
-        Option.some(initial).map(initial => [tuple("value", `#${initial}`)]),
-        Option.some(cfg.attrs).map<[string, string][]>(Object.entries),
-      ]
-        .map(opt => opt.map(toAttrs).getOrElse(() => ""))
-        .join("");
+  return Math.ceil((max - min) / (2 * step)) * step + min;
+};
 
-      const el = stringToHTML(
-        `<input type="color"${attrs} />`
-      ) as HTMLInputElement;
-      el.oninput = () => {
-        onChange(el.value.slice(1).toUpperCase());
-      };
-      return el;
-    },
-  });
+export const numberParser = (cfg: ValueConfig<number>) => {
+  const defaultValue =
+    cfg.default ?? (cfg.attrs != null ? defaultNumber(cfg.attrs) : 0);
+  return valueParser(
+    cfg.label,
+    (
+      onChange: (value: number) => void,
+      getValue: () => number,
+      _initial: number | null
+    ) => ({
+      default: defaultValue,
+      serialise: () =>
+        getValue() !== defaultValue ? String(getValue()) : null,
+      updateValue: el => {
+        (el as HTMLInputElement).value = String(getValue());
+      },
+      getValue: el => Number((el as HTMLInputElement).value),
+      html: (id, query) => {
+        const initial =
+          query != null ? Number(query) : (_initial ?? defaultValue);
 
-export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) =>
-  valueParser({
-    label: cfg.label,
-    default: cfg.default ?? "",
-    serialise: value => encodeURIComponent(value),
-    deserialise: str => decodeURIComponent(str),
-    setValue: (el, value) => {
-      (el as HTMLInputElement | HTMLTextAreaElement).value = value;
-    },
-    getValue: el => (el as HTMLInputElement | HTMLTextAreaElement).value,
-    hasChanged: value => value !== cfg.default,
-    html: (id, _initial, onChange) => {
-      const initial = _initial ?? cfg.default;
+        const attrs = [
+          Option.from(id).map(id => [tuple("id", id)]),
+          Option.from([tuple("value", `${initial}`)]),
+          Option.from(cfg.attrs).map<[string, string][]>(Object.entries),
+        ]
+          .map(opt => opt.map(toAttrs).getOrElse(() => ""))
+          .join("");
 
-      const attrs = [
-        Option.some(id).map(id => [tuple("id", id)]),
-        Option.some(cfg.attrs).map<[string, string][]>(Object.entries),
-      ]
-        .map(opt => opt.map(toAttrs).getOrElse(() => ""))
-        .join("");
+        const el = stringToHTML(
+          `<input type="number"${attrs} />`
+        ) as HTMLInputElement;
+        el.onchange = () => {
+          onChange(Number(el.value));
+        };
+        return el;
+      },
+    })
+  );
+};
 
-      const valueAttr = initial != null ? toAttrs([["value", initial]]) : "";
-      const el = stringToHTML(
-        cfg.area
-          ? `<textarea ${attrs}>${initial ?? ""}</textarea>`
-          : `<input type="text"${valueAttr}${attrs} />`
-      ) as HTMLInputElement | HTMLTextAreaElement;
-      el.onchange = () => {
-        onChange(el.value);
-      };
-      return el;
-    },
-  });
+export const rangeParser = (cfg: ValueConfig<number>) => {
+  const defaultValue = cfg.default ?? defaultNumber(cfg.attrs);
+  return valueParser(
+    cfg.label,
+    (
+      onChange: (value: number) => void,
+      getValue: () => number,
+      _initial: number | null
+    ) => ({
+      default: defaultValue,
+      serialise: () =>
+        getValue() !== defaultValue ? String(getValue()) : null,
+      updateValue: el => {
+        (el as HTMLInputElement).value = String(getValue());
+      },
+      getValue: el => Number((el as HTMLInputElement).value),
+      html: (id, query) => {
+        const initial =
+          query != null ? Number(query) : (_initial ?? defaultValue);
 
-export const datetimeParser = (cfg: ValueConfig<Date>) =>
-  valueParser({
-    label: cfg.label,
-    default: cfg.default ?? new Date(0),
-    serialise: (value, shortUrl) =>
-      shortUrl
-        ? intToBase64(value.getTime() / 60000 - new Date().getTimezoneOffset())
-        : encodeURIComponent(formatDate(value)),
-    deserialise: (str, shortUrl) =>
-      new Date(
-        shortUrl
-          ? formatDate(new Date(base64ToPosInt(str) * 60000))
-          : decodeURIComponent(str)
-      ),
-    setValue: (el, value) => {
-      (el as HTMLInputElement).value = formatDate(value);
-    },
-    getValue: el => new Date((el as HTMLInputElement).value),
-    hasChanged: value =>
-      cfg.default == null
-        ? !Number.isNaN(value.getTime())
-        : value.getTime() !== cfg.default.getTime(),
-    html: (id, _initial, onChange) => {
-      const initial = _initial ?? cfg.default;
+        const attrs = [
+          Option.from(id).map(id => [tuple("id", id)]),
+          Option.from([tuple("value", `${initial}`)]),
+          Option.from(cfg.attrs).map<[string, string][]>(Object.entries),
+        ]
+          .map(opt => opt.map(toAttrs).getOrElse(() => ""))
+          .join("");
 
-      const attrs = [
-        Option.some(id).map(id => [tuple("id", id)]),
-        Option.some(initial).map(initial => [
-          tuple("value", formatDate(initial)),
-        ]),
-        Option.some(cfg.attrs).map<[string, string][]>(Object.entries),
-      ]
-        .map(opt => opt.map(toAttrs).getOrElse(() => ""))
-        .join("");
+        const el = stringToHTML(
+          `<input type="range"${attrs} />`
+        ) as HTMLInputElement;
+        el.onchange = () => {
+          onChange(Number(el.value));
+        };
+        return el;
+      },
+    })
+  );
+};
 
-      const el = stringToHTML(
-        `<input type="datetime-local"${attrs} />`
-      ) as HTMLInputElement;
-      el.onchange = () => {
-        onChange(new Date(el.value));
-      };
-      return el;
-    },
-  });
+export const colorParser = (cfg: ValueConfig<string>) => {
+  const defaultValue = cfg.default ?? "000000";
+  return valueParser(
+    cfg.label,
+    (
+      onChange: (value: string) => void,
+      getValue: () => string,
+      _initial: string | null
+    ) => ({
+      default: defaultValue,
+      serialise: shortUrl =>
+        getValue() === defaultValue
+          ? null
+          : shortUrl
+            ? intToBase64(parseInt(getValue(), 16))
+            : getValue(),
+      updateValue: el => {
+        (el as HTMLInputElement).value = `#${getValue()}`;
+      },
+      getValue: el => (el as HTMLInputElement).value.slice(1).toUpperCase(),
+      html: (id, query, shortUrl) => {
+        const initial = Option.from(query)
+          .map(q =>
+            shortUrl ? base64ToPosInt(q).toString(16) : q.toUpperCase()
+          )
+          .getOrElse(() => _initial ?? defaultValue);
+
+        const attrs = [
+          Option.from(id).map(id => [tuple("id", id)]),
+          Option.from([tuple("value", `#${initial}`)]),
+          Option.from(cfg.attrs).map<[string, string][]>(Object.entries),
+        ]
+          .map(opt => opt.map(toAttrs).getOrElse(() => ""))
+          .join("");
+
+        const el = stringToHTML(
+          `<input type="color"${attrs} />`
+        ) as HTMLInputElement;
+        el.oninput = () => {
+          onChange(el.value.slice(1).toUpperCase());
+        };
+        return el;
+      },
+    })
+  );
+};
+
+export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
+  const defaultValue = cfg.default ?? "";
+  return valueParser(
+    cfg.label,
+    (
+      onChange: (value: string) => void,
+      getValue: () => string,
+      _initial: string | null
+    ) => ({
+      default: defaultValue,
+      serialise: () =>
+        getValue() !== defaultValue ? encodeURIComponent(getValue()) : null,
+      updateValue: el => {
+        (el as HTMLInputElement | HTMLTextAreaElement).value = getValue();
+      },
+      getValue: el => (el as HTMLInputElement | HTMLTextAreaElement).value,
+      html: (id, query) => {
+        const initial = Option.from(query)
+          .map(decodeURIComponent)
+          .getOrElse(() => _initial ?? defaultValue);
+
+        const attrs = [
+          Option.from(id).map(id => [tuple("id", id)]),
+          Option.from(cfg.attrs).map<[string, string][]>(Object.entries),
+        ]
+          .map(opt => opt.map(toAttrs).getOrElse(() => ""))
+          .join("");
+
+        const valueAttr = toAttrs([["value", initial]]);
+        const el = stringToHTML(
+          cfg.area
+            ? `<textarea ${attrs}>${initial}</textarea>`
+            : `<input type="text"${valueAttr}${attrs} />`
+        ) as HTMLInputElement | HTMLTextAreaElement;
+        el.onchange = () => {
+          onChange(el.value);
+        };
+        return el;
+      },
+    })
+  );
+};
+
+export const datetimeParser = (cfg: ValueConfig<Date>) => {
+  const defaultValue = cfg.default ?? new Date(0);
+  return valueParser(
+    cfg.label,
+    (
+      onChange: (value: Date) => void,
+      getValue: () => Date,
+      _initial: Date | null
+    ) => ({
+      default: defaultValue,
+      serialise: shortUrl =>
+        getValue().getTime() === defaultValue.getTime()
+          ? null
+          : shortUrl
+            ? intToBase64(
+                getValue().getTime() / 60000 - new Date().getTimezoneOffset()
+              )
+            : encodeURIComponent(formatDate(getValue())),
+      updateValue: el => {
+        (el as HTMLInputElement).value = formatDate(getValue());
+      },
+      getValue: el => new Date((el as HTMLInputElement).value),
+      html: (id, query, shortUrl) => {
+        const initial =
+          query != null
+            ? new Date(
+                shortUrl
+                  ? formatDate(new Date(base64ToPosInt(query) * 60000))
+                  : decodeURIComponent(query)
+              )
+            : (_initial ?? defaultValue);
+
+        const attrs = [
+          Option.from(id).map(id => [tuple("id", id)]),
+          Option.from(initial).map(initial => [
+            tuple("value", formatDate(initial)),
+          ]),
+          Option.from(cfg.attrs).map<[string, string][]>(Object.entries),
+        ]
+          .map(opt => opt.map(toAttrs).getOrElse(() => ""))
+          .join("");
+
+        const el = stringToHTML(
+          `<input type="datetime-local"${attrs} />`
+        ) as HTMLInputElement;
+        el.onchange = () => {
+          onChange(new Date(el.value));
+        };
+        return el;
+      },
+    })
+  );
+};
 
 export const selectParser = <const A extends readonly [string, ...string[]]>(
   cfg: ValueConfig<A[number]> & { options: A }
-): ValueParser<A[number]> => {
+) => {
   const isOption = isOneOf(...cfg.options);
-  return {
-    type: "Value",
-    label: cfg.label,
-    default: cfg.default ?? cfg.options[0],
-    serialise: value => encodeURIComponent(value),
-    deserialise: str =>
-      decodeURIComponent(isOption(str) ? str : (cfg.default ?? cfg.options[0])),
-    setValue: (el, value) => {
-      (el as HTMLSelectElement).value = value;
-    },
-    getValue: el => (el as HTMLSelectElement).value,
-    hasChanged: value => value !== (cfg.default ?? cfg.options[0]),
-    html: (id, _initial, onChange) => {
-      const initial = _initial ?? cfg.default ?? cfg.options[0];
+  const defaultValue = cfg.default ?? cfg.options[0];
 
-      const attrs = [
-        Option.some(id).map(id => [tuple("id", id)]),
-        Option.some(cfg.attrs).map<[string, string][]>(Object.entries),
-      ]
-        .map(opt => opt.map(toAttrs).getOrElse(() => ""))
-        .join("");
+  return valueParser(
+    cfg.label,
+    (
+      onChange: (value: A[number]) => void,
+      getValue: () => A[number],
+      _initial: A[number] | null
+    ) => ({
+      default: defaultValue,
+      serialise: () =>
+        getValue() !== defaultValue ? encodeURIComponent(getValue()) : null,
+      updateValue: el => {
+        (el as HTMLSelectElement).value = getValue();
+      },
+      getValue: el => (el as HTMLSelectElement).value,
+      html: (id, query) => {
+        const initial = Option.from(query)
+          .guard(isOption)
+          .getOrElse(() => _initial ?? defaultValue);
 
-      const el = stringToHTML(
-        `<select${attrs}>${cfg.options
-          .map(opt => `<option value="${opt}">${opt}</option>`)
-          .join("")}</select>`
-      ) as HTMLInputElement;
-      el.value = initial;
-      el.onchange = () => {
-        onChange(el.value);
-      };
-      return el;
-    },
-  };
+        const attrs = [
+          Option.from(id).map(id => [tuple("id", id)]),
+          Option.from(cfg.attrs).map<[string, string][]>(Object.entries),
+        ]
+          .map(opt => opt.map(toAttrs).getOrElse(() => ""))
+          .join("");
+
+        const el = stringToHTML(
+          `<select${attrs}>${cfg.options
+            .map(opt => `<option value="${opt}">${opt}</option>`)
+            .join("")}</select>`
+        ) as HTMLInputElement;
+        el.value = initial;
+        el.onchange = () => {
+          onChange(el.value);
+        };
+        return el;
+      },
+    })
+  );
+};
+
+export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
+  const defaultValue = cfg.default ?? "";
+  let currentValue = defaultValue;
+  return valueParser<string>(
+    cfg.label,
+    (
+      onChange: (value: string) => void,
+      getValue: () => string,
+      _initial: string | null
+    ) => ({
+      default: defaultValue,
+      serialise: () =>
+        getValue() !== defaultValue ? encodeURIComponent(getValue()) : null,
+      getValue: () => currentValue,
+      updateValue: () => {
+        currentValue = getValue();
+      },
+      html: (id, query) => {
+        const attrs = toAttrs([
+          ...Option.from(id)
+            .map(id => [tuple("id", id)])
+            .getOrElse((): [string, string][] => []),
+          tuple("style", "display: none;"),
+          ...Option.from(cfg.attrs)
+            .map<[string, string][]>(Object.entries)
+            .getOrElse((): [string, string][] => []),
+        ]);
+
+        currentValue =
+          query != null
+            ? decodeURIComponent(query)
+            : (_initial ?? defaultValue);
+
+        const el = stringToHTML(`<div>
+          <input type="file"${attrs} />
+          <button class="secondary wrap-text">${cfg.text ?? ""}</button>
+        </div>`);
+
+        const inp = dom.get<HTMLInputElement>("input", el);
+        const btn = dom.get<HTMLButtonElement>("button", el);
+
+        btn.onclick = () => {
+          inp.click();
+        };
+        inp.onchange = () => {
+          if (inp.files?.[0] != null) {
+            const reader = new FileReader();
+            reader.onload = evt => {
+              Option.from(evt.target?.result)
+                .guard(isString)
+                .tap(value => {
+                  onChange(value);
+                  currentValue = value;
+                });
+            };
+            reader.readAsDataURL(inp.files[0]);
+          }
+        };
+
+        return el as HTMLElement;
+      },
+    })
+  );
 };

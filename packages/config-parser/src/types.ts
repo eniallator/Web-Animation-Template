@@ -8,62 +8,65 @@ export interface ValueConfig<T> extends Config {
   default?: T;
 }
 
-export interface ContentParser<T = unknown> {
+export interface ContentParser {
   type: "Content";
-  html: (id: string, onChange: (value: T) => void) => HTMLElement;
+  html: (id: string | null) => HTMLElement;
 }
 
 export interface ValueParser<T> {
   type: "Value";
-  label?: string;
-  default: T;
   html: (
     id: string | null,
-    initialValue: T | null,
-    onChange: (value: T) => void
+    query: string | null,
+    shortUrl: boolean
   ) => HTMLElement;
-  serialise: (value: T, shortUrl: boolean) => string;
-  deserialise: (value: string, shortUrl: boolean) => T;
-  setValue: (
-    el: HTMLElement,
-    value: T,
-    onChange: ((value: T) => void) | null
-  ) => void;
+  serialise: (shortUrl: boolean) => string | null;
+  updateValue: (el: HTMLElement, shortUrl: boolean) => void;
   getValue: (el: HTMLElement) => T;
-  hasChanged: (value: T) => boolean;
 }
 
-export type Parser<T> = ContentParser<T> | ValueParser<T>;
+export type Parser<T> = ContentParser | ValueParser<T>;
+
+export type InitParser<P extends Parser<unknown>> = {
+  label?: string;
+  methods: (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onChange: (value: any) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getValue: () => any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    initial: any
+  ) => P;
+};
 
 export type ParserValue<P extends Parser<unknown>> =
-  P extends ValueParser<infer T>
-    ? T
-    : P extends ContentParser<infer T>
-      ? T | null
-      : never;
+  P extends ValueParser<infer T> ? T : P extends ContentParser ? null : never;
 
 export type AnyStringObject = { [K in string]: unknown };
 
 export type AnyParserConfig = { [K in string]: Parser<unknown> };
 
-export type ParserObject<O extends AnyStringObject> = {
-  [K in keyof O]: Parser<O[K]>;
+export type InitParserObject<O extends AnyStringObject> = {
+  [K in keyof O]: InitParser<Parser<O[K]>>;
 };
 
 export type ValueParserTuple<O extends readonly unknown[]> = {
   [K in keyof O]: ValueParser<O[K]>;
 };
 
-export type ParserValues<R extends AnyParserConfig> = {
-  [K in keyof R]: ParserValue<R[K]>;
+export type InitValueParserTuple<O extends readonly unknown[]> = {
+  [K in keyof O]: InitParser<ValueParser<O[K]>>;
 };
 
-export interface StateItem<P extends Parser<unknown>> {
-  parser: P;
-  value: ParserValue<P>;
+export type InitParserValues<R extends InitParserObject<AnyStringObject>> =
+  R extends InitParserObject<infer T> ? T : never;
+
+export interface StateItem<T> {
+  parser: Parser<T>;
+  value: T;
   el: HTMLElement;
 }
 
-export type State<R extends AnyParserConfig> = {
+export type State<R extends AnyStringObject> = {
   [K in keyof R]: StateItem<R[K]>;
 };

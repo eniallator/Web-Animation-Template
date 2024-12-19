@@ -1,5 +1,5 @@
 import { raise } from "@web-art/core";
-import { ContentParser, ValueParser } from "./types";
+import { ContentParser, InitParser, ValueParser } from "./types";
 
 export const toAttrs = (attrs: [string, string | null][]): string =>
   attrs
@@ -29,9 +29,31 @@ export const configItem = (
 };
 
 export const valueParser = <T>(
-  parser: Omit<ValueParser<T>, "type">
-): ValueParser<T> => ({ ...parser, type: "Value" });
+  label: string | undefined,
+  init: (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onChange: (value: any) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getValue: () => any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    initial: any
+  ) => Omit<ValueParser<T>, "type">
+): InitParser<ValueParser<T>> => ({
+  label,
+  methods: (...args) => ({ ...init(...args), type: "Value" }),
+});
 
-export const contentParser = <T>(
-  html: ContentParser<T>["html"]
-): ContentParser<T> => ({ html, type: "Content" });
+export const contentParser = (
+  label: string | undefined,
+  init: (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onChange: (value: any) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getValue: () => any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    initial: any
+  ) => Omit<ContentParser, "type">
+): InitParser<ContentParser> => ({
+  label,
+  methods: (...args) => ({ ...init(...args), type: "Content" }),
+});

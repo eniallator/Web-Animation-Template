@@ -17,8 +17,7 @@ export function findAndMap<I, O>(
   mapper: (val: I, index: number, arr: readonly I[]) => O | null | undefined
 ): O | null {
   for (let i = 0; i < arr.length; i++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const output = mapper(arr[i]!, i, arr);
+    const output = mapper(arr[i] as I, i, arr);
 
     if (output != null) {
       return output;
