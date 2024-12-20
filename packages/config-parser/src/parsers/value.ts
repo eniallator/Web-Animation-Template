@@ -290,18 +290,21 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
   );
 };
 
+type SelectValue<A extends readonly [string, ...string[]]> =
+  A extends readonly (infer T)[] ? T : never;
+
 export const selectParser = <const A extends readonly [string, ...string[]]>(
-  cfg: ValueConfig<A[number]> & { options: A }
+  cfg: ValueConfig<SelectValue<A>> & { options: A }
 ) => {
   const isOption = isOneOf(...cfg.options);
-  const defaultValue = cfg.default ?? cfg.options[0];
+  const defaultValue = cfg.default ?? (cfg.options[0] as SelectValue<A>);
 
-  return valueParser(
+  return valueParser<SelectValue<A>>(
     cfg.label,
     (
-      onChange: (value: A[number]) => void,
-      getValue: () => A[number],
-      _initial: A[number] | null
+      onChange: (value: SelectValue<A>) => void,
+      getValue: () => SelectValue<A>,
+      _initial: SelectValue<A> | null
     ) => ({
       default: defaultValue,
       serialise: () =>
@@ -309,7 +312,7 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
       updateValue: el => {
         (el as HTMLSelectElement).value = getValue();
       },
-      getValue: el => (el as HTMLSelectElement).value,
+      getValue: el => (el as HTMLSelectElement).value as SelectValue<A>,
       html: (id, query) => {
         const initial = Option.from(query)
           .guard(isOption)
@@ -329,7 +332,7 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
         ) as HTMLInputElement;
         el.value = initial;
         el.onchange = () => {
-          onChange(el.value);
+          onChange(el.value as SelectValue<A>);
         };
         return el;
       },
