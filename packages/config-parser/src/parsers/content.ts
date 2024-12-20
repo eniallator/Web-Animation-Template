@@ -3,7 +3,7 @@ import { contentParser, stringToHTML, toAttrs } from "../helpers.js";
 import { Config } from "../types.js";
 
 export const buttonParser = (cfg: Config & { text?: string }) =>
-  contentParser(undefined, (onChange: (value: null) => void) => ({
+  contentParser((onChange: (value: null) => void) => ({
     default: null,
     html: id => {
       const attrs = toAttrs([

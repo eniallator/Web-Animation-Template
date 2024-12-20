@@ -15,7 +15,7 @@ import {
 export const config = createParsers({
   "example-checkbox": checkboxParser({
     label: "Example Checkbox",
-    tooltip: "Example tooltip",
+    title: "Example title",
     default: true,
   }),
   "example-range": rangeParser({

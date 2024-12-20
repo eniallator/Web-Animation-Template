@@ -37,7 +37,7 @@ export class ParamConfig<const R extends AnyStringObject> {
 
     this.state = mapObject<InitParserObject<R>, State<R>>(
       parsers,
-      ([id, { label, methods }]) => {
+      ([id, { label, title, methods }]) => {
         const parser = methods(
           value => {
             if (value != null) {
@@ -55,7 +55,7 @@ export class ParamConfig<const R extends AnyStringObject> {
             initialValues[this.queryKey(id as string)] ?? null,
             shortUrl
           );
-          baseEl.appendChild(configItem(id as string, label ?? null, el));
+          baseEl.appendChild(configItem(id as string, el, label, title));
           return tuple(id, {
             parser,
             el,
@@ -63,7 +63,7 @@ export class ParamConfig<const R extends AnyStringObject> {
           });
         } else {
           const el = parser.html(id as string);
-          baseEl.appendChild(configItem(id as string, null, el));
+          baseEl.appendChild(configItem(id as string, el, label, title));
           return tuple(id, {
             parser,
             el,

@@ -13,7 +13,6 @@ import { ValueConfig } from "../types.js";
 export const checkboxParser = (cfg: ValueConfig<boolean>) => {
   const defaultValue = cfg.default ?? false;
   return valueParser(
-    cfg.label,
     (
       onChange: (value: boolean) => void,
       getValue: () => boolean,
@@ -53,7 +52,9 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
         };
         return el;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };
 
@@ -69,7 +70,6 @@ export const numberParser = (cfg: ValueConfig<number>) => {
   const defaultValue =
     cfg.default ?? (cfg.attrs != null ? defaultNumber(cfg.attrs) : 0);
   return valueParser(
-    cfg.label,
     (
       onChange: (value: number) => void,
       getValue: () => number,
@@ -102,14 +102,15 @@ export const numberParser = (cfg: ValueConfig<number>) => {
         };
         return el;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };
 
 export const rangeParser = (cfg: ValueConfig<number>) => {
   const defaultValue = cfg.default ?? defaultNumber(cfg.attrs);
   return valueParser(
-    cfg.label,
     (
       onChange: (value: number) => void,
       getValue: () => number,
@@ -142,14 +143,15 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
         };
         return el;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };
 
 export const colorParser = (cfg: ValueConfig<string>) => {
   const defaultValue = cfg.default ?? "000000";
   return valueParser(
-    cfg.label,
     (
       onChange: (value: string) => void,
       getValue: () => string,
@@ -189,14 +191,15 @@ export const colorParser = (cfg: ValueConfig<string>) => {
         };
         return el;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };
 
 export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
   const defaultValue = cfg.default ?? "";
   return valueParser(
-    cfg.label,
     (
       onChange: (value: string) => void,
       getValue: () => string,
@@ -232,14 +235,15 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
         };
         return el;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };
 
 export const datetimeParser = (cfg: ValueConfig<Date>) => {
   const defaultValue = cfg.default ?? new Date(0);
   return valueParser(
-    cfg.label,
     (
       onChange: (value: Date) => void,
       getValue: () => Date,
@@ -286,7 +290,9 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
         };
         return el;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };
 
@@ -300,7 +306,6 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
   const defaultValue = cfg.default ?? (cfg.options[0] as SelectValue<A>);
 
   return valueParser<SelectValue<A>>(
-    cfg.label,
     (
       onChange: (value: SelectValue<A>) => void,
       getValue: () => SelectValue<A>,
@@ -336,7 +341,9 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
         };
         return el;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };
 
@@ -344,7 +351,6 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
   const defaultValue = cfg.default ?? "";
   let currentValue = defaultValue;
   return valueParser<string>(
-    cfg.label,
     (
       onChange: (value: string) => void,
       getValue: () => string,
@@ -401,6 +407,8 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
 
         return el as HTMLElement;
       },
-    })
+    }),
+    cfg.label,
+    cfg.title
   );
 };

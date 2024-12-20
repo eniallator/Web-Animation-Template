@@ -1,6 +1,6 @@
 export interface Config {
   label?: string;
-  tooltip?: string;
+  title?: string;
   attrs?: Record<string, string>;
 }
 
@@ -29,6 +29,7 @@ export type Parser<T> = ContentParser | ValueParser<T>;
 
 export type InitParser<P extends Parser<unknown>> = {
   label?: string;
+  title?: string;
   methods: (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onChange: (value: any) => void,

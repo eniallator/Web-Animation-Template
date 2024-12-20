@@ -16,20 +16,22 @@ export const stringToHTML = (str: string): Element => {
 
 export const configItem = (
   id: string,
-  label: string | null,
-  el: HTMLElement
+  el: HTMLElement,
+  label?: string,
+  title?: string
 ): HTMLElement => {
   const labelStr =
     label != null
-      ? `<label for="${id}" title="${label}" class="wrap-text">${label}</label>`
+      ? `<label for="${id}" class="wrap-text">${label}</label>`
       : "";
-  const itemEl = stringToHTML(`<div class="config-item">${labelStr}</div>`);
+  const itemEl = stringToHTML(
+    `<div class="config-item" title="${title ?? label ?? ""}">${labelStr}</div>`
+  );
   itemEl.appendChild(el);
   return itemEl as HTMLElement;
 };
 
 export const valueParser = <T>(
-  label: string | undefined,
   init: (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onChange: (value: any) => void,
@@ -37,14 +39,16 @@ export const valueParser = <T>(
     getValue: () => any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initial: any
-  ) => Omit<ValueParser<T>, "type">
+  ) => Omit<ValueParser<T>, "type">,
+  label?: string,
+  title?: string
 ): InitParser<ValueParser<T>> => ({
   label,
+  title,
   methods: (...args) => ({ ...init(...args), type: "Value" }),
 });
 
 export const contentParser = (
-  label: string | undefined,
   init: (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onChange: (value: any) => void,
@@ -52,8 +56,11 @@ export const contentParser = (
     getValue: () => any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     initial: any
-  ) => Omit<ContentParser, "type">
+  ) => Omit<ContentParser, "type">,
+  label?: string,
+  title?: string
 ): InitParser<ContentParser> => ({
   label,
+  title,
   methods: (...args) => ({ ...init(...args), type: "Content" }),
 });

@@ -77,7 +77,6 @@ export const collectionParser = <
   const expandable = cfg.expandable ?? false;
   let fieldParsers: ValueParserTuple<F>[] = [];
   return valueParser<F[]>(
-    undefined,
     (onChange: (value: F[]) => void, getValue: () => F[]) => ({
       default: cfg.default,
       serialise: shortUrl =>
@@ -128,7 +127,8 @@ export const collectionParser = <
                       }
                       ${cfg.fields
                         .map(
-                          field => `<th scope="col">${field.label ?? ""}</th>`
+                          field =>
+                            `<th scope="col" title="${field.title ?? field.label ?? ""}">${field.label ?? ""}</th>`
                         )
                         .join("")}
                     </tr>
