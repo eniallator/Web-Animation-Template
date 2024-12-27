@@ -622,16 +622,19 @@ export class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Tests if this vector and another have equal size and components
-   * @param {Vector} other
+   * @param {...[Vector] | AnyComponents} other Vector or components given as arguments
    * @returns {boolean} If they are equal
    */
-  equals(other: Vector<undefined | number>): boolean {
-    const otherComponents = toAnyComponents(this.components);
+  equals(
+    ...other: readonly [Vector<undefined | number>] | AnyComponents
+  ): boolean {
+    const components = toAnyComponents(this.components);
+    const otherComponents = isComponents(other)
+      ? other
+      : toAnyComponents(other[0].components);
     return (
-      isSameSize(this, other) &&
-      toAnyComponents(this.components).every(
-        (component, i) => component === otherComponents[i]
-      )
+      components.length === otherComponents.length &&
+      components.every((_, i) => components[i] === otherComponents[i])
     );
   }
 

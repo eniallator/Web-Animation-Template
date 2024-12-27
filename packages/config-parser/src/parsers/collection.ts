@@ -164,6 +164,10 @@ export const collectionParser = <
           </div>
         `);
 
+        dom.addListener(dom.get(".heading", baseEl), "click", () => {
+          baseEl.classList.toggle("collapsed");
+        });
+
         const bodyEl = dom.get("tbody", baseEl);
 
         const flatQueryValues = (query?.split(",") ?? []).map(s =>
