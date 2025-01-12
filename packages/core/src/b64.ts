@@ -2,7 +2,7 @@ import { posMod } from "./utils.js";
 
 const BASE_64_CHARS =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
-export function intToBase64(n: number, length?: number): string {
+export function intToB64(n: number, length?: number): string {
   let base64Str = "";
   while (n) {
     base64Str = BASE_64_CHARS[posMod(n, 64)] ?? "" + base64Str;
@@ -15,7 +15,7 @@ export function intToBase64(n: number, length?: number): string {
     : base64Str;
 }
 
-export function base64ToPosInt(str: string): number {
+export function b64ToInt(str: string): number {
   let n = 0;
   for (const char of str) {
     n = n * 64 + BASE_64_CHARS.indexOf(char);

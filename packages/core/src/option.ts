@@ -1,4 +1,3 @@
-import { Guard } from "deep-guards";
 import { Monad } from "./monad.js";
 import { raise } from "./utils.js";
 
@@ -41,8 +40,10 @@ export class Option<A> {
     return this.value != null && fn(this.value) ? this : new Option<A>(null);
   }
 
-  guard<B>(guard: Guard<B>): Option<B> {
-    return new Option<B>(guard(this.value) ? this.value : null);
+  guard<B extends A>(guard: (value: A) => value is B): Option<B> {
+    return new Option<B>(
+      this.value != null && guard(this.value) ? this.value : null
+    );
   }
 
   tap(fn: (value: A) => void): this {
@@ -72,5 +73,9 @@ export class Option<A> {
 
   toMonad(): Monad<A | null> {
     return Monad.from(this.value ?? null);
+  }
+
+  toArray(): A[] {
+    return this.value != null ? [this.value] : [];
   }
 }

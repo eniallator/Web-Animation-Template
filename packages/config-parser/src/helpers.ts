@@ -1,5 +1,4 @@
 import { raise } from "@web-art/core";
-import { ContentParser, InitParser, ValueParser } from "./types";
 
 export const toAttrs = (attrs: [string, string | null][]): string =>
   attrs
@@ -8,10 +7,11 @@ export const toAttrs = (attrs: [string, string | null][]): string =>
     )
     .join("");
 
-export const stringToHTML = (str: string): Element => {
+export const stringToHTML = (str: string): HTMLElement => {
   const el = document.createElement("template");
   el.innerHTML = str;
-  return el.content.children.item(0) ?? raise(Error("No nodes found"));
+  return (el.content.children.item(0) ??
+    raise(Error("No nodes found"))) as HTMLElement;
 };
 
 export const configItem = (
@@ -28,39 +28,5 @@ export const configItem = (
     `<div class="config-item" title="${title ?? label ?? ""}">${labelStr}</div>`
   );
   itemEl.appendChild(el);
-  return itemEl as HTMLElement;
+  return itemEl;
 };
-
-export const valueParser = <T>(
-  init: (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onChange: (value: any) => void,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getValue: () => any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    initial: any
-  ) => Omit<ValueParser<T>, "type">,
-  label?: string,
-  title?: string
-): InitParser<ValueParser<T>> => ({
-  label,
-  title,
-  methods: (...args) => ({ ...init(...args), type: "Value" }),
-});
-
-export const contentParser = (
-  init: (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onChange: (value: any) => void,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getValue: () => any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    initial: any
-  ) => Omit<ContentParser, "type">,
-  label?: string,
-  title?: string
-): InitParser<ContentParser> => ({
-  label,
-  title,
-  methods: (...args) => ({ ...init(...args), type: "Content" }),
-});

@@ -1,9 +1,9 @@
 import {
+  isAnyRecord,
   isFunction,
   isObjectOf,
-  isRecordOf,
   isString,
-  isUnknown,
+  isUnionOf,
 } from "deep-guards";
 import { Option } from "./option.js";
 import { raise } from "./utils.js";
@@ -23,6 +23,7 @@ class AuditError extends Error {
 }
 
 interface Timeable {
+  name: string;
   target: { prototype: Record<string, () => unknown> } & Record<
     string,
     () => unknown
@@ -44,11 +45,13 @@ interface Analytics {
   minDebugLevel: number;
 }
 
-const isObjectWithPrototype = isObjectOf({
-  prototype: isRecordOf(isString, isUnknown),
-});
+const hasName = isUnionOf(isFunction, isObjectOf({ name: isString }));
+const hasPrototype = isUnionOf(
+  isFunction,
+  isObjectOf({ prototype: isAnyRecord })
+);
 
-export class TimeAnalysis {
+export class TimeProfile {
   private static readonly methods: Timeable[] = [];
   private static methodTimes: Record<string, Record<string, TimeableStats>> =
     {};
@@ -67,19 +70,23 @@ export class TimeAnalysis {
    */
   static registerMethods(
     target: unknown,
+    name: string = hasName(target) ? target.name : "Anonymous",
     methodNames: string[] | undefined = undefined,
-    minDebugLevel: number = 1
+    minDebugLevel: number = 1,
+    addPrototype: boolean = methodNames == null
   ): void {
     if (methodNames == null) {
-      methodNames = Object.getOwnPropertyNames(
-        isObjectWithPrototype(target) ? target.prototype : target
-      ).filter(
+      const properties = Object.getOwnPropertyNames(target);
+      const ignoreSet = new Set(["constructor", "prototype"]);
+
+      methodNames = properties.filter(
         name =>
-          name !== "constructor" &&
+          !ignoreSet.has(name) &&
           isFunction((target as Record<string, unknown>)[name])
       );
     }
     this.methods.push({
+      name,
       target: target as { prototype: Record<string, () => unknown> } & Record<
         string,
         () => unknown
@@ -87,6 +94,15 @@ export class TimeAnalysis {
       methodNames,
       minDebugLevel,
     });
+    if (addPrototype && hasPrototype(target)) {
+      TimeProfile.registerMethods(
+        target.prototype,
+        `${name}.prototype`,
+        undefined,
+        minDebugLevel,
+        false
+      );
+    }
   }
 
   /**
@@ -95,7 +111,7 @@ export class TimeAnalysis {
    */
   constructor(debugLevel: number = Infinity) {
     this.debugLevel = debugLevel;
-    TimeAnalysis.methods
+    TimeProfile.methods
       .filter(item => item.minDebugLevel < debugLevel)
       .forEach(item => {
         item.methodNames.forEach(methodName => {
@@ -105,12 +121,11 @@ export class TimeAnalysis {
               ? item.target.prototype[methodName]
               : null;
           if (method != null) {
-            const isObjectWithName = isObjectOf({ name: isString });
             const patchedMethod = this.timeMethod(
               method,
               methodName,
               item.minDebugLevel,
-              isObjectWithName(item.target) ? item.target.name : undefined
+              item.name
             );
             if (patchedMethod != null) {
               if (isFunction(item.target[methodName])) {
@@ -131,9 +146,9 @@ export class TimeAnalysis {
     method: F,
     methodName: string,
     minDebugLevel: number,
-    targetName: string = "Anonymous"
+    targetName: string
   ): F | null {
-    const stats: TimeableStats = TimeAnalysis.methodTimes[targetName]?.[
+    const stats: TimeableStats = TimeProfile.methodTimes[targetName]?.[
       methodName
     ] ?? {
       calls: 0,
@@ -142,8 +157,8 @@ export class TimeAnalysis {
       setup: false,
     };
 
-    TimeAnalysis.methodTimes[targetName] = {
-      ...(TimeAnalysis.methodTimes[targetName] ?? {}),
+    TimeProfile.methodTimes[targetName] = {
+      ...(TimeProfile.methodTimes[targetName] ?? {}),
       [methodName]: stats,
     };
 
@@ -169,7 +184,7 @@ export class TimeAnalysis {
   private recordCurrentStats() {
     this.recordedStats = {};
     for (const [targetName, targetStats] of Object.entries(
-      TimeAnalysis.methodTimes
+      TimeProfile.methodTimes
     )) {
       for (const [methodName, methodStats] of Object.entries(targetStats)) {
         if (methodStats.minDebugLevel < this.debugLevel) {
@@ -199,12 +214,12 @@ export class TimeAnalysis {
               ...methodStats,
               calls:
                 (
-                  TimeAnalysis.methodTimes[targetName]?.[methodName] ??
+                  TimeProfile.methodTimes[targetName]?.[methodName] ??
                   raise<TimeableStats>(new Error("Something went wrong"))
                 ).calls - methodStats.calls,
               totalExecutionTime:
                 (
-                  TimeAnalysis.methodTimes[targetName]?.[methodName] ??
+                  TimeProfile.methodTimes[targetName]?.[methodName] ??
                   raise<TimeableStats>(new Error("Something went wrong"))
                 ).totalExecutionTime - methodStats.totalExecutionTime,
             },
@@ -216,12 +231,12 @@ export class TimeAnalysis {
   }
 
   /**
-   * Perform an audit for a given length of time
-   * @param {number} timeToWait Measured in milliseconds
-   * @returns {Promise<TimeAudit>} Resolved when the time is up
+   * Performs an audit on a given function
+   * @param {function():Promise<void>} func Runs the function and then gets the stats for the function
+   * @returns {TimeAudit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */
-  audit(timeToWait: number): Promise<TimeAudit> {
+  audit(func: () => Promise<void>): Promise<TimeAudit> {
     if (this.auditing) {
       throw new AuditError(
         "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
@@ -229,13 +244,11 @@ export class TimeAnalysis {
     }
     this.auditing = true;
     this.recordCurrentStats();
-    return new Promise(resolve =>
-      setTimeout(() => {
-        const stats = this.generateStats();
-        this.auditing = false;
-        resolve(new TimeAudit(stats));
-      }, timeToWait)
-    );
+    return func().then(() => {
+      const stats = this.generateStats();
+      this.auditing = false;
+      return new TimeAudit(stats);
+    });
   }
 
   /**

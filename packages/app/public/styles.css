@@ -289,12 +289,11 @@ canvas {
   width: 5rem;
 }
 .collection th.row-select {
-  width: 1rem;
+  width: 0.5rem;
 }
 
 .collection input[data-row-selector] {
-  min-width: 1rem !important;
-  text-align: end;
+  margin: 0;
 }
 
 .collapsed .collection-content {

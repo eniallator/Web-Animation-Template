@@ -1,15 +1,31 @@
+import { isFunction, isObjectOf } from "deep-guards";
+import { Option } from "./option";
+
 export function checkExhausted(value: never): never {
   throw new Error(`Value not exhausted: ${JSON.stringify(value)}`);
 }
 
 export function filterAndMap<I, O>(
   arr: readonly I[],
-  mapper: (val: I, index: number, arr: readonly I[]) => O | null | undefined
+  mapper: (
+    val: I,
+    index: number,
+    arr: readonly I[]
+  ) => Option<O> | O | null | undefined
 ): O[] {
   return arr.reduce((acc: O[], item, i, arr) => {
-    const mapped = mapper(item, i, arr);
+    const mappedOrOpt = mapper(item, i, arr);
+    const mapped = isObjectOf({ getOrNull: isFunction })(mappedOrOpt)
+      ? mappedOrOpt.getOrNull()
+      : mappedOrOpt;
     return mapped != null ? [...acc, mapped] : acc;
   }, []);
+}
+
+export function iterable<T>(fn: () => T): Iterable<T> {
+  return (function* () {
+    yield fn();
+  })();
 }
 
 export function findAndMap<I, O>(
@@ -42,11 +58,6 @@ export function tuple<const T extends unknown[]>(...tuple: T): T {
 export function raise<T = never>(err: Error): T {
   throw err;
 }
-
-export type RemainingKeys<O extends object, T extends object> = Exclude<
-  keyof O,
-  keyof T
->;
 
 export type Entry<O, K extends keyof O> = readonly [K, O[K]];
 

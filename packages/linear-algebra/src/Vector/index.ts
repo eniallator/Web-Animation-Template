@@ -1,4 +1,5 @@
-import { raise, TimeAnalysis } from "@web-art/core";
+import { raise } from "@web-art/core";
+import { isArrayOf, isNumber } from "deep-guards";
 import {
   IncompatibleOperation,
   IncompatibleVector,
@@ -7,14 +8,12 @@ import {
 import {
   isAnyVector,
   isComponents,
-  isMinSize,
   isSameSize,
   isSize,
   toAnyComponents,
   vectorArgAccessor,
 } from "./helpers.js";
 import { AnyComponents, Components, MinSize, VectorArg } from "./types.js";
-import { isArrayOf, isNumber } from "deep-guards";
 
 export class Vector<const N extends number | undefined = undefined> {
   type = "Vector" as const;
@@ -41,7 +40,7 @@ export class Vector<const N extends number | undefined = undefined> {
     for (const arg of args) {
       if (isAnyVector(arg) && !isSameSize(this, arg)) {
         throw new IncompatibleVector(
-          `Received an incompatible vector of size ${arg.size}`
+          `Received an incompatible vector of size ${arg.components.length}`
         );
       }
       const components = toAnyComponents(this.components);
@@ -100,24 +99,12 @@ export class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Linear interpolation between this vector and a given other vector
-   * @param {Vector<N>} other Vector to interpolate to
    * @param {number} t Between 0 and 1, where 0 is this current vector and 1 is the supplied other vector
+   * @param {VectorArg<N>} arg Vector/number to interpolate to
    * @returns {Vector<N>} Interpolated vector
    */
-  lerp(other: Vector<N>, t: number): Vector<N> {
-    if (isSameSize(this, other)) {
-      const otherComponents = toAnyComponents(other.components);
-      return new Vector(
-        toAnyComponents(this.components).map(
-          (component, i) =>
-            component - (component - (otherComponents[i] as number)) * t
-        ) as Components<N>
-      );
-    } else {
-      throw new IncompatibleVector(
-        `Received an incompatible vector of size ${other.size}`
-      );
-    }
+  lerp(t: number, arg: VectorArg<N>): this {
+    return this.applyOperation((a, b) => a - (a - b) * t, arg);
   }
 
   /**
@@ -126,15 +113,15 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} Dot product
    */
   dot(other: Vector<N>): number {
+    const otherComponents = toAnyComponents(other.components);
     if (isSameSize(this, other)) {
-      const otherComponents = toAnyComponents(other.components);
       return toAnyComponents(this.components).reduce(
         (acc, component, i) => acc + component * (otherComponents[i] as number),
         0
       );
     } else {
       throw new IncompatibleVector(
-        `Received an incompatible vector of size ${other.size}`
+        `Received an incompatible vector of size ${otherComponents.length}`
       );
     }
   }
@@ -231,15 +218,15 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} squared magnitude
    */
   sqrDistTo(other: Vector<N>): number {
+    const otherComponents = toAnyComponents(other.components);
     if (isSameSize(this, other)) {
-      const otherComponents = toAnyComponents(other.components);
       return toAnyComponents(this.components).reduce(
         (acc, n, i) => acc + (n - (otherComponents[i] as number)) ** 2,
         0
       );
     } else {
       throw new IncompatibleVector(
-        `Received an incompatible vector of size ${other.size}`
+        `Received an incompatible vector of size ${otherComponents.length}`
       );
     }
   }
@@ -250,8 +237,8 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} magnitude
    */
   distTo(other: Vector<N>): number {
+    const otherComponents = toAnyComponents(other.components);
     if (isSameSize(this, other)) {
-      const otherComponents = toAnyComponents(other.components);
       return Math.sqrt(
         toAnyComponents(this.components).reduce(
           (acc, n, i) => acc + (n - (otherComponents[i] as number)) ** 2,
@@ -260,7 +247,7 @@ export class Vector<const N extends number | undefined = undefined> {
       );
     } else {
       throw new IncompatibleVector(
-        `Received an incompatible vector of size ${other.size}`
+        `Received an incompatible vector of size ${otherComponents.length}`
       );
     }
   }
@@ -409,7 +396,7 @@ export class Vector<const N extends number | undefined = undefined> {
         return this;
       } else {
         throw new IncompatibleVector(
-          `Received an incompatible vector of size ${pivot.size}`
+          `Received an incompatible vector of size ${pivot.components.length}`
         );
       }
     } else {
@@ -435,7 +422,7 @@ export class Vector<const N extends number | undefined = undefined> {
         ]);
       } else {
         throw new IncompatibleVector(
-          `Received an incompatible vector of size ${other.size}`
+          `Received an incompatible vector of size ${other.components.length}`
         );
       }
     } else {
@@ -455,7 +442,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * The size of this vector
    * @returns {number}
    */
-  get size(): number {
+  size(): number {
     return toAnyComponents(this.components).length;
   }
 
@@ -472,11 +459,10 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   y(this: Vector<MinSize<2, N>>): number {
-    if (isMinSize(2)(this.components)) {
-      return toAnyComponents(this.components)[1] as number;
-    } else {
-      throw new IncompatibleOperation("Requires at least a 2D vector");
-    }
+    return (
+      toAnyComponents(this.components)[1] ??
+      raise(new IncompatibleOperation("Requires at least a 2D vector"))
+    );
   }
 
   /**
@@ -484,11 +470,10 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   z(this: Vector<MinSize<3, N>>): number {
-    if (isMinSize(3)(this.components)) {
-      return toAnyComponents(this.components)[2] as number;
-    } else {
-      throw new IncompatibleOperation("Requires at least a 3D vector");
-    }
+    return (
+      toAnyComponents(this.components)[1] ??
+      raise(new IncompatibleOperation("Requires at least a 3D vector"))
+    );
   }
 
   /**
@@ -496,11 +481,10 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   w(this: Vector<MinSize<4, N>>): number {
-    if (isMinSize(4)(this.components)) {
-      return toAnyComponents(this.components)[3] as number;
-    } else {
-      throw new IncompatibleOperation("Requires at least a 4D vector");
-    }
+    return (
+      toAnyComponents(this.components)[3] ??
+      raise(new IncompatibleOperation("Requires at least a 4D vector"))
+    );
   }
 
   /**
@@ -673,7 +657,7 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   static parseString(str: string): Vector | undefined {
     const match = /^Vector\d+D\[(?<components>[^\]]+)\]$/.exec(str);
-    const components = match?.groups?.components?.split(", ").map(Number);
+    const components = match?.groups?.components?.split(",").map(Number);
     if (isComponents(components)) {
       return new Vector(components);
     } else {
@@ -753,10 +737,4 @@ export class Vector<const N extends number | undefined = undefined> {
   static get UP(): Vector<2> {
     return new Vector([0, -1]);
   }
-}
-
-try {
-  TimeAnalysis.registerMethods(Vector);
-} catch (ex) {
-  console.error(ex);
 }

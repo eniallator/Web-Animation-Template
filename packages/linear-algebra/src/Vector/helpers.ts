@@ -1,7 +1,7 @@
 import { checkExhausted } from "@web-art/core";
 import { Guard, isArrayOf, isExact, isNumber, isObjectOf } from "deep-guards";
 import { Vector } from "./index.js";
-import { AnyComponents, Components, MinSize, VectorArg } from "./types.js";
+import { AnyComponents, Components, VectorArg } from "./types.js";
 
 export function vectorArgAccessor<N extends number | undefined>(
   arg: VectorArg<N>,
@@ -28,18 +28,11 @@ export function isSize<const N extends number>(size: N) {
     components.length === size;
 }
 
-export function isMinSize<const N extends number>(size: N) {
-  return (
-    components: AnyComponents
-  ): components is Components<MinSize<N, (typeof components)["length"]>> =>
-    components.length >= size;
-}
-
 export function isSameSize<
   A extends number | undefined,
   B extends number | undefined,
 >(a: Vector<A>, b: Vector<B>): boolean {
-  return a.size === b.size;
+  return a.size() === b.size();
 }
 
 export function toAnyComponents<N extends number | undefined>(
@@ -54,5 +47,5 @@ export const isAnyVector = isObjectOf({
 
 export function isVector<N extends number | undefined>(n: N) {
   return (value: unknown): value is Vector<N> =>
-    isAnyVector(value) && (n == null || value.size === n);
+    isAnyVector(value) && (n == null || value.size() === n);
 }

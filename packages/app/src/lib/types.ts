@@ -6,17 +6,19 @@ import {
 } from "@web-art/config-parser";
 import Mouse from "./mouse";
 
+export interface Time {
+  lastFrame: number;
+  delta: number;
+  animationStart: number;
+  now: number;
+}
+
 export interface AppContext<R extends InitParserObject<AnyStringObject>> {
   paramConfig: ParamConfig<InitParserValues<R>>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;
-  time: {
-    lastFrame: number;
-    delta: number;
-    animationStart: number;
-    now: number;
-  };
+  time: Time;
 }
 
 export interface AppContextWithState<

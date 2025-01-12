@@ -1,8 +1,7 @@
 import { Vector } from "@web-art/linear-algebra";
-import { isObjectOf, isString } from "deep-guards";
 
-function isMouseEvent(evt: unknown): evt is MouseEvent {
-  return isObjectOf({ type: isString })(evt) && evt.type.startsWith("mouse");
+function isMouseEvent(evt: MouseEvent | TouchEvent): evt is MouseEvent {
+  return evt.type.startsWith("mouse");
 }
 
 type MouseCallback = (
@@ -10,27 +9,30 @@ type MouseCallback = (
   evt: MouseEvent | TouchEvent
 ) => void;
 
+interface MouseListeners {
+  onDown?: MouseCallback;
+  onMove?: MouseCallback;
+  onUp?: MouseCallback;
+}
+
 export default class Mouse {
-  private _down: boolean;
-  private _clicked: boolean;
   private readonly _pos: Vector<2>;
   private readonly _relativePos: Vector<2>;
+  private _down: boolean;
 
+  private readonly listeners: MouseListeners;
   private elementBounds: DOMRect;
-  private downCallback?: MouseCallback;
-  private moveCallback?: MouseCallback;
-  private upCallback?: MouseCallback;
 
   /**
    * Tracks mouse events for a given DOM element
    * @param {HTMLElement} element Element to track
    */
-  constructor(element: HTMLElement) {
+  constructor(element: HTMLElement, listeners?: MouseListeners) {
     this._down = false;
-    this._clicked = false;
     this._relativePos = Vector.zero(2);
     this._pos = Vector.zero(2);
 
+    this.listeners = listeners ?? {};
     this.elementBounds = element.getBoundingClientRect();
 
     this.initListeners(element);
@@ -51,12 +53,11 @@ export default class Mouse {
       }
       callback?.call(this, evt);
     };
-    element.onmousemove = (evt: MouseEvent | TouchEvent) => {
-      handleChange(this.moveCallback, evt);
-    };
-    element.ontouchmove = (evt: MouseEvent | TouchEvent) => {
+    element.onmousemove = element.ontouchmove = (
+      evt: MouseEvent | TouchEvent
+    ) => {
       handleChange(
-        this.moveCallback,
+        this.listeners.onMove,
         evt,
         !isMouseEvent(evt) ? evt.touches[0] : undefined
       );
@@ -64,13 +65,12 @@ export default class Mouse {
     element.onmousedown = element.ontouchstart = (
       evt: MouseEvent | TouchEvent
     ) => {
-      this._clicked = !this._down;
       this._down = true;
-      handleChange(this.downCallback, evt);
+      handleChange(this.listeners.onDown, evt);
     };
     element.onmouseup = element.ontouchend = (evt: MouseEvent | TouchEvent) => {
-      this._clicked = this._down = false;
-      handleChange(this.upCallback, evt);
+      this._down = false;
+      handleChange(this.listeners.onUp, evt);
     };
 
     element.onresize = () => {
@@ -81,35 +81,32 @@ export default class Mouse {
   /**
    * Triggered when the mouse down or touch down event is fired on the element
    *
-   * @param {MouseCallback} callback
+   * @param {MouseCallback} onDown
    */
-  setDownCallback(callback: MouseCallback) {
-    this.downCallback = callback;
+  setOnDown(onDown: MouseCallback) {
+    this.listeners.onDown = onDown;
   }
 
   /**
    * Triggered when the mouse move or touch move event is fired on the element
    *
-   * @param {MouseCallback} callback
+   * @param {MouseCallback} onMove
    */
-  setMoveCallback(callback: MouseCallback) {
-    this.moveCallback = callback;
+  setOnMove(onMove: MouseCallback) {
+    this.listeners.onMove = onMove;
   }
 
   /**
    * Triggered when the mouse down or touch down event is fired on the element
    *
-   * @param {MouseCallback} callback
+   * @param {MouseCallback} onUp
    */
-  setUpCallback(callback: MouseCallback) {
-    this.upCallback = callback;
+  setOnUp(onUp: MouseCallback) {
+    this.listeners.onUp = onUp;
   }
 
   get down(): boolean {
     return this._down;
-  }
-  get clicked(): boolean {
-    return this._clicked;
   }
   get pos(): Vector<2> {
     return this._pos;

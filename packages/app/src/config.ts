@@ -21,19 +21,12 @@ export const config = createParsers({
   "example-range": rangeParser({
     label: "Example Range",
     default: 7.5,
-    attrs: {
-      min: "1",
-      max: "10",
-      step: "0.5",
-    },
+    attrs: { min: "1", max: "10", step: "0.5" },
   }),
   "example-number": numberParser({
     label: "Example Number",
     default: 5,
-    attrs: {
-      min: "1",
-      max: "10",
-    },
+    attrs: { min: "1", max: "10" },
   }),
   "example-colour": colorParser({
     label: "Example Colour",
@@ -44,17 +37,13 @@ export const config = createParsers({
   }),
   "example-file": fileParser({
     text: "Example File",
-    attrs: {
-      accept: "image/*",
-    },
+    attrs: { accept: "image/*" },
   }),
   "example-text": textParser({
     label: "Example Text",
     default: "Hello",
     area: true,
-    attrs: {
-      placeholder: "World!",
-    },
+    attrs: { placeholder: "World!" },
   }),
   "example-datetime": datetimeParser({
     label: "Example Date Time",
@@ -72,11 +61,7 @@ export const config = createParsers({
       rangeParser({
         label: "Range",
         default: 2,
-        attrs: {
-          min: "0",
-          max: "4",
-          step: "1",
-        },
+        attrs: { min: "0", max: "4", step: "1" },
       }),
       checkboxParser({
         label: "Checkbox",

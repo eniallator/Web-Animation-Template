@@ -8,12 +8,19 @@ import {
   AppContextWithState,
   StatefulAppMethods,
   StatelessAppMethods,
+  Time,
 } from "./lib/types";
 
 function updateCanvasBounds(canvas: HTMLCanvasElement) {
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = width;
   canvas.height = height;
+}
+
+function updateTime(time: Time): void {
+  time.lastFrame = time.now;
+  time.now = Date.now() / 1000;
+  time.delta = time.now - time.lastFrame;
 }
 
 const canvas = dom.get<HTMLCanvasElement>("canvas");
@@ -32,12 +39,12 @@ const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"));
 paramConfig.addCopyToClipboardHandler("#share-btn");
 
 dom.addListener(dom.get("#download-btn"), "click", () => {
-  const url = canvas.toDataURL();
   const anchor = document.createElement("a");
-  anchor.href = url;
+  anchor.href = canvas.toDataURL();
   anchor.download = `${
     document.getElementsByTagName("title")[0]?.innerText ?? "download"
   }.png`;
+
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
@@ -56,31 +63,21 @@ dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
   }
 });
 
+const modal = dom.get<HTMLDialogElement>("#config-modal");
 dom.addListener(dom.get("#config-dropdown-btn"), "click", () => {
-  dom.get<HTMLDialogElement>("#config-modal").showModal();
+  modal.showModal();
+});
+dom.addListener(modal, "click", evt => {
+  if (evt.target === modal) modal.close();
 });
 
-dom.addListener(
-  dom.get<HTMLDialogElement>("#config-modal"),
-  "click",
-  function (evt) {
-    if (evt.target === this) {
-      this.close();
-    }
-  }
-);
-
+const now = Date.now() / 1000;
 const appContext: AppContext<typeof config> = {
+  time: { now, animationStart: now, lastFrame: now, delta: 0 },
+  mouse: new Mouse(canvas),
   paramConfig,
   canvas,
   ctx,
-  mouse: new Mouse(canvas),
-  time: {
-    animationStart: Date.now() / 1000,
-    lastFrame: Date.now() / 1000,
-    now: Date.now() / 1000,
-    delta: 0,
-  },
 };
 
 function initStateful<S extends object>(
@@ -93,30 +90,19 @@ function initStateful<S extends object>(
 
   window.onresize = evt => {
     updateCanvasBounds(canvas);
-    const { width, height } = canvas.getBoundingClientRect();
-    canvas.width = width;
-    canvas.height = height;
     statefulContext.state =
       app.onResize?.(evt, statefulContext) ?? statefulContext.state;
   };
 
   const animate = () => {
-    const { time } = statefulContext;
-    time.lastFrame = time.now;
-    const now = Date.now() / 1000;
-    time.delta = now - time.lastFrame;
-    time.now = now;
-    statefulContext.state =
-      app.animationFrame?.(statefulContext) ?? statefulContext.state;
-
     if (app.animationFrame != null) {
+      updateTime(statefulContext.time);
+      statefulContext.state =
+        app.animationFrame(statefulContext) ?? statefulContext.state;
       requestAnimationFrame(animate);
     }
   };
-
-  if (app.animationFrame != null) {
-    requestAnimationFrame(animate);
-  }
+  animate();
 }
 
 function initStateLess(app: StatelessAppMethods<typeof config>) {
@@ -124,31 +110,18 @@ function initStateLess(app: StatelessAppMethods<typeof config>) {
 
   window.onresize = evt => {
     updateCanvasBounds(canvas);
-    const { width, height } = canvas.getBoundingClientRect();
-    canvas.width = width;
-    canvas.height = height;
     app.onResize?.(evt, appContext);
   };
 
   const animate = () => {
-    const { time } = appContext;
-    time.lastFrame = time.now;
-    const now = Date.now() / 1000;
-    time.delta = now - time.lastFrame;
-    time.now = now;
     if (app.animationFrame != null) {
-      app.animationFrame({ ...appContext, time });
+      updateTime(appContext.time);
+      app.animationFrame(appContext);
       requestAnimationFrame(animate);
     }
   };
-
-  if (app.animationFrame != null) {
-    requestAnimationFrame(animate);
-  }
+  animate();
 }
 
-if (app.type === "stateful") {
-  initStateful(app);
-} else {
-  initStateLess(app);
-}
+if (app.type === "stateful") initStateful(app);
+else initStateLess(app);

@@ -52,7 +52,7 @@ export class Monad<A> {
    * @param {function(A): void} fn Function to call
    * @returns {this} this
    */
-  tap(fn: (value: A) => void): ThisType<A> {
+  tap(fn: (value: A) => void): this {
     fn(this.value);
     return this;
   }
