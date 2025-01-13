@@ -11,10 +11,9 @@ export const buttonParser = (cfg: Config & { text?: string }) =>
         Option.from(id)
           .map<[string, string | null]>(id => tuple("id", id))
           .toArray()
-          .concat(
-            Object.entries(cfg.attrs ?? []),
-            tuple("class", "primary wrap-text")
-          )
+          .concat(Object.entries(cfg.attrs ?? []), [
+            tuple("class", "primary wrap-text"),
+          ])
       );
 
       const el = stringToHTML(`<button${attrs}>${cfg.text ?? ""}</button>`);

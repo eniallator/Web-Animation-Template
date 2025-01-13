@@ -63,7 +63,7 @@ export class Option<A> {
     return this.value ?? undefined;
   }
 
-  getOrThrow<E extends Error>(err: E): A {
+  getOrThrow(err: Error): A {
     return this.value ?? raise<A>(err);
   }
 

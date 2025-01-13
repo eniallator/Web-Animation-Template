@@ -55,6 +55,7 @@ export function tuple<const T extends unknown[]>(...tuple: T): T {
   return tuple;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function raise<T = never>(err: Error): T {
   throw err;
 }

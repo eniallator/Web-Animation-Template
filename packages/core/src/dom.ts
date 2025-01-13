@@ -14,6 +14,7 @@ function addListener<
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function get<E extends HTMLElement>(
   selector: string,
   baseEl: ParentNode = document
