@@ -16,66 +16,46 @@ interface MouseListeners {
 }
 
 export default class Mouse {
+  private readonly listeners: MouseListeners;
   private readonly _pos: Vector<2>;
   private readonly _relativePos: Vector<2>;
   private _down: boolean;
-
-  private readonly listeners: MouseListeners;
-  private elementBounds: DOMRect;
 
   /**
    * Tracks mouse events for a given DOM element
    * @param {HTMLElement} element Element to track
    */
   constructor(element: HTMLElement, listeners?: MouseListeners) {
+    this.listeners = listeners ?? {};
     this._down = false;
     this._relativePos = Vector.zero(2);
     this._pos = Vector.zero(2);
-
-    this.listeners = listeners ?? {};
-    this.elementBounds = element.getBoundingClientRect();
 
     this.initListeners(element);
   }
 
   private initListeners(element: HTMLElement) {
-    const handleChange = (
-      callback: MouseCallback | undefined,
-      evt: MouseEvent | TouchEvent,
-      pos?: Touch
-    ) => {
-      if (pos != null) {
-        this._pos.setHead(pos.clientX, pos.clientY);
-        this._relativePos.setHead(
-          this._pos.x() / this.elementBounds.width,
-          this._pos.y() / this.elementBounds.height
-        );
+    const onChange = (cb?: MouseCallback) => (evt: MouseEvent | TouchEvent) => {
+      if (isMouseEvent(evt)) {
+        this._pos.setHead(evt.clientX, evt.clientY);
+      } else {
+        const touch = evt.touches[0] as Touch;
+        this._pos.setHead(touch.clientX, touch.clientY);
       }
-      callback?.call(this, evt);
-    };
-    element.onmousemove = element.ontouchmove = (
-      evt: MouseEvent | TouchEvent
-    ) => {
-      handleChange(
-        this.listeners.onMove,
-        evt,
-        !isMouseEvent(evt) ? evt.touches[0] : undefined
-      );
-    };
-    element.onmousedown = element.ontouchstart = (
-      evt: MouseEvent | TouchEvent
-    ) => {
-      this._down = true;
-      handleChange(this.listeners.onDown, evt);
-    };
-    element.onmouseup = element.ontouchend = (evt: MouseEvent | TouchEvent) => {
-      this._down = false;
-      handleChange(this.listeners.onUp, evt);
+      const { width, height } = element.getBoundingClientRect();
+      this._relativePos.setHead(this._pos.x() / width, this._pos.y() / height);
+      cb?.call(this, evt);
     };
 
-    element.onresize = () => {
-      this.elementBounds = element.getBoundingClientRect();
-    };
+    element.onmousemove = element.ontouchmove = onChange(this.listeners.onMove);
+    element.onmousedown = element.ontouchstart = onChange(evt => {
+      this._down = true;
+      this.listeners.onDown?.call(this, evt);
+    });
+    element.onmouseup = element.ontouchend = onChange(evt => {
+      this._down = false;
+      this.listeners.onUp?.call(this, evt);
+    });
   }
 
   /**

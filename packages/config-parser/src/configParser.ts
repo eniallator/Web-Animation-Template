@@ -24,7 +24,7 @@ export class ParamConfig<const O extends AnyStringObject> {
   private readonly state: State<O>;
   private readonly shortUrl: boolean;
   private readonly listeners: {
-    cb: (values: O, updates: (keyof O)[]) => void;
+    callback: (values: O, updates: (keyof O)[]) => void;
     subscriptions: Set<keyof O>;
   }[];
   private readonly extraValue: string | undefined;
@@ -87,10 +87,10 @@ export class ParamConfig<const O extends AnyStringObject> {
   }
 
   addListener(
-    cb: (values: O, updates: (keyof O)[]) => void,
+    callback: (values: O, updates: (keyof O)[]) => void,
     subscriptions: (keyof O)[] = []
   ): void {
-    this.listeners.push({ cb, subscriptions: new Set(subscriptions) });
+    this.listeners.push({ callback, subscriptions: new Set(subscriptions) });
   }
 
   tellListeners(force: boolean = false): void {
@@ -101,8 +101,8 @@ export class ParamConfig<const O extends AnyStringObject> {
             subscriptions.size === 0 ||
             this.updates.some(update => subscriptions.has(update))
         )
-        .forEach(({ cb }) => {
-          cb(this.getAllValues(), [...this.updates]);
+        .forEach(({ callback }) => {
+          callback(this.getAllValues(), [...this.updates]);
         });
       this.updates = [];
     }

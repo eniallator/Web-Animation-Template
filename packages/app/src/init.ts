@@ -8,35 +8,7 @@ import {
   AppContextWithState,
   StatefulAppMethods,
   StatelessAppMethods,
-  Time,
 } from "./lib/types";
-
-function updateCanvasBounds(canvas: HTMLCanvasElement) {
-  const { width, height } = canvas.getBoundingClientRect();
-  canvas.width = width;
-  canvas.height = height;
-}
-
-function updateTime(time: Time): void {
-  time.lastFrame = time.now;
-  time.now = Date.now() / 1000;
-  time.delta = time.now - time.lastFrame;
-}
-
-const canvas = dom.get<HTMLCanvasElement>("canvas");
-updateCanvasBounds(canvas);
-
-const ctx =
-  canvas.getContext("2d") ??
-  raise<CanvasRenderingContext2D>(
-    new Error(
-      `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
-    )
-  );
-
-const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"));
-
-paramConfig.addCopyToClipboardHandler("#share-btn");
 
 dom.addListener(dom.get("#download-btn"), "click", () => {
   const anchor = document.createElement("a");
@@ -63,6 +35,23 @@ dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
   }
 });
 
+function updateCanvasBounds(canvas: HTMLCanvasElement) {
+  const { width, height } = canvas.getBoundingClientRect();
+  canvas.width = width;
+  canvas.height = height;
+}
+
+const canvas = dom.get<HTMLCanvasElement>("canvas");
+updateCanvasBounds(canvas);
+
+const ctx =
+  canvas.getContext("2d") ??
+  raise<CanvasRenderingContext2D>(
+    new Error(
+      `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
+    )
+  );
+
 const modal = dom.get<HTMLDialogElement>("#config-modal");
 dom.addListener(dom.get("#config-dropdown-btn"), "click", () => {
   modal.showModal();
@@ -71,6 +60,8 @@ dom.addListener(modal, "click", evt => {
   if (evt.target === modal) modal.close();
 });
 
+const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"));
+paramConfig.addCopyToClipboardHandler("#share-btn");
 const now = Date.now() / 1000;
 const appContext: AppContext<typeof config> = {
   time: { now, animationStart: now, lastFrame: now, delta: 0 },
@@ -96,7 +87,11 @@ function initStateful<S extends object>(
 
   const animate = () => {
     if (app.animationFrame != null) {
-      updateTime(statefulContext.time);
+      const { time } = statefulContext;
+      time.lastFrame = time.now;
+      time.now = Date.now() / 1000;
+      time.delta = time.now - time.lastFrame;
+
       statefulContext.state =
         app.animationFrame(statefulContext) ?? statefulContext.state;
       requestAnimationFrame(animate);
@@ -115,7 +110,11 @@ function initStateLess(app: StatelessAppMethods<typeof config>) {
 
   const animate = () => {
     if (app.animationFrame != null) {
-      updateTime(appContext.time);
+      const { time } = appContext;
+      time.lastFrame = time.now;
+      time.now = Date.now() / 1000;
+      time.delta = time.now - time.lastFrame;
+
       app.animationFrame(appContext);
       requestAnimationFrame(animate);
     }
