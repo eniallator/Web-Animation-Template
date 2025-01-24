@@ -7,6 +7,7 @@ import {
   tuple,
 } from "@web-art/core";
 import { isOneOf, isString } from "deep-guards";
+
 import { stringToHTML, toAttrs } from "../helpers.js";
 import { ValueConfig } from "../types.js";
 import { valueParser } from "../create.js";
@@ -215,11 +216,10 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
         );
 
         const initial = query ?? _initial ?? defaultValue;
-        const valueAttr = toAttrs([["value", initial]]);
         const el = stringToHTML(
           cfg.area
             ? `<textarea ${attrs}>${initial}</textarea>`
-            : `<input type="text"${valueAttr}${attrs} />`
+            : `<input type="text"${toAttrs([["value", initial]])}${attrs} />`
         ) as HTMLInputElement | HTMLTextAreaElement;
         el.onchange = () => {
           onChange(el.value);
@@ -232,6 +232,7 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
   );
 };
 
+const msPerMinute = 60000;
 export const datetimeParser = (cfg: ValueConfig<Date>) => {
   const defaultValue = cfg.default ?? new Date(0);
   return valueParser<Date>(
@@ -241,7 +242,12 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
         getValue().getTime() === defaultValue.getTime()
           ? null
           : shortUrl
-            ? intToB64(getValue().getTime() - new Date().getTimezoneOffset())
+            ? intToB64(
+                Math.round(
+                  (getValue().getTime() - new Date().getTimezoneOffset()) /
+                    msPerMinute
+                )
+              )
             : formatDate(getValue()),
       updateValue: el => {
         (el as HTMLInputElement).value = formatDate(getValue());
@@ -250,7 +256,11 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
       html: (id, query, shortUrl) => {
         const initial =
           query != null
-            ? new Date(shortUrl ? formatDate(new Date(b64ToInt(query))) : query)
+            ? new Date(
+                shortUrl
+                  ? formatDate(new Date(b64ToInt(query) * msPerMinute))
+                  : query
+              )
             : (_initial ?? defaultValue);
 
         const attrs = toAttrs(

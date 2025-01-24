@@ -1,7 +1,8 @@
 import { ParamConfig } from "@web-art/config-parser";
 import { dom, raise } from "@web-art/core";
+
 import app from ".";
-import { config } from "./config";
+import { config, options } from "./config";
 import Mouse from "./lib/mouse";
 import {
   AppContext,
@@ -35,11 +36,11 @@ dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
   }
 });
 
-function updateCanvasBounds(canvas: HTMLCanvasElement) {
+const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = width;
   canvas.height = height;
-}
+};
 
 const canvas = dom.get<HTMLCanvasElement>("canvas");
 updateCanvasBounds(canvas);
@@ -60,20 +61,20 @@ dom.addListener(modal, "click", evt => {
   if (evt.target === modal) modal.close();
 });
 
-const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"));
+const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"), options);
 paramConfig.addCopyToClipboardHandler("#share-btn");
 const now = Date.now() / 1000;
 const appContext: AppContext<typeof config> = {
-  time: { now, animationStart: now, lastFrame: now, delta: 0 },
+  time: { now, start: now, lastFrame: now, delta: 0 },
   mouse: new Mouse(canvas),
   paramConfig,
   canvas,
   ctx,
 };
 
-function initStateful<S extends object>(
+const initStateful = <S extends object>(
   app: StatefulAppMethods<typeof config, S>
-) {
+) => {
   const statefulContext: AppContextWithState<typeof config, S> = {
     ...appContext,
     state: app.init(appContext),
@@ -98,9 +99,9 @@ function initStateful<S extends object>(
     }
   };
   animate();
-}
+};
 
-function initStateLess(app: StatelessAppMethods<typeof config>) {
+const initStateLess = (app: StatelessAppMethods<typeof config>) => {
   app.init?.(appContext);
 
   window.onresize = evt => {
@@ -120,7 +121,7 @@ function initStateLess(app: StatelessAppMethods<typeof config>) {
     }
   };
   animate();
-}
+};
 
 if (app.type === "stateful") initStateful(app);
 else initStateLess(app);

@@ -1,5 +1,6 @@
 import { checkExhausted } from "@web-art/core";
 import { Guard, isArrayOf, isExact, isNumber, isObjectOf } from "deep-guards";
+
 import { Vector } from "./index.js";
 import { AnyComponents, Components, VectorArg } from "./types.js";
 
@@ -19,33 +20,29 @@ export function vectorArgAccessor<N extends number | undefined>(
   }
 }
 
-export function isComponents(value: unknown): value is AnyComponents {
-  return isArrayOf(isNumber)(value) && value.length >= 1;
-}
+export const isComponents = (value: unknown): value is AnyComponents =>
+  isArrayOf(isNumber)(value) && value.length >= 1;
 
-export function isSize<const N extends number>(size: N) {
-  return (components: AnyComponents): components is Components<N> =>
+export const isSize =
+  <const N extends number>(size: N) =>
+  (components: AnyComponents): components is Components<N> =>
     components.length === size;
-}
 
-export function isSameSize<
+export const isSameSize = <
   A extends number | undefined,
   B extends number | undefined,
->(a: Vector<A>, b: Vector<B>): boolean {
-  return a.size() === b.size();
-}
+>(
+  a: Vector<A>,
+  b: Vector<B>
+): boolean => a.size() === b.size();
 
-export function toAnyComponents<N extends number | undefined>(
-  c: Components<N>
-): AnyComponents {
-  return c;
-}
+export const toAnyComponents = (components: AnyComponents) => components;
 
 export const isAnyVector = isObjectOf({
   type: isExact("Vector", false),
 }) as unknown as Guard<Vector>;
 
-export function isVector<N extends number | undefined>(n: N) {
-  return (value: unknown): value is Vector<N> =>
+export const isVector =
+  <N extends number | undefined>(n: N) =>
+  (value: unknown): value is Vector<N> =>
     isAnyVector(value) && (n == null || value.size() === n);
-}

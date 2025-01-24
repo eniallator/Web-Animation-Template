@@ -5,7 +5,7 @@ import {
   isString,
   isUnionOf,
 } from "deep-guards";
-import { Option } from "./option.js";
+
 import { raise } from "./utils.js";
 
 class IndexError extends Error {
@@ -39,7 +39,7 @@ interface TimeableStats {
   setup: boolean;
 }
 
-interface Analytics {
+interface Stats {
   calls: number;
   totalExecutionTime: number;
   minDebugLevel: number;
@@ -56,17 +56,17 @@ export class TimeProfile {
   private static methodTimes: Record<string, Record<string, TimeableStats>> =
     {};
 
-  private recordedStats: Record<string, Record<string, Analytics>> | null =
-    null;
+  private recordedStats: Record<string, Record<string, Stats>> | null = null;
   private readonly debugLevel: number;
   private auditing: boolean = false;
 
   /**
    * Registers a class for analyzing execution time
+   *  If called multiple times with the same method, the lower of the two debug levels is taken.
    * @param {class} target The class/object to analyze
    * @param {string[]} [methodNames] The method names of the class/object to analyze. Defaults to all except the constructor.
-   * @param {number} [minDebugLevel=1] The minimum debug level of these methods, where the lower it is, the higher priority it is to be included.
-   *  If called multiple times with the same method, the lower of the two debug levels is taken.
+   * @param {number} [minDebugLevel] The minimum debug level of these methods, where the lower it is, the higher priority it is to be included. Defaults to 1
+   * @param {boolean} [addPrototype] Recursively call the prototype of the target. Defaults to true if the methodNames aren't given
    */
   static registerMethods(
     target: unknown,
@@ -87,10 +87,7 @@ export class TimeProfile {
     }
     this.methods.push({
       name,
-      target: target as { prototype: Record<string, () => unknown> } & Record<
-        string,
-        () => unknown
-      >,
+      target: target as Timeable["target"],
       methodNames,
       minDebugLevel,
     });
@@ -107,7 +104,7 @@ export class TimeProfile {
 
   /**
    * TimeAnalysis class constructor
-   * @param {number} [debugLevel=Infinity] Debug level to analyze at
+   * @param {number} debugLevel Debug level to analyze at. Defaults to Infinity
    */
   constructor(debugLevel: number = Infinity) {
     this.debugLevel = debugLevel;
@@ -150,12 +147,7 @@ export class TimeProfile {
   ): F | null {
     const stats: TimeableStats = TimeProfile.methodTimes[targetName]?.[
       methodName
-    ] ?? {
-      calls: 0,
-      totalExecutionTime: 0,
-      minDebugLevel: minDebugLevel,
-      setup: false,
-    };
+    ] ?? { minDebugLevel, calls: 0, totalExecutionTime: 0, setup: false };
 
     TimeProfile.methodTimes[targetName] = {
       ...(TimeProfile.methodTimes[targetName] ?? {}),
@@ -166,19 +158,18 @@ export class TimeProfile {
       stats.minDebugLevel = minDebugLevel;
     }
 
-    return Option.from(!stats.setup || null)
-      .map(() => {
-        stats.setup = true;
+    if (!stats.setup) {
+      stats.setup = true;
 
-        return function (this: ThisType<T>, ...args: unknown[]): unknown {
-          const startTime = performance.now();
-          const ret = method.apply(this, args);
-          stats.totalExecutionTime += performance.now() - startTime;
-          stats.calls++;
-          return ret;
-        } as F;
-      })
-      .getOrNull();
+      return function (this: ThisType<T>, ...args: unknown[]): unknown {
+        const startTime = performance.now();
+        const ret = method.apply(this, args);
+        stats.totalExecutionTime += performance.now() - startTime;
+        stats.calls++;
+        return ret;
+      } as F;
+    }
+    return null;
   }
 
   private recordCurrentStats() {
@@ -201,8 +192,8 @@ export class TimeProfile {
     }
   }
 
-  generateStats(): Record<string, Record<string, Analytics>> {
-    const stats: Record<string, Record<string, Analytics>> = {};
+  generateStats(): Record<string, Record<string, Stats>> {
+    const stats: Record<string, Record<string, Stats>> = {};
     if (this.recordedStats != null) {
       for (const [targetName, targetStats] of Object.entries(
         this.recordedStats
@@ -236,19 +227,20 @@ export class TimeProfile {
    * @returns {TimeAudit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */
-  audit(func: () => Promise<void>): Promise<TimeAudit> {
+  async audit(func: () => Promise<void>): Promise<TimeAudit> {
     if (this.auditing) {
       throw new AuditError(
         "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
+
     this.auditing = true;
     this.recordCurrentStats();
-    return func().then(() => {
-      const stats = this.generateStats();
-      this.auditing = false;
-      return new TimeAudit(stats);
-    });
+    await func();
+    const stats = this.generateStats();
+    this.auditing = false;
+
+    return new TimeAudit(stats);
   }
 
   /**
@@ -273,50 +265,29 @@ export class TimeProfile {
 }
 
 class TimeAudit {
-  private readonly stats: Record<string, Record<string, Analytics>>;
+  private readonly allStats: Record<string, Record<string, Stats>>;
 
-  constructor(stats: Record<string, Record<string, Analytics>>) {
-    this.stats = stats;
+  constructor(stats: Record<string, Record<string, Stats>>) {
+    this.allStats = stats;
   }
 
-  private safeAccessStats(target: string, methodName: string): Analytics {
+  private safeAccessStats(target: string, methodName: string): Stats {
     return (
-      (this.stats[target] ??
-        raise<Record<string, Analytics>>(
-          new IndexError("Target does not exist")
-        ))[methodName] ??
-      raise<Analytics>(new IndexError("Method name does not exist on target"))
+      (this.allStats[target] ??
+        raise<Record<string, Stats>>(new IndexError("Target does not exist")))[
+        methodName
+      ] ?? raise<Stats>(new IndexError("Method name does not exist on target"))
     );
   }
 
   /**
-   * Get a specific call count for a given target/methodName pair
+   * Get the stats of a given target/methodName pair
    * @param {string} target
    * @param {string} methodName
-   * @returns {number}
+   * @returns {Stats}
    */
-  calls(target: string, methodName: string): number {
-    return this.safeAccessStats(target, methodName).calls;
-  }
-
-  /**
-   * Get a specific totalExecutionTime for a given target/methodName pair
-   * @param {string} target
-   * @param {string} methodName
-   * @returns {number}
-   */
-  totalExecutionTime(target: string, methodName: string): number {
-    return this.safeAccessStats(target, methodName).totalExecutionTime;
-  }
-
-  /**
-   * Get a specific minDebugLevel for a given target/methodName pair
-   * @param {string} target
-   * @param {string} methodName
-   * @returns {number}
-   */
-  minDebugLevel(target: string, methodName: string): number {
-    return this.safeAccessStats(target, methodName).minDebugLevel;
+  getStats(target: string, methodName: string): Stats {
+    return this.safeAccessStats(target, methodName);
   }
 
   /**
@@ -324,7 +295,7 @@ class TimeAudit {
    * @yields {string} Current target
    */
   *targets(): Generator<string> {
-    for (const target of Object.keys(this.stats)) {
+    for (const target of Object.keys(this.allStats)) {
       yield target;
     }
   }
@@ -336,10 +307,8 @@ class TimeAudit {
    */
   *methodNames(target: string): Generator<string> {
     for (const methodName of Object.keys(
-      this.stats[target] ??
-        raise<Record<string, Analytics>>(
-          new IndexError("Target does not exist")
-        )
+      this.allStats[target] ??
+        raise<Record<string, Stats>>(new IndexError("Target does not exist"))
     )) {
       yield methodName;
     }
@@ -350,11 +319,7 @@ class TimeAudit {
    * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string):void} callbackFn
    */
   forEach(
-    callbackFn: (
-      analytics: Analytics,
-      target: string,
-      methodName: string
-    ) => void
+    callbackFn: (stats: Stats, target: string, methodName: string) => void
   ): void {
     for (const target of this.targets()) {
       for (const methodName of this.methodNames(target)) {
@@ -369,33 +334,34 @@ class TimeAudit {
 
   /**
    * Prettifies the time audit so you can log it out
+   * @param {number} digits Number length in digits. Defaults to 5
    * @returns {string}
    */
-  toString(): string {
-    let auditString = "";
-    for (const target of this.targets()) {
-      let targetAudit = `===== ${target} =====\n`;
-      if (auditString !== "") {
-        targetAudit = "\n\n" + targetAudit;
-      }
-      let hasValues = false;
-      for (const methodName of this.methodNames(target)) {
-        const currStats = this.safeAccessStats(target, methodName);
-        if (currStats.calls === 0) continue;
-
-        hasValues = true;
-        targetAudit += `  - ${methodName} Calls: ${
-          currStats.calls
-        } Total Execution Time: ${
-          currStats.totalExecutionTime
-        }ms Average Execution Time ${
-          currStats.totalExecutionTime / currStats.calls
-        }ms\n`;
-      }
-      if (hasValues) {
-        auditString += targetAudit;
-      }
-    }
-    return auditString;
+  toString(digits: number = 5): string {
+    return Object.entries(this.allStats).reduce(
+      (fullStr, [target, methodStats]) => {
+        const targetStats = Object.entries(methodStats).reduce(
+          (acc, [methodName, stats]) =>
+            stats.calls > 0
+              ? acc +
+                `  - ${methodName} Calls: ${stats.calls.toExponential(
+                  digits
+                )} Total Execution Time: ${stats.totalExecutionTime.toExponential(
+                  digits
+                )}ms Average Execution Time ${(
+                  stats.totalExecutionTime / stats.calls
+                ).toExponential(digits)}ms\n`
+              : acc,
+          ""
+        );
+        return targetStats !== ""
+          ? fullStr +
+              (fullStr !== "" ? "\n\n" : "") +
+              `===== ${target} =====\n` +
+              targetStats
+          : fullStr;
+      },
+      ""
+    );
   }
 }

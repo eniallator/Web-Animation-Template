@@ -1,11 +1,10 @@
 import { raise } from "@web-art/core";
 
 export const toAttrs = (attrs: [string, string | null][]): string =>
-  attrs
-    .map(([name, value]) =>
-      value != null ? ` ${name}="${value}"` : ` ${name}`
-    )
-    .join("");
+  attrs.reduce(
+    (acc, [key, val]) => acc + (val != null ? ` ${key}="${val}"` : ` ${key}`),
+    ""
+  );
 
 export const stringToHTML = (str: string): HTMLElement => {
   const el = document.createElement("template");
@@ -24,8 +23,10 @@ export const configItem = (
     label != null
       ? `<label for="${id}" class="wrap-text">${label}</label>`
       : "";
+  const labelAttr =
+    (title ?? label) != null ? ` title="${title ?? label}"` : "";
   const itemEl = stringToHTML(
-    `<div class="config-item" title="${title ?? label ?? ""}">${labelStr}</div>`
+    `<div class="config-item"${labelAttr}>${labelStr}</div>`
   );
   itemEl.appendChild(el);
   return itemEl;

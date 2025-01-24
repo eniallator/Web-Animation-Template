@@ -43,11 +43,11 @@ export type InitParser<P extends Parser<unknown>> = {
 export type ParserValue<P extends Parser<unknown>> =
   P extends ValueParser<infer T> ? T : P extends ContentParser ? null : never;
 
-export type AnyStringObject = { [K in string]: unknown };
+export type AnyStringRecord = Record<string, unknown>;
 
-export type AnyParserConfig = { [K in string]: Parser<unknown> };
+export type AnyParserRecord = Record<string, Parser<unknown>>;
 
-export type InitParserObject<O extends AnyStringObject> = {
+export type InitParserObject<O extends AnyStringRecord = AnyStringRecord> = {
   [K in keyof O]: InitParser<Parser<O[K]>>;
 };
 
@@ -59,7 +59,7 @@ export type InitValueParserTuple<O extends readonly unknown[]> = {
   [K in keyof O]: InitParser<ValueParser<O[K]>>;
 };
 
-export type InitParserValues<R extends InitParserObject<AnyStringObject>> =
+export type InitParserValues<R extends InitParserObject> =
   R extends InitParserObject<infer T> ? T : never;
 
 export interface StateItem<T> {
@@ -68,6 +68,6 @@ export interface StateItem<T> {
   el: HTMLElement;
 }
 
-export type State<R extends AnyStringObject> = {
+export type State<R extends AnyStringRecord> = {
   [K in keyof R]: StateItem<R[K]>;
 };

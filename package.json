@@ -11,18 +11,18 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@eslint/compat": "^1.2.5",
-    "@eslint/js": "^9.18.0",
+    "@eslint/compat": "^1.2.6",
+    "@eslint/js": "^9.19.0",
     "@types/eslint__js": "^8.42.3",
-    "@typescript-eslint/eslint-plugin": "^8.20.0",
-    "@typescript-eslint/parser": "^8.20.0",
-    "eslint": "^9.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.23.0",
+    "@typescript-eslint/parser": "^8.23.0",
+    "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-prettier": "^5.2.3",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.23.0"
   },
   "scripts": {
     "app": "yarn workspace @web-art/app",
