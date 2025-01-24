@@ -1,19 +1,19 @@
 import {
-  AnyStringObject,
-  ParamConfig,
   InitParserObject,
   InitParserValues,
+  ParamConfig,
 } from "@web-art/config-parser";
+
 import Mouse from "./mouse";
 
 export interface Time {
   lastFrame: number;
   delta: number;
-  animationStart: number;
+  start: number;
   now: number;
 }
 
-export interface AppContext<R extends InitParserObject<AnyStringObject>> {
+export interface AppContext<R extends InitParserObject> {
   paramConfig: ParamConfig<InitParserValues<R>>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -22,14 +22,14 @@ export interface AppContext<R extends InitParserObject<AnyStringObject>> {
 }
 
 export interface AppContextWithState<
-  R extends InitParserObject<AnyStringObject>,
+  R extends InitParserObject,
   S extends object,
 > extends AppContext<R> {
   state: S;
 }
 
 export interface StatefulAppMethods<
-  R extends InitParserObject<AnyStringObject>,
+  R extends InitParserObject,
   S extends object,
 > {
   type: "stateful";
@@ -47,9 +47,7 @@ export interface StatefulAppMethods<
   ) => S | null | undefined | void;
 }
 
-export interface StatelessAppMethods<
-  R extends InitParserObject<AnyStringObject>,
-> {
+export interface StatelessAppMethods<R extends InitParserObject> {
   type: "stateless";
   init?: (this: StatelessAppMethods<R>, appContext: AppContext<R>) => void;
   animationFrame?: (
@@ -63,19 +61,15 @@ export interface StatelessAppMethods<
   ) => void;
 }
 
-export type AppMethods<
-  R extends InitParserObject<AnyStringObject>,
-  S extends object = never,
-> = StatefulAppMethods<R, S> | StatelessAppMethods<R>;
+export type AppMethods<R extends InitParserObject, S extends object = never> =
+  | StatefulAppMethods<R, S>
+  | StatelessAppMethods<R>;
 
 export const appMethods = {
-  stateful: <
-    R extends InitParserObject<AnyStringObject>,
-    const S extends object,
-  >(
+  stateful: <R extends InitParserObject, const S extends object>(
     methods: Omit<StatefulAppMethods<R, S>, "type">
   ): AppMethods<R, S> => ({ type: "stateful", ...methods }),
-  stateless: <R extends InitParserObject<AnyStringObject>>(
+  stateless: <R extends InitParserObject>(
     methods: Omit<StatelessAppMethods<R>, "type">
   ): AppMethods<R> => ({ type: "stateless", ...methods }),
 };

@@ -19,3 +19,16 @@ export type MinSize<S extends number, N extends number | undefined> =
   Components<N> extends [...Components<S>, ...number[]] ? N : never;
 
 export type VectorArg<N extends number | undefined> = Vector<N> | number;
+
+export type VectorCallback<R, A extends number[] = number[]> = (
+  value: number,
+  index: number,
+  array: A
+) => R;
+
+export type VectorReduceCallback<R, A extends number[] = number[]> = (
+  accumulator: number,
+  value: number,
+  index: number,
+  array: A
+) => R;

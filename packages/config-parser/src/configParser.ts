@@ -1,5 +1,6 @@
 import {
   dom,
+  Entry,
   filterAndMap,
   intToB64,
   iterable,
@@ -8,32 +9,32 @@ import {
   tuple,
   typedToEntries,
 } from "@web-art/core";
+
 import { configItem } from "./helpers.js";
 import {
-  AnyStringObject,
+  AnyStringRecord,
   InitParserObject,
   State,
   ValueParser,
 } from "./types.js";
 
-type ParamConfigOptions = {
+export type ParamConfigOptions = {
   query?: string;
 } & ({ shortUrl?: false } | { shortUrl: true; hashKeyLength?: number });
 
-export class ParamConfig<const O extends AnyStringObject> {
-  private readonly state: State<O>;
+export class ParamConfig<const R extends AnyStringRecord> {
+  private readonly state: State<R>;
   private readonly shortUrl: boolean;
+  private readonly updates: (keyof R)[];
   private readonly listeners: {
-    callback: (values: O, updates: (keyof O)[]) => void;
-    subscriptions: Set<keyof O>;
+    callback: (values: R, updates: (keyof R)[]) => void;
+    subscriptions: Set<keyof R>;
   }[];
   private readonly extraValue: string | undefined;
   private readonly hashKeyLength: number;
 
-  private updates: (keyof O)[];
-
   constructor(
-    parsers: InitParserObject<O>,
+    initParsers: InitParserObject<R>,
     baseEl: HTMLElement,
     options: ParamConfigOptions = {}
   ) {
@@ -42,28 +43,26 @@ export class ParamConfig<const O extends AnyStringObject> {
       (options.shortUrl ? options.hashKeyLength : null) ?? 6;
     const initialValues = this.parseQuery(query, shortUrl);
 
-    this.state = mapObject<InitParserObject<O>, State<O>>(
-      parsers,
-      ([id, { label, title, methods }]) => {
-        const parser = methods(
-          value => {
-            if (value != null) this.state[id].value = value as O[typeof id];
-            this.updates.push(id);
-            this.tellListeners();
-          },
-          () => this.state[id].value,
-          null
-        );
+    this.state = mapObject(initParsers, ([id, initParser]): Entry<State<R>> => {
+      const { label, title, methods } = initParser;
+      const parser = methods(
+        value => {
+          if (value != null) this.state[id].value = value as R[keyof R];
+          this.updates.push(id);
+          this.tellListeners();
+        },
+        () => this.state[id].value,
+        null
+      );
 
-        const query = initialValues[this.queryKey(id as string)] ?? null;
-        const el = parser.html(id as string, query, shortUrl);
-        baseEl.appendChild(configItem(id as string, el, label, title));
-        const value =
-          parser.type === "Value" ? parser.getValue(el) : (null as O[keyof O]);
+      const query = initialValues[this.queryKey(id as string)] ?? null;
+      const el = parser.html(id as string, query, shortUrl);
+      baseEl.appendChild(configItem(id as string, el, label, title));
+      const value =
+        parser.type === "Value" ? parser.getValue(el) : (null as R[keyof R]);
 
-        return tuple(id, { parser, el, value });
-      }
-    );
+      return tuple(id, { parser, el, value });
+    });
     this.extraValue = initialValues[this.queryKey("extra")];
     this.shortUrl = shortUrl;
     this.hashKeyLength = hashKeyLength;
@@ -72,11 +71,11 @@ export class ParamConfig<const O extends AnyStringObject> {
     this.updates = [];
   }
 
-  getValue<I extends keyof O>(id: I): O[I] {
-    return this.state[id].value;
+  getValue<I extends keyof R>(id: I): R[I] {
+    return structuredClone(this.state[id].value);
   }
 
-  setValue<I extends keyof O>(id: I, value: O[I]): void {
+  setValue<I extends keyof R>(id: I, value: R[I]): void {
     this.state[id].value = value;
     const { parser, el } = this.state[id];
     if (parser.type === "Value") parser.updateValue(el, this.shortUrl);
@@ -87,28 +86,29 @@ export class ParamConfig<const O extends AnyStringObject> {
   }
 
   addListener(
-    callback: (values: O, updates: (keyof O)[]) => void,
-    subscriptions: (keyof O)[] = []
+    callback: (values: R, updates: (keyof R)[]) => void,
+    subscriptions: (keyof R)[] = []
   ): void {
     this.listeners.push({ callback, subscriptions: new Set(subscriptions) });
   }
 
   tellListeners(force: boolean = false): void {
     if (force || this.updates.length > 0) {
+      const { updates } = this;
+      this.updates.length = 0;
       this.listeners
         .filter(
           ({ subscriptions }) =>
             subscriptions.size === 0 ||
-            this.updates.some(update => subscriptions.has(update))
+            updates.some(update => subscriptions.has(update))
         )
         .forEach(({ callback }) => {
-          callback(this.getAllValues(), [...this.updates]);
+          callback(this.getAllValues(), [...updates]);
         });
-      this.updates = [];
     }
   }
 
-  getAllValues(): O {
+  getAllValues(): R {
     return mapObject(this.state, ([id, { value }]) =>
       tuple(id, structuredClone(value))
     );
@@ -121,7 +121,7 @@ export class ParamConfig<const O extends AnyStringObject> {
       );
     return filterAndMap(typedToEntries(this.state), ([id, { parser }]) =>
       Option.from(parser)
-        .guard((p): p is ValueParser<O[keyof O]> => p.type === "Value")
+        .guard((p): p is ValueParser<R[keyof R]> => p.type === "Value")
         .map(p => p.serialise(this.shortUrl))
         .map(serialised => urlPart(id as string, serialised))
     )
@@ -133,13 +133,14 @@ export class ParamConfig<const O extends AnyStringObject> {
 
   addCopyToClipboardHandler(
     selector: string,
-    extra?: ((state: O) => string) | string
+    extra?: ((state: R) => string) | string
   ) {
     dom.addListener(dom.get(selector), "click", () => {
       const query = this.serialiseToUrlParams(
         typeof extra === "function" ? extra(this.getAllValues()) : extra
       );
-      const shareUrl = `${location.protocol}//${location.host}${location.pathname}${query.length > 0 ? "?" + query : ""}`;
+      const { protocol, host, pathname } = location;
+      const shareUrl = `${protocol}//${host}${pathname}${query.length > 0 ? "?" + query : ""}`;
       void navigator.clipboard.writeText(shareUrl);
     });
   }
@@ -147,11 +148,9 @@ export class ParamConfig<const O extends AnyStringObject> {
   // https://stackoverflow.com/a/7616484
   private hashString(str: string): number {
     let hash = 0;
-    if (str.length === 0) return hash;
     for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash &= hash; // Convert to 32bit integer
     }
     return hash;
   }

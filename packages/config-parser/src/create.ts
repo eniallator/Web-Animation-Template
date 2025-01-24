@@ -1,12 +1,12 @@
 import {
-  AnyStringObject,
+  AnyStringRecord,
   ContentParser,
   InitParser,
   InitParserObject,
   ValueParser,
 } from "./types.js";
 
-export const createParsers = <O extends AnyStringObject>(
+export const createParsers = <O extends AnyStringRecord>(
   parsers: InitParserObject<O>
 ) => parsers;
 

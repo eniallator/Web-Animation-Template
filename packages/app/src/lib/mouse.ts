@@ -4,10 +4,7 @@ function isMouseEvent(evt: MouseEvent | TouchEvent): evt is MouseEvent {
   return evt.type.startsWith("mouse");
 }
 
-type MouseCallback = (
-  this: ThisParameterType<Mouse>,
-  evt: MouseEvent | TouchEvent
-) => void;
+type MouseCallback = (this: Mouse, evt: MouseEvent | TouchEvent) => void;
 
 interface MouseListeners {
   onDown?: MouseCallback;
@@ -42,12 +39,15 @@ export default class Mouse {
         const touch = evt.touches[0] as Touch;
         this._pos.setHead(touch.clientX, touch.clientY);
       }
+
       const { width, height } = element.getBoundingClientRect();
       this._relativePos.setHead(this._pos.x() / width, this._pos.y() / height);
       cb?.call(this, evt);
     };
 
-    element.onmousemove = element.ontouchmove = onChange(this.listeners.onMove);
+    element.onmousemove = element.ontouchmove = onChange(evt => {
+      this.listeners.onMove?.call(this, evt);
+    });
     element.onmousedown = element.ontouchstart = onChange(evt => {
       this._down = true;
       this.listeners.onDown?.call(this, evt);

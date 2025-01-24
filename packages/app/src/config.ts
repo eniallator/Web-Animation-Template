@@ -7,11 +7,13 @@ import {
   datetimeParser,
   fileParser,
   numberParser,
+  ParamConfigOptions,
   rangeParser,
   selectParser,
   textParser,
 } from "@web-art/config-parser";
 
+export const options: ParamConfigOptions = { shortUrl: true };
 export const config = createParsers({
   "example-checkbox": checkboxParser({
     label: "Example Checkbox",

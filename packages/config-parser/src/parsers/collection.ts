@@ -1,5 +1,6 @@
 import { dom, filterAndMap, raise, tuple } from "@web-art/core";
 import { isExact } from "deep-guards";
+
 import { stringToHTML } from "../helpers.js";
 import { InitValueParserTuple, ValueParserTuple } from "../types.js";
 import { valueParser } from "../create.js";
@@ -65,6 +66,7 @@ const newRow = <const F extends readonly [unknown, ...unknown[]]>({
 interface CollectionConfig<F extends readonly [unknown, ...unknown[]]> {
   label?: string;
   expandable?: boolean;
+  initialCollapsed?: boolean;
   fields: InitValueParserTuple<F>;
   default: NoInfer<F>[];
 }
@@ -108,7 +110,7 @@ export const collectionParser = <
     },
     html: (id, query, shortUrl) => {
       const baseEl = stringToHTML(`
-        <div id="${id}" class="collection">
+        <div id="${id}" class="collection${cfg.initialCollapsed ? " collapsed" : ""}">
           <a class="heading">
             <span class="collection-label">${cfg.label}</span>
             <span class="collection-caret"></span>

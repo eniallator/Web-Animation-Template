@@ -1,10 +1,11 @@
 import { Option, tuple } from "@web-art/core";
+
 import { stringToHTML, toAttrs } from "../helpers.js";
 import { Config } from "../types.js";
 import { contentParser } from "../create.js";
 
 export const buttonParser = (cfg: Config & { text?: string }) =>
-  contentParser((onChange: (value: null) => void) => ({
+  contentParser(onChange => ({
     default: null,
     html: id => {
       const attrs = toAttrs(
