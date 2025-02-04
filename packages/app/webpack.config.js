@@ -1,13 +1,29 @@
 import BrowserSyncPlugin from "browser-sync-webpack-plugin";
+import TerserPlugin from "terser-webpack-plugin";
 import url, { URL } from "url";
 
 const currDir = url.fileURLToPath(new URL(".", import.meta.url));
 
+const mode = process.env.NODE_ENV ?? "development";
+
 export default {
-  devtool: "eval-source-map",
-  mode: "development",
+  devtool: mode === "development" ? "eval-source-map" : undefined,
+  mode,
 
   entry: "./src/init.ts",
+
+  optimization:
+    mode !== "development"
+      ? {
+          minimize: true,
+          minimizer: [
+            new TerserPlugin({
+              include: "public/bundle.js",
+              terserOptions: { mangle: true },
+            }),
+          ],
+        }
+      : undefined,
 
   output: {
     path: currDir,

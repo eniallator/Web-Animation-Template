@@ -11,6 +11,8 @@ jobs:
       - name: Install dependencies
         run: yarn
       - name: Build bundle
+        env:
+          NODE_ENV: production
         run: yarn build
       - name: Deploy
         run: |
