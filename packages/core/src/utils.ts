@@ -1,14 +1,13 @@
-import { isFunction, isObjectOf } from "deep-guards";
+import { Guard, isFunction, isObjectOf } from "deep-guards";
 
 import { Option } from "./option.js";
 
 export const tuple = <const T extends unknown[]>(...tuple: T): T => tuple;
 
-export const posMod = (a: number, b: number): number => ((a % b) + b) % b;
+export const positiveMod = (a: number, b: number): number => ((a % b) + b) % b;
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-export const raise = <T = never>(err: Error): T => {
-  throw err;
+export const raise = (error: Error): never => {
+  throw error;
 };
 
 export const checkExhausted = (value: never): never => {
@@ -24,10 +23,13 @@ export const formatDate = (date: Date): string =>
   date
     .toLocaleString()
     .replace(
-      /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+).*/,
+      /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+:\d+).*/,
       "$<y>-$<m>-$<d>T$<t>"
     );
 
+const isOption = isObjectOf({ getOrNull: isFunction }) as Guard<
+  Option<unknown>
+>;
 export const filterAndMap = <I, O>(
   arr: readonly I[],
   mapper: (
@@ -38,7 +40,7 @@ export const filterAndMap = <I, O>(
 ): O[] =>
   arr.reduce((acc: O[], item, i, arr) => {
     const mappedOrOpt = mapper(item, i, arr);
-    const mapped = isObjectOf({ getOrNull: isFunction })(mappedOrOpt)
+    const mapped = isOption(mappedOrOpt)
       ? mappedOrOpt.getOrNull()
       : mappedOrOpt;
     return mapped != null ? [...acc, mapped] : acc;
@@ -46,14 +48,18 @@ export const filterAndMap = <I, O>(
 
 export const findAndMap = <I, O>(
   arr: readonly I[],
-  mapper: (val: I, index: number, arr: readonly I[]) => O | null | undefined
+  mapper: (
+    val: I,
+    index: number,
+    arr: readonly I[]
+  ) => Option<O> | O | null | undefined
 ): O | null => {
   for (let i = 0; i < arr.length; i++) {
-    const output = mapper(arr[i] as I, i, arr);
-
-    if (output != null) {
-      return output;
-    }
+    const mappedOrOpt = mapper(arr[i] as I, i, arr);
+    const mapped = isOption(mappedOrOpt)
+      ? mappedOrOpt.getOrNull()
+      : mappedOrOpt;
+    if (mapped != null) return mapped;
   }
   return null;
 };

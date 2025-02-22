@@ -8,9 +8,9 @@ import {
 } from "@web-art/core";
 import { isOneOf, isString } from "deep-guards";
 
+import { valueParser } from "../create.js";
 import { stringToHTML, toAttrs } from "../helpers.js";
 import { ValueConfig } from "../types.js";
-import { valueParser } from "../create.js";
 
 export const checkboxParser = (cfg: ValueConfig<boolean>) => {
   const defaultValue = cfg.default ?? false;
@@ -29,17 +29,15 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
         }
       },
       getValue: el => el.hasAttribute("checked"),
-      html: (id, query, shortUrl) => {
+      html: (id, query) => {
         const initial =
           query != null
-            ? shortUrl
-              ? query === "1"
-              : query === "true"
+            ? isOneOf("1", "true")(query)
             : (_initial ?? defaultValue);
 
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(
               Object.entries(cfg.attrs ?? []),
@@ -92,7 +90,7 @@ export const numberParser = (cfg: ValueConfig<number>) => {
 
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? []), [
               tuple("value", `${initial}`),
@@ -130,7 +128,7 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
 
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? []), [
               tuple("value", `${initial}`),
@@ -176,7 +174,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
 
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? []), [
               tuple("value", `#${initial}`),
@@ -210,7 +208,7 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
       html: (id, query) => {
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? []))
         );
@@ -232,7 +230,7 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
   );
 };
 
-const msPerMinute = 60000;
+const msPerSecond = 1000;
 export const datetimeParser = (cfg: ValueConfig<Date>) => {
   const defaultValue = cfg.default ?? new Date(0);
   return valueParser<Date>(
@@ -242,12 +240,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
         getValue().getTime() === defaultValue.getTime()
           ? null
           : shortUrl
-            ? intToB64(
-                Math.round(
-                  (getValue().getTime() - new Date().getTimezoneOffset()) /
-                    msPerMinute
-                )
-              )
+            ? intToB64(Math.round(getValue().getTime() / msPerSecond))
             : formatDate(getValue()),
       updateValue: el => {
         (el as HTMLInputElement).value = formatDate(getValue());
@@ -256,16 +249,12 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
       html: (id, query, shortUrl) => {
         const initial =
           query != null
-            ? new Date(
-                shortUrl
-                  ? formatDate(new Date(b64ToInt(query) * msPerMinute))
-                  : query
-              )
+            ? new Date(shortUrl ? b64ToInt(query) * msPerSecond : query)
             : (_initial ?? defaultValue);
 
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? []), [
               tuple("value", formatDate(initial)),
@@ -308,7 +297,7 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
 
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? []))
         );
@@ -344,7 +333,7 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
       html: (id, query) => {
         const attrs = toAttrs(
           Option.from(id)
-            .map<[string, string | null]>(id => tuple("id", id))
+            .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? []), [
               tuple("style", "display: none;"),

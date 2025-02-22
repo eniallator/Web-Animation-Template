@@ -8,7 +8,7 @@ import {
 } from "./error.js";
 import {
   isAnyVector,
-  isComponents,
+  isAnyComponents,
   isSameSize,
   isSize,
   toAnyComponents,
@@ -36,7 +36,9 @@ export class Vector<const N extends number | undefined = undefined> {
    * @param {readonly number[]} components The components of the vector, can be any size.
    */
   static create<A extends AnyComponents>(...cmps: A): Vector<A["length"]> {
-    return new Vector([...cmps] as Components<A["length"]>);
+    return isAnyComponents(cmps)
+      ? new Vector(cmps as Components<A["length"]>)
+      : raise(new Error(`Unknown vector components ${cmps}`));
   }
 
   private applyOperation(
@@ -104,6 +106,24 @@ export class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
+   * Computes the signed modulus of the current components and the given operand(s)
+   * @param  {...VectorArg<N>} args If given a number it's used for all components. If given a Vector, the signed modulo operation is component-wise
+   * @returns {this} this
+   */
+  mod(...args: VectorArg<N>[]): this {
+    return this.applyOperation((a, b) => a % b, ...args);
+  }
+
+  /**
+   * Computes the positive modulus of the current components and the given operand(s)
+   * @param  {...VectorArg<N>} args If given a number it's used for all components. If given a Vector, the positive modulo operation is component-wise
+   * @returns {this} this
+   */
+  positiveMod(...args: VectorArg<N>[]): this {
+    return this.applyOperation((a, b) => ((a % b) + b) % b, ...args);
+  }
+
+  /**
    * Linear interpolation between this vector and a given other vector
    * @param {number} t Between 0 and 1, where 0 is this current vector and 1 is the supplied other vector
    * @param {VectorArg<N>} arg Vector/number to interpolate to
@@ -114,22 +134,21 @@ export class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Computes the dot product with a supplied vector
-   * @param {Vector<N>} other Vector to dot product with
-   * @returns {number} Dot product
+   * Sets this vector's components to the the min between the incoming arg and this vector's components
+   * @param {VectorArg<N>} arg If given a number, it's used for all min operations. If given a Vector, the min operation is component-wise
+   * @returns {this} this
    */
-  dot(other: Vector<N>): number {
-    const otherCmps = toAnyComponents(other.cmps);
-    if (isSameSize(this, other)) {
-      return toAnyComponents(this.cmps).reduce(
-        (acc, cmp, i) => acc + cmp * (otherCmps[i] as number),
-        0
-      );
-    } else {
-      throw new IncompatibleVector(
-        `Received an incompatible vector of size ${otherCmps.length}`
-      );
-    }
+  min(arg: VectorArg<N>): this {
+    return this.applyOperation(Math.min, arg);
+  }
+
+  /**
+   * Sets this vector's components to the the max between the incoming arg and this vector's components
+   * @param {VectorArg<N>} arg If given a number, it's used for all max operations. If given a Vector, the max operation is component-wise
+   * @returns {this} this
+   */
+  max(arg: VectorArg<N>): this {
+    return this.applyOperation(Math.max, arg);
   }
 
   /**
@@ -157,21 +176,22 @@ export class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Sets this vector's components to the the min between the incoming arg and this vector's components
-   * @param {VectorArg<N>} arg If given a number, it's used for all min operations. If given a Vector, the min operation is component-wise
-   * @returns {this} this
+   * Computes the dot product with a supplied vector
+   * @param {Vector<N>} other Vector to dot product with
+   * @returns {number} Dot product
    */
-  min(arg: VectorArg<N>): this {
-    return this.applyOperation(Math.min, arg);
-  }
-
-  /**
-   * Sets this vector's components to the the max between the incoming arg and this vector's components
-   * @param {VectorArg<N>} arg If given a number, it's used for all max operations. If given a Vector, the max operation is component-wise
-   * @returns {this} this
-   */
-  max(arg: VectorArg<N>): this {
-    return this.applyOperation(Math.max, arg);
+  dot(other: Vector<N>): number {
+    const otherCmps = toAnyComponents(other.cmps);
+    if (isSameSize(this, other)) {
+      return toAnyComponents(this.cmps).reduce(
+        (acc, cmp, i) => acc + cmp * (otherCmps[i] as number),
+        0
+      );
+    } else {
+      throw new IncompatibleVector(
+        `Received an incompatible vector of size ${otherCmps.length}`
+      );
+    }
   }
 
   /**
@@ -593,9 +613,9 @@ export class Vector<const N extends number | undefined = undefined> {
     ...other: readonly [Vector<undefined | number>] | AnyComponents
   ): boolean {
     const cmps = toAnyComponents(this.cmps);
-    const otherCmps = isComponents(other)
-      ? other
-      : toAnyComponents(other[0].cmps);
+    const otherCmps = isAnyVector(other[0])
+      ? toAnyComponents(other[0].cmps)
+      : other;
     return (
       cmps.length === otherCmps.length &&
       cmps.every((_, i) => cmps[i] === otherCmps[i])
@@ -610,11 +630,26 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns if this vector is within the given bounds
    */
   inBounds(dimensions: Vector<N>, positions?: Vector<N>): boolean {
-    return toAnyComponents(this.cmps).every(
-      (cmp, i) =>
-        cmp > (positions?.valueOf(i) ?? 0) &&
-        cmp - (positions?.valueOf(i) ?? 0) < dimensions.valueOf(i)
-    );
+    const cmps = toAnyComponents(this.cmps);
+    const dimCmps = toAnyComponents(dimensions.cmps);
+    const posCmps = positions != null ? toAnyComponents(positions.cmps) : null;
+    if (cmps.length === dimCmps.length) {
+      if (posCmps == null || cmps.length === posCmps.length) {
+        return cmps.every(
+          (cmp, i) =>
+            cmp >= (posCmps?.[i] ?? 0) &&
+            cmp < (posCmps?.[i] ?? 0) + (dimCmps[i] as number)
+        );
+      } else {
+        throw new IncompatibleVector(
+          `Received an incompatible positions vector of size ${posCmps.length}`
+        );
+      }
+    } else {
+      throw new IncompatibleVector(
+        `Received an incompatible dimensions vector of size ${dimCmps.length}`
+      );
+    }
   }
 
   /**
@@ -633,6 +668,19 @@ export class Vector<const N extends number | undefined = undefined> {
     return `Vector${cmps.length}D[${cmpsStr}]`;
   }
 
+  [Symbol.isConcatSpreadable] = true;
+
+  [Symbol.iterator] = (): Iterator<number> => {
+    const cmps = toAnyComponents(this.cmps);
+    return (function* () {
+      for (const cmp of cmps) {
+        yield cmp;
+      }
+    })();
+  };
+
+  [Symbol.toStringTag] = () => this.toString();
+
   /**
    * Parses a string and tries to make a vector out of it
    * @param {string} str Vector string in the format of "VectorND[component1, component2, ...]"
@@ -641,7 +689,7 @@ export class Vector<const N extends number | undefined = undefined> {
   static parseString(str: string): Vector | undefined {
     const match = /^Vector\d+D\[(?<cmps>[^\]]+)\]$/.exec(str);
     const cmps = match?.groups?.cmps?.split(",").map(Number);
-    if (isComponents(cmps)) {
+    if (isAnyComponents(cmps)) {
       return new Vector(cmps);
     } else {
       return undefined;

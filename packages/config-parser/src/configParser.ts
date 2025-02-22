@@ -168,11 +168,12 @@ export class ParamConfig<const R extends AnyStringRecord> {
 
     return Object.fromEntries(
       Array.from(iterable(() => queryRegex.exec(query)))
-        .map(tokens =>
-          tokens?.[1] != null && tokens[2] != null
-            ? tuple(tokens[1], decodeURIComponent(tokens[2]))
-            : null
-        )
+        .map(tokens => {
+          const [_, key, value] = tokens != null ? tokens : [];
+          return key != null && value != null
+            ? tuple(key, decodeURIComponent(value))
+            : null;
+        })
         .filter(v => v != null)
     );
   }

@@ -64,7 +64,7 @@ export class Option<A> {
   }
 
   getOrThrow(err: Error): A {
-    return this.value ?? raise<A>(err);
+    return this.value ?? raise(err);
   }
 
   getOrElse<R>(orElse: () => R): A | R {

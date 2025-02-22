@@ -1,26 +1,10 @@
-import { checkExhausted } from "@web-art/core";
+import { raise } from "@web-art/core";
 import { Guard, isArrayOf, isExact, isNumber, isObjectOf } from "deep-guards";
 
 import { Vector } from "./index.js";
 import { AnyComponents, Components, VectorArg } from "./types.js";
 
-export function vectorArgAccessor<N extends number | undefined>(
-  arg: VectorArg<N>,
-  size: N
-): (i: number) => number {
-  switch (true) {
-    case isNumber(arg):
-      return () => arg;
-
-    case isVector(size)(arg):
-      return i => arg.valueOf(i);
-
-    default:
-      return checkExhausted(arg);
-  }
-}
-
-export const isComponents = (value: unknown): value is AnyComponents =>
+export const isAnyComponents = (value: unknown): value is AnyComponents =>
   isArrayOf(isNumber)(value) && value.length >= 1;
 
 export const isSize =
@@ -46,3 +30,13 @@ export const isVector =
   <N extends number | undefined>(n: N) =>
   (value: unknown): value is Vector<N> =>
     isAnyVector(value) && (n == null || value.size() === n);
+
+export const vectorArgAccessor = <N extends number | undefined>(
+  arg: VectorArg<N>,
+  size: N
+): ((i: number) => number) =>
+  isNumber(arg)
+    ? () => arg
+    : isVector(size)(arg)
+      ? i => arg.valueOf(i)
+      : raise(new Error(`Unknown vector argument ${arg}`));

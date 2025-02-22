@@ -1,8 +1,7 @@
 import { Vector } from "@web-art/linear-algebra";
 
-function isMouseEvent(evt: MouseEvent | TouchEvent): evt is MouseEvent {
-  return evt.type.startsWith("mouse");
-}
+const isMouseEvent = (evt: MouseEvent | TouchEvent): evt is MouseEvent =>
+  evt.type.startsWith("mouse");
 
 type MouseCallback = (this: Mouse, evt: MouseEvent | TouchEvent) => void;
 

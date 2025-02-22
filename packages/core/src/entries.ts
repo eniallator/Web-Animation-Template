@@ -1,5 +1,5 @@
 export type ObjectKey = string | number | symbol;
-export type Entry<O extends Record<ObjectKey, unknown>> = [keyof O, O[keyof O]];
+export type Entry<R extends Record<ObjectKey, unknown>> = [keyof R, R[keyof R]];
 
 export const typedToEntries = <R extends Record<ObjectKey, unknown>>(
   obj: R
@@ -10,9 +10,9 @@ export const typedFromEntries = <R extends Record<ObjectKey, unknown>>(
 ): R => Object.fromEntries(entries) as R;
 
 export const mapObject = <
-  A extends Record<ObjectKey, unknown>,
-  B extends Record<ObjectKey, unknown>,
+  I extends Record<ObjectKey, unknown>,
+  O extends Record<ObjectKey, unknown>,
 >(
-  obj: A,
-  mapper: (entry: Entry<A>) => Entry<B>
-): B => typedFromEntries(typedToEntries(obj).map(mapper));
+  obj: I,
+  mapper: (entry: Entry<I>, index: number, array: Entry<I>[]) => Entry<O>
+): O => typedFromEntries(typedToEntries(obj).map(mapper));

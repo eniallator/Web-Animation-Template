@@ -7,14 +7,11 @@ const currDir = url.fileURLToPath(new URL(".", import.meta.url));
 const mode = process.env.NODE_ENV ?? "development";
 
 export default {
-  devtool: mode === "development" ? "eval-source-map" : undefined,
   mode,
-
-  entry: "./src/init.ts",
-
-  optimization:
-    mode !== "development"
-      ? {
+  ...(mode === "development"
+    ? { devtool: "eval-source-map" }
+    : {
+        optimization: {
           minimize: true,
           minimizer: [
             new TerserPlugin({
@@ -22,8 +19,10 @@ export default {
               terserOptions: { mangle: true },
             }),
           ],
-        }
-      : undefined,
+        },
+      }),
+
+  entry: "./src/init.ts",
 
   output: {
     path: currDir,

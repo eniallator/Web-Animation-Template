@@ -206,12 +206,12 @@ export class TimeProfile {
               calls:
                 (
                   TimeProfile.methodTimes[targetName]?.[methodName] ??
-                  raise<TimeableStats>(new Error("Something went wrong"))
+                  raise(new Error("Something went wrong"))
                 ).calls - methodStats.calls,
               totalExecutionTime:
                 (
                   TimeProfile.methodTimes[targetName]?.[methodName] ??
-                  raise<TimeableStats>(new Error("Something went wrong"))
+                  raise(new Error("Something went wrong"))
                 ).totalExecutionTime - methodStats.totalExecutionTime,
             },
           };
@@ -273,10 +273,9 @@ class TimeAudit {
 
   private safeAccessStats(target: string, methodName: string): Stats {
     return (
-      (this.allStats[target] ??
-        raise<Record<string, Stats>>(new IndexError("Target does not exist")))[
+      (this.allStats[target] ?? raise(new IndexError("Target does not exist")))[
         methodName
-      ] ?? raise<Stats>(new IndexError("Method name does not exist on target"))
+      ] ?? raise(new IndexError("Method name does not exist on target"))
     );
   }
 
@@ -307,8 +306,7 @@ class TimeAudit {
    */
   *methodNames(target: string): Generator<string> {
     for (const methodName of Object.keys(
-      this.allStats[target] ??
-        raise<Record<string, Stats>>(new IndexError("Target does not exist"))
+      this.allStats[target] ?? raise(new IndexError("Target does not exist"))
     )) {
       yield methodName;
     }

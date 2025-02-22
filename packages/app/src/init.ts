@@ -24,16 +24,10 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
 });
 
 dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
-  if (document.fullscreenElement != null) {
-    void document
-      .exitFullscreen()
-      .then(() => document.body.classList.toggle("fullscreen", false));
-  } else {
-    void dom
-      .get("main")
-      .requestFullscreen()
-      .then(() => document.body.classList.toggle("fullscreen", true));
-  }
+  const fullscreen = document.fullscreenElement != null;
+  void (
+    fullscreen ? document.exitFullscreen() : dom.get("main").requestFullscreen()
+  ).then(() => document.body.classList.toggle("fullscreen", !fullscreen));
 });
 
 const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
@@ -47,7 +41,7 @@ updateCanvasBounds(canvas);
 
 const ctx =
   canvas.getContext("2d") ??
-  raise<CanvasRenderingContext2D>(
+  raise(
     new Error(
       `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
     )
