@@ -1,5 +1,5 @@
 import { raise } from "@web-art/core";
-import { Guard, isArrayOf, isExact, isNumber, isObjectOf } from "deep-guards";
+import { Guard, isArrayOf, isNumber } from "deep-guards";
 
 import { Vector } from "./index.js";
 import { AnyComponents, Components, VectorArg } from "./types.js";
@@ -22,9 +22,7 @@ export const isSameSize = <
 
 export const toAnyComponents = (components: AnyComponents) => components;
 
-export const isAnyVector = isObjectOf({
-  type: isExact("Vector", false),
-}) as unknown as Guard<Vector>;
+export const isAnyVector: Guard<Vector> = value => value instanceof Vector;
 
 export const isVector =
   <N extends number | undefined>(n: N) =>

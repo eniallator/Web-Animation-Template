@@ -653,7 +653,7 @@ export class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
-   * Converts this vector to a string in the format: "VectorND[component1, component2, ...]"
+   * Converts this vector to a string in the format: "Vector<N>[component1, component2, ...]"
    * @param {number} fractionDigits optional precision to format the components to
    * @returns {string} the formatted string
    */
@@ -665,7 +665,7 @@ export class Vector<const N extends number | undefined = undefined> {
         (fractionDigits != null ? cmp.toFixed(fractionDigits) : cmp.toString()),
       null
     );
-    return `Vector${cmps.length}D[${cmpsStr}]`;
+    return `Vector<${cmps.length}>[${cmpsStr}]`;
   }
 
   [Symbol.isConcatSpreadable] = true;
@@ -679,7 +679,9 @@ export class Vector<const N extends number | undefined = undefined> {
     })();
   };
 
-  [Symbol.toStringTag] = () => this.toString();
+  get [Symbol.toStringTag]() {
+    return `Vector<${toAnyComponents(this.cmps).length}>`;
+  }
 
   /**
    * Parses a string and tries to make a vector out of it

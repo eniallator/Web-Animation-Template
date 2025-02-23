@@ -1,4 +1,4 @@
-import { Guard, isFunction, isObjectOf } from "deep-guards";
+import { Guard } from "deep-guards";
 
 import { Option } from "./option.js";
 
@@ -27,9 +27,7 @@ export const formatDate = (date: Date): string =>
       "$<y>-$<m>-$<d>T$<t>"
     );
 
-const isOption = isObjectOf({ getOrNull: isFunction }) as Guard<
-  Option<unknown>
->;
+const isOption: Guard<Option<unknown>> = value => value instanceof Option;
 export const filterAndMap = <I, O>(
   arr: readonly I[],
   mapper: (
