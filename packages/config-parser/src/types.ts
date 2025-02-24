@@ -27,21 +27,18 @@ export interface ValueParser<T> {
 
 export type Parser<T> = ContentParser | ValueParser<T>;
 
+export type ParserValue<P extends Parser<unknown>> =
+  P extends ValueParser<infer T> ? T : P extends ContentParser ? null : never;
+
 export type InitParser<P extends Parser<unknown>> = {
   label?: string;
   title?: string;
   methods: (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onChange: (value: any) => void,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getValue: () => any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    initial: any
+    onChange: (value: ParserValue<P>) => void,
+    getValue: () => ParserValue<P>,
+    initial: ParserValue<P>
   ) => P;
 };
-
-export type ParserValue<P extends Parser<unknown>> =
-  P extends ValueParser<infer T> ? T : P extends ContentParser ? null : never;
 
 export type AnyStringRecord = Record<string, unknown>;
 

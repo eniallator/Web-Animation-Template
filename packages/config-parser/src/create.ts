@@ -21,7 +21,6 @@ export const valueParser = <T>(
 ): InitParser<ValueParser<T>> => ({
   label,
   title,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   methods: (...args) => ({ ...init(...args), type: "Value" }),
 });
 
@@ -36,6 +35,5 @@ export const contentParser = (
 ): InitParser<ContentParser> => ({
   label,
   title,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   methods: (...args) => ({ ...init(...args), type: "Content" }),
 });
