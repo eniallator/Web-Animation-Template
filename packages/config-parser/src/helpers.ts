@@ -1,4 +1,4 @@
-import { raise } from "@web-art/core";
+import { iterable, raise, tuple } from "@web-art/core";
 
 export const toAttrs = (attrs: [string, string | null][]): string =>
   attrs.reduce(
@@ -30,4 +30,35 @@ export const configItem = (
   );
   itemEl.appendChild(el);
   return itemEl;
+};
+
+// https://stackoverflow.com/a/7616484
+export const hashString = (str: string): number => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash &= hash; // Convert to 32bit integer
+  }
+  return hash;
+};
+
+export const parseQuery = (
+  query: string,
+  shortUrl: boolean,
+  hashKeyLength: number
+): Record<string, string> => {
+  const queryRegex = shortUrl
+    ? new RegExp(`[?&]?([^=&]{${hashKeyLength}})([^&]*)`, "g")
+    : /[?&]?([^=&]+)=?([^&]*)/g;
+
+  return Object.fromEntries(
+    Array.from(iterable(queryRegex.exec(query)))
+      .map(tokens => {
+        const [_, key, value] = tokens != null ? tokens : [];
+        return key != null && value != null
+          ? tuple(key, decodeURIComponent(value))
+          : null;
+      })
+      .filter(v => v != null)
+  );
 };

@@ -3,14 +3,13 @@ import {
   Entry,
   filterAndMap,
   intToB64,
-  iterable,
   mapObject,
   Option,
   tuple,
   typedToEntries,
 } from "@web-art/core";
 
-import { configItem } from "./helpers.js";
+import { configItem, hashString, parseQuery } from "./helpers.js";
 import {
   AnyStringRecord,
   InitParserObject,
@@ -39,9 +38,13 @@ export class ParamConfig<const R extends AnyStringRecord> {
     options: ParamConfigOptions = {}
   ) {
     const { query = location.search, shortUrl = false } = options;
-    const hashKeyLength =
-      (options.shortUrl ? options.hashKeyLength : null) ?? 6;
-    const initialValues = this.parseQuery(query, shortUrl);
+    this.shortUrl = shortUrl;
+    this.hashKeyLength = (options.shortUrl ? options.hashKeyLength : null) ?? 6;
+    this.listeners = [];
+    this.updates = [];
+
+    const initialValues = parseQuery(query, this.shortUrl, this.hashKeyLength);
+    this.extraValue = initialValues[this.queryKey("extra")];
 
     this.state = mapObject(initParsers, ([id, initParser]): Entry<State<R>> => {
       const { label, title, methods } = initParser;
@@ -56,19 +59,13 @@ export class ParamConfig<const R extends AnyStringRecord> {
       );
 
       const query = initialValues[this.queryKey(id as string)] ?? null;
-      const el = parser.html(id as string, query, shortUrl);
+      const el = parser.html(id as string, query, this.shortUrl);
       baseEl.appendChild(configItem(id as string, el, label, title));
       const value =
         parser.type === "Value" ? parser.getValue(el) : (null as R[keyof R]);
 
       return tuple(id, { parser, el, value });
     });
-    this.extraValue = initialValues[this.queryKey("extra")];
-    this.shortUrl = shortUrl;
-    this.hashKeyLength = hashKeyLength;
-    this.listeners = [];
-
-    this.updates = [];
   }
 
   getValue<I extends keyof R>(id: I): R[I] {
@@ -96,15 +93,16 @@ export class ParamConfig<const R extends AnyStringRecord> {
     if (force || this.updates.length > 0) {
       const { updates } = this;
       this.updates.length = 0;
-      this.listeners
-        .filter(
-          ({ subscriptions }) =>
-            subscriptions.size === 0 ||
-            updates.some(update => subscriptions.has(update))
-        )
-        .forEach(({ callback }) => {
-          callback(this.getAllValues(), [...updates]);
-        });
+      (force
+        ? this.listeners
+        : this.listeners.filter(
+            ({ subscriptions }) =>
+              subscriptions.size === 0 ||
+              updates.some(update => subscriptions.has(update))
+          )
+      ).forEach(({ callback }) => {
+        callback(this.getAllValues(), [...updates]);
+      });
     }
   }
 
@@ -125,9 +123,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
         .map(p => p.serialise(this.shortUrl))
         .map(serialised => urlPart(id as string, serialised))
     )
-      .concat(
-        ...(extra != null ? [urlPart("extra", encodeURIComponent(extra))] : [])
-      )
+      .concat(...(extra != null ? [urlPart("extra", extra)] : []))
       .join("&");
   }
 
@@ -145,36 +141,9 @@ export class ParamConfig<const R extends AnyStringRecord> {
     });
   }
 
-  // https://stackoverflow.com/a/7616484
-  private hashString(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash &= hash; // Convert to 32bit integer
-    }
-    return hash;
-  }
-
   private queryKey(key: string): string {
     return this.shortUrl
-      ? intToB64(this.hashString(key), this.hashKeyLength)
+      ? intToB64(hashString(key), this.hashKeyLength)
       : encodeURIComponent(key);
-  }
-
-  private parseQuery(query: string, shortUrl: boolean): Record<string, string> {
-    const queryRegex = shortUrl
-      ? new RegExp(`[?&]?([^=&]{${this.hashKeyLength}})([^&]*)`, "g")
-      : /[?&]?([^=&]+)=?([^&]*)/g;
-
-    return Object.fromEntries(
-      Array.from(iterable(() => queryRegex.exec(query)))
-        .map(tokens => {
-          const [_, key, value] = tokens != null ? tokens : [];
-          return key != null && value != null
-            ? tuple(key, decodeURIComponent(value))
-            : null;
-        })
-        .filter(v => v != null)
-    );
   }
 }

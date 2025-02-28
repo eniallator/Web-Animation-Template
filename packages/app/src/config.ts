@@ -13,7 +13,7 @@ import {
   textParser,
 } from "@web-art/config-parser";
 
-export const options: ParamConfigOptions = { shortUrl: true };
+export const options: ParamConfigOptions = { shortUrl: false };
 export const config = createParsers({
   "example-checkbox": checkboxParser({
     label: "Example Checkbox",

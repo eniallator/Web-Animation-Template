@@ -14,18 +14,13 @@ export const checkExhausted = (value: never): never => {
   throw new Error(`Value not exhausted: ${JSON.stringify(value)}`);
 };
 
-export const iterable = <T>(fn: () => T): Iterable<T> =>
+export const iterable = <T>(value: T): Iterable<T> =>
   (function* () {
-    yield fn();
+    yield value;
   })();
 
-export const formatDate = (date: Date): string =>
-  date
-    .toLocaleString()
-    .replace(
-      /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+:\d+).*/,
-      "$<y>-$<m>-$<d>T$<t>"
-    );
+export const formatDate = (date: Date) =>
+  date.toISOString().replace(/z.*$/i, "");
 
 const isOption: Guard<Option<unknown>> = value => value instanceof Option;
 export const filterAndMap = <I, O>(

@@ -40,7 +40,7 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(
-              Object.entries(cfg.attrs ?? []),
+              Object.entries(cfg.attrs ?? {}),
               initial ? [tuple("checked", null)] : []
             )
         );
@@ -92,7 +92,7 @@ export const numberParser = (cfg: ValueConfig<number>) => {
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
-            .concat(Object.entries(cfg.attrs ?? []), [
+            .concat(Object.entries(cfg.attrs ?? {}), [
               tuple("value", `${initial}`),
             ])
         );
@@ -130,7 +130,7 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
-            .concat(Object.entries(cfg.attrs ?? []), [
+            .concat(Object.entries(cfg.attrs ?? {}), [
               tuple("value", `${initial}`),
             ])
         );
@@ -176,7 +176,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
-            .concat(Object.entries(cfg.attrs ?? []), [
+            .concat(Object.entries(cfg.attrs ?? {}), [
               tuple("value", `#${initial}`),
             ])
         );
@@ -210,7 +210,7 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
-            .concat(Object.entries(cfg.attrs ?? []))
+            .concat(Object.entries(cfg.attrs ?? {}))
         );
 
         const initial = query ?? _initial ?? defaultValue;
@@ -230,7 +230,6 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
   );
 };
 
-const msPerSecond = 1000;
 export const datetimeParser = (cfg: ValueConfig<Date>) => {
   const defaultValue = cfg.default ?? new Date(0);
   return valueParser<Date>(
@@ -240,7 +239,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
         getValue().getTime() === defaultValue.getTime()
           ? null
           : shortUrl
-            ? intToB64(Math.round(getValue().getTime() / msPerSecond))
+            ? intToB64(getValue().getTime())
             : formatDate(getValue()),
       updateValue: el => {
         (el as HTMLInputElement).value = formatDate(getValue());
@@ -249,14 +248,14 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
       html: (id, query, shortUrl) => {
         const initial =
           query != null
-            ? new Date(shortUrl ? b64ToInt(query) * msPerSecond : query)
+            ? new Date(shortUrl ? b64ToInt(query) : query)
             : (_initial ?? defaultValue);
 
         const attrs = toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
-            .concat(Object.entries(cfg.attrs ?? []), [
+            .concat(Object.entries(cfg.attrs ?? {}), [
               tuple("value", formatDate(initial)),
             ])
         );
@@ -299,7 +298,7 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
-            .concat(Object.entries(cfg.attrs ?? []))
+            .concat(Object.entries(cfg.attrs ?? {}))
         );
 
         const el = stringToHTML(
@@ -335,7 +334,7 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
-            .concat(Object.entries(cfg.attrs ?? []), [
+            .concat(Object.entries(cfg.attrs ?? {}), [
               tuple("style", "display: none;"),
             ])
         );
