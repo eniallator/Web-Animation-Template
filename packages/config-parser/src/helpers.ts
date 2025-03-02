@@ -1,4 +1,4 @@
-import { iterable, raise, tuple } from "@web-art/core";
+import { raise } from "@web-art/core";
 
 export const toAttrs = (attrs: [string, string | null][]): string =>
   attrs.reduce(
@@ -48,17 +48,16 @@ export const parseQuery = (
   hashKeyLength: number
 ): Record<string, string> => {
   const queryRegex = shortUrl
-    ? new RegExp(`[?&]?([^=&]{${hashKeyLength}})([^&]*)`, "g")
+    ? new RegExp(`[?&]?([^&]{${hashKeyLength}})([^&]*)`, "g")
     : /[?&]?([^=&]+)=?([^&]*)/g;
 
-  return Object.fromEntries(
-    Array.from(iterable(queryRegex.exec(query)))
-      .map(tokens => {
-        const [_, key, value] = tokens != null ? tokens : [];
-        return key != null && value != null
-          ? tuple(key, decodeURIComponent(value))
-          : null;
-      })
-      .filter(v => v != null)
-  );
+  const queryEntries: [string, string][] = [];
+  let tokens;
+  while ((tokens = queryRegex.exec(query)) != null) {
+    const [_, key, value] = tokens;
+    if (key != null && value != null)
+      queryEntries.push([key, decodeURIComponent(value)]);
+  }
+
+  return Object.fromEntries(queryEntries);
 };

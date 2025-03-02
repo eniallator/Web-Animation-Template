@@ -5,7 +5,7 @@ const BASE_64_CHARS =
 export const intToB64 = (n: number, length?: number): string => {
   let base64Str = "";
   while (n) {
-    base64Str = BASE_64_CHARS[positiveMod(n, 64)] ?? "" + base64Str;
+    base64Str = (BASE_64_CHARS[positiveMod(n, 64)] ?? "") + base64Str;
     n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
   }
   return length != null

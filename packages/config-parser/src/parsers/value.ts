@@ -2,6 +2,7 @@ import {
   b64ToInt,
   dom,
   formatDate,
+  formatIsoDate,
   intToB64,
   Option,
   tuple,
@@ -240,7 +241,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
           ? null
           : shortUrl
             ? intToB64(getValue().getTime())
-            : formatDate(getValue()),
+            : formatIsoDate(getValue()),
       updateValue: el => {
         (el as HTMLInputElement).value = formatDate(getValue());
       },
