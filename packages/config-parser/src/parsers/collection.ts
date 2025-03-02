@@ -209,60 +209,52 @@ export const collectionParser = <
         });
 
       if (expandable) {
-        dom.addListener(
-          dom.get("button[data-action=delete]", baseEl),
-          "click",
-          () => {
-            const newValue = filterAndMap([...bodyEl.children], (el, i) => {
-              const values = getValue()[i] as F;
-              if (
-                dom.get<HTMLInputElement>("[data-row-selector]", el).checked
-              ) {
-                el.remove();
-                return null;
-              }
-              return values;
-            });
+        const deleteButton = dom.get("button[data-action=delete]", baseEl);
+        dom.addListener(deleteButton, "click", () => {
+          const newValue = filterAndMap([...bodyEl.children], (el, i) => {
+            const values = getValue()[i] as F;
+            if (dom.get<HTMLInputElement>("[data-row-selector]", el).checked) {
+              el.remove();
+              return null;
+            }
+            return values;
+          });
 
-            fieldParsers = newValue.map(
-              (initial, i) =>
-                newRow({
-                  initialItems: initial,
-                  getValue: () => getValue()[i] as F,
-                  onChange: value => {
-                    onChange(getValue().with(i, value));
-                  },
-                  initParsers: cfg.fields,
-                  shortUrl,
-                  expandable,
-                })[1]
-            );
-
-            onChange(newValue);
-          }
-        );
-        dom.addListener(
-          dom.get("button[data-action=add]", baseEl),
-          "click",
-          () => {
-            const idx = fieldParsers.length;
-            const [el, parsers] = newRow({
-              getValue: () => getValue()[idx] as F,
+          fieldParsers = newValue.map((initial, i) => {
+            const [_el, parsers] = newRow({
+              initialItems: initial,
+              getValue: () => getValue()[i] as F,
               onChange: value => {
-                onChange(getValue().with(idx, value));
+                onChange(getValue().with(i, value));
               },
               initParsers: cfg.fields,
               shortUrl,
               expandable,
             });
+            return parsers;
+          });
 
-            bodyEl.appendChild(el);
+          onChange(newValue);
+        });
+        const addButton = dom.get("button[data-action=add]", baseEl);
+        dom.addListener(addButton, "click", () => {
+          const idx = fieldParsers.length;
+          const [el, parsers] = newRow({
+            getValue: () => getValue()[idx] as F,
+            onChange: value => {
+              onChange(getValue().with(idx, value));
+            },
+            initParsers: cfg.fields,
+            shortUrl,
+            expandable,
+          });
 
-            fieldParsers.push(parsers);
+          bodyEl.appendChild(el);
 
-            onChange(getRowValues(baseEl, fieldParsers, expandable));
-          }
-        );
+          fieldParsers.push(parsers);
+
+          onChange(getRowValues(baseEl, fieldParsers, expandable));
+        });
       }
 
       return baseEl;

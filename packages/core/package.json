@@ -27,7 +27,8 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ./src/**/*.ts",
-    "findissues": "yarn typecheck && yarn lint"
+    "findissues": "yarn typecheck && yarn lint",
+    "prepublish": "yarn build && yarn typecheck && yarn lint"
   },
   "dependencies": {
     "deep-guards": "^1.0.5"

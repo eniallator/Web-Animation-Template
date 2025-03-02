@@ -32,6 +32,7 @@
     "build": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run build",
     "typecheck": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run typecheck",
     "lint": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run lint",
-    "findissues": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run findissues"
+    "findissues": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run findissues",
+    "prepublish": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run prepublish"
   }
 }
