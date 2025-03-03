@@ -10,7 +10,6 @@ import {
 import { isOneOf, isString } from "deep-guards";
 
 import { valueParser } from "../create.js";
-import { stringToHTML, toAttrs } from "../helpers.js";
 import { ValueConfig } from "../types.js";
 
 export const checkboxParser = (cfg: ValueConfig<boolean>) => {
@@ -36,7 +35,7 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
             ? isOneOf("1", "true")(query)
             : (_initial ?? defaultValue);
 
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
@@ -46,9 +45,9 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
             )
         );
 
-        const el = stringToHTML(
+        const el = dom.toHtml<HTMLInputElement>(
           `<input type="checkbox"${attrs} />`
-        ) as HTMLInputElement;
+        );
         el.onchange = () => {
           onChange(el.checked);
         };
@@ -89,7 +88,7 @@ export const numberParser = (cfg: ValueConfig<number>) => {
         const initial =
           query != null ? Number(query) : (_initial ?? defaultValue);
 
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
@@ -98,9 +97,9 @@ export const numberParser = (cfg: ValueConfig<number>) => {
             ])
         );
 
-        const el = stringToHTML(
+        const el = dom.toHtml<HTMLInputElement>(
           `<input type="number"${attrs} />`
-        ) as HTMLInputElement;
+        );
         el.onchange = () => {
           onChange(Number(el.value));
         };
@@ -127,7 +126,7 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
         const initial =
           query != null ? Number(query) : (_initial ?? defaultValue);
 
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
@@ -136,9 +135,9 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
             ])
         );
 
-        const el = stringToHTML(
+        const el = dom.toHtml<HTMLInputElement>(
           `<input type="range"${attrs} />`
-        ) as HTMLInputElement;
+        );
         el.onchange = () => {
           onChange(Number(el.value));
         };
@@ -173,7 +172,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
               : query.toUpperCase()
             : (_initial ?? defaultValue);
 
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
@@ -182,9 +181,9 @@ export const colorParser = (cfg: ValueConfig<string>) => {
             ])
         );
 
-        const el = stringToHTML(
+        const el = dom.toHtml<HTMLInputElement>(
           `<input type="color"${attrs} />`
-        ) as HTMLInputElement;
+        );
         el.oninput = () => {
           onChange(el.value.slice(1).toUpperCase());
         };
@@ -207,7 +206,7 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
       },
       getValue: el => (el as HTMLInputElement | HTMLTextAreaElement).value,
       html: (id, query) => {
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
@@ -215,11 +214,11 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
         );
 
         const initial = query ?? _initial ?? defaultValue;
-        const el = stringToHTML(
+        const el = dom.toHtml<HTMLInputElement | HTMLTextAreaElement>(
           cfg.area
             ? `<textarea ${attrs}>${initial}</textarea>`
-            : `<input type="text"${toAttrs([["value", initial]])}${attrs} />`
-        ) as HTMLInputElement | HTMLTextAreaElement;
+            : `<input type="text"${dom.toAttrs([["value", initial]])}${attrs} />`
+        );
         el.onchange = () => {
           onChange(el.value);
         };
@@ -252,7 +251,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
             ? new Date(shortUrl ? b64ToInt(query) : query)
             : (_initial ?? defaultValue);
 
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
@@ -261,9 +260,9 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
             ])
         );
 
-        const el = stringToHTML(
+        const el = dom.toHtml<HTMLInputElement>(
           `<input type="datetime-local"${attrs} />`
-        ) as HTMLInputElement;
+        );
         el.onchange = () => {
           onChange(new Date(el.value));
         };
@@ -295,18 +294,18 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
       html: (id, query) => {
         const initial = isOption(query) ? query : (_initial ?? defaultValue);
 
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
             .concat(Object.entries(cfg.attrs ?? {}))
         );
 
-        const el = stringToHTML(
+        const el = dom.toHtml<HTMLSelectElement>(
           `<select${attrs}>${cfg.options
             .map(opt => `<option value="${opt}">${opt}</option>`)
             .join("")}</select>`
-        ) as HTMLSelectElement;
+        );
         el.value = initial;
         el.onchange = () => {
           onChange(el.value as SelectValue<A>);
@@ -331,7 +330,7 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
         currentValue = getValue();
       },
       html: (id, query) => {
-        const attrs = toAttrs(
+        const attrs = dom.toAttrs(
           Option.from(id)
             .map(id => tuple<[string, string | null]>("id", id))
             .toArray()
@@ -340,7 +339,7 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
             ])
         );
 
-        const el = stringToHTML(`<div>
+        const el = dom.toHtml(`<div>
           <input type="file"${attrs} />
           <button class="secondary wrap-text">${cfg.text ?? ""}</button>
         </div>`);

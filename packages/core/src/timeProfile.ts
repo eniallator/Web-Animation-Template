@@ -255,11 +255,13 @@ export class TimeProfile {
         "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
+
     this.auditing = true;
     this.recordCurrentStats();
     func();
     const stats = this.generateStats();
     this.auditing = false;
+
     return new TimeAudit(stats);
   }
 }

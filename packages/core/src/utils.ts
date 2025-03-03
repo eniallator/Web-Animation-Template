@@ -17,14 +17,13 @@ export const checkExhausted = (value: never): never => {
 export const formatIsoDate = (date: Date) =>
   date.toISOString().replace(/z.*$/i, "");
 
-export function formatDate(date: Date): string {
-  return date
+export const formatDate = (date: Date): string =>
+  date
     .toLocaleString()
     .replace(
       /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+:\d+).*/,
       "$<y>-$<m>-$<d>T$<t>"
     );
-}
 
 const isOption: Guard<Option<unknown>> = value => value instanceof Option;
 export const filterAndMap = <I, O>(

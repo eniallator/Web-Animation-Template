@@ -1,17 +1,4 @@
-import { raise } from "@web-art/core";
-
-export const toAttrs = (attrs: [string, string | null][]): string =>
-  attrs.reduce(
-    (acc, [key, val]) => acc + (val != null ? ` ${key}="${val}"` : ` ${key}`),
-    ""
-  );
-
-export const stringToHTML = (str: string): HTMLElement => {
-  const el = document.createElement("template");
-  el.innerHTML = str;
-  return (el.content.children.item(0) ??
-    raise(Error("No nodes found"))) as HTMLElement;
-};
+import { dom } from "@web-art/core";
 
 export const configItem = (
   id: string,
@@ -25,7 +12,7 @@ export const configItem = (
       : "";
   const labelAttr =
     (title ?? label) != null ? ` title="${title ?? label}"` : "";
-  const itemEl = stringToHTML(
+  const itemEl = dom.toHtml(
     `<div class="config-item"${labelAttr}>${labelStr}</div>`
   );
   itemEl.appendChild(el);

@@ -91,18 +91,17 @@ export class ParamConfig<const R extends AnyStringRecord> {
 
   tellListeners(force: boolean = false): void {
     if (force || this.updates.length > 0) {
-      const { updates } = this;
-      this.updates.length = 0;
       (force
         ? this.listeners
         : this.listeners.filter(
             ({ subscriptions }) =>
               subscriptions.size === 0 ||
-              updates.some(update => subscriptions.has(update))
+              this.updates.some(update => subscriptions.has(update))
           )
       ).forEach(({ callback }) => {
-        callback(this.getAllValues(), [...updates]);
+        callback(this.getAllValues(), [...this.updates]);
       });
+      this.updates.length = 0;
     }
   }
 

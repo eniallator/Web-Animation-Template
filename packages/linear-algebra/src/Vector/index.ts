@@ -704,7 +704,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {Vector<N>} Random normalised vector.
    */
   static randomNormalised<N extends number>(size: N): Vector<N> {
-    const cmps = new Array(size).fill(undefined).map(() => Math.random() - 0.5);
+    const cmps = [...new Array<undefined>(size)].map(() => Math.random() - 0.5);
     const magnitude = Math.sqrt(cmps.reduce((acc, cmp) => acc + cmp * cmp, 0));
     return new Vector(cmps.map(cmp => cmp / magnitude) as Components<N>);
   }

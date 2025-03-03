@@ -1,18 +1,15 @@
-import { positiveMod } from "./utils.js";
-
 const BASE_64_CHARS =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
 export const intToB64 = (n: number, length?: number): string => {
-  let base64Str = "";
+  let base64 = "";
+  n = Math.abs(n);
   while (n) {
-    base64Str = (BASE_64_CHARS[positiveMod(n, 64)] ?? "") + base64Str;
-    n = n > 0 ? Math.floor(n / 64) : Math.ceil(n / 64);
+    base64 = (BASE_64_CHARS[n % 64] ?? "") + base64;
+    n = Math.floor(n / 64);
   }
   return length != null
-    ? base64Str
-        .padStart(length, "0")
-        .slice(Math.max(base64Str.length - length, 0))
-    : base64Str;
+    ? base64.padStart(length, "0").slice(Math.max(base64.length - length, 0))
+    : base64;
 };
 
 export const b64ToInt = (str: string): number => {
