@@ -1,7 +1,7 @@
 import { dom, Option, tuple } from "@web-art/core";
 
-import { contentParser } from "../create.js";
-import { Config } from "../types.js";
+import { contentParser } from "../create.ts";
+import { Config } from "../types.ts";
 
 export const buttonParser = (cfg: Config & { text?: string }) =>
   contentParser(onChange => ({

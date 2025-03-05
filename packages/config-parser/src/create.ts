@@ -4,7 +4,7 @@ import {
   InitParser,
   InitParserObject,
   ValueParser,
-} from "./types.js";
+} from "./types.ts";
 
 export const createParsers = <O extends AnyStringRecord>(
   parsers: InitParserObject<O>

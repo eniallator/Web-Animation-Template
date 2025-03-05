@@ -1,3 +1,3 @@
-export * from "./collection.js";
-export * from "./content.js";
-export * from "./value.js";
+export * from "./collection.ts";
+export * from "./content.ts";
+export * from "./value.ts";

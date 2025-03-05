@@ -1,1 +1,1 @@
-export * from "./Vector/index.js";
+export * from "./Vector/index.ts";

@@ -1,11 +1,6 @@
 /**
  * Require Browsersync along with webpack and middleware for it
  */
-// const browserSync = require("browser-sync").create();
-// const webpack = require("webpack");
-// const webpackDevMiddleware = require("webpack-dev-middleware");
-// const stripAnsi = require("strip-ansi");
-
 import browserSync from "browser-sync";
 import webpack from "webpack";
 import webpackDevMiddleware from "webpack-dev-middleware";

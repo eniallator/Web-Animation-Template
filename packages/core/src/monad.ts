@@ -1,4 +1,4 @@
-import { Option } from "./option.js";
+import { Option } from "./option.ts";
 
 type UnpackTupledMonads<M extends readonly Monad<unknown>[]> = {
   [K in keyof M]: M[K] extends Monad<infer T> ? T : M[K];

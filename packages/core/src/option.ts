@@ -1,5 +1,5 @@
-import { Monad } from "./monad.js";
-import { raise } from "./utils.js";
+import { Monad } from "./monad.ts";
+import { raise } from "./utils.ts";
 
 export class Option<A> {
   private readonly value: A | null | undefined;

@@ -13,8 +13,8 @@ export interface Time {
   now: number;
 }
 
-export interface AppContext<R extends InitParserObject> {
-  paramConfig: ParamConfig<InitParserValues<R>>;
+export interface AppContext<O extends InitParserObject> {
+  paramConfig: ParamConfig<InitParserValues<O>>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;
@@ -29,47 +29,47 @@ export interface AppContextWithState<
 }
 
 export interface StatefulAppMethods<
-  R extends InitParserObject,
+  O extends InitParserObject,
   S extends object,
 > {
   type: "stateful";
-  init: (this: StatefulAppMethods<R, S>, appContext: AppContext<R>) => S;
+  init: (this: StatefulAppMethods<O, S>, appContext: AppContext<O>) => S;
   animationFrame?: (
-    this: StatefulAppMethods<R, S>,
-    appContext: AppContextWithState<R, S>
+    this: StatefulAppMethods<O, S>,
+    appContext: AppContextWithState<O, S>
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   ) => S | null | undefined | void;
   onResize?: (
-    this: StatefulAppMethods<R, S>,
+    this: StatefulAppMethods<O, S>,
     evt: UIEvent,
-    appContext: AppContextWithState<R, S>
+    appContext: AppContextWithState<O, S>
     // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   ) => S | null | undefined | void;
 }
 
-export interface StatelessAppMethods<R extends InitParserObject> {
+export interface StatelessAppMethods<O extends InitParserObject> {
   type: "stateless";
-  init?: (this: StatelessAppMethods<R>, appContext: AppContext<R>) => void;
+  init?: (this: StatelessAppMethods<O>, appContext: AppContext<O>) => void;
   animationFrame?: (
-    this: StatelessAppMethods<R>,
-    appContext: AppContext<R>
+    this: StatelessAppMethods<O>,
+    appContext: AppContext<O>
   ) => void;
   onResize?: (
-    this: StatelessAppMethods<R>,
+    this: StatelessAppMethods<O>,
     evt: UIEvent,
-    appContext: AppContext<R>
+    appContext: AppContext<O>
   ) => void;
 }
 
-export type AppMethods<R extends InitParserObject, S extends object = never> =
-  | StatefulAppMethods<R, S>
-  | StatelessAppMethods<R>;
+export type AppMethods<O extends InitParserObject, S extends object = never> =
+  | StatefulAppMethods<O, S>
+  | StatelessAppMethods<O>;
 
 export const appMethods = {
-  stateful: <R extends InitParserObject, const S extends object>(
-    methods: Omit<StatefulAppMethods<R, S>, "type">
-  ): AppMethods<R, S> => ({ type: "stateful", ...methods }),
-  stateless: <R extends InitParserObject>(
-    methods: Omit<StatelessAppMethods<R>, "type">
-  ): AppMethods<R> => ({ type: "stateless", ...methods }),
+  stateful: <O extends InitParserObject, const S extends object>(
+    methods: Omit<StatefulAppMethods<O, S>, "type">
+  ): AppMethods<O, S> => ({ type: "stateful", ...methods }),
+  stateless: <O extends InitParserObject>(
+    methods: Omit<StatelessAppMethods<O>, "type">
+  ): AppMethods<O> => ({ type: "stateless", ...methods }),
 };

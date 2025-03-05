@@ -1,4 +1,4 @@
-import { raise } from "./utils.js";
+import { raise } from "./utils.ts";
 
 const addListener = <
   E extends HTMLElement,

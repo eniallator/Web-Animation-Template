@@ -9,13 +9,13 @@ import {
   typedToEntries,
 } from "@web-art/core";
 
-import { configItem, hashString, parseQuery } from "./helpers.js";
+import { configItem, hashString, parseQuery } from "./helpers.ts";
 import {
   AnyStringRecord,
   InitParserObject,
   State,
   ValueParser,
-} from "./types.js";
+} from "./types.ts";
 
 export type ParamConfigOptions = {
   query?: string;

@@ -5,7 +5,7 @@ import {
   IncompatibleOperation,
   IncompatibleVector,
   OutOfBounds,
-} from "./error.js";
+} from "./error.ts";
 import {
   isAnyVector,
   isAnyComponents,
@@ -13,7 +13,7 @@ import {
   isSize,
   toAnyComponents,
   vectorArgAccessor,
-} from "./helpers.js";
+} from "./helpers.ts";
 import {
   AnyComponents,
   Components,
@@ -21,7 +21,7 @@ import {
   VectorArg,
   VectorCallback,
   VectorReduceCallback,
-} from "./types.js";
+} from "./types.ts";
 
 export class Vector<const N extends number | undefined = undefined> {
   type = "Vector" as const;
@@ -160,6 +160,15 @@ export class Vector<const N extends number | undefined = undefined> {
   }
 
   /**
+   * Sets each component of this vector to it's absolute value
+   * @returns {this} this
+   */
+  abs(): this {
+    this.cmps = toAnyComponents(this.cmps).map(Math.abs) as Components<N>;
+    return this;
+  }
+
+  /**
    * Returns the min of the components, whichever component is smaller
    * @returns {number} the value of the smaller component
    */
@@ -173,6 +182,16 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   getMax(): number {
     return Math.max(...toAnyComponents(this.cmps));
+  }
+
+  /**
+   * Get the sign of each component in this vector
+   * @returns {Vector<N>} The signs of this vector where the component will be 1 if >= 0, otherwise -1
+   */
+  getSign(): Vector<N> {
+    return new Vector(
+      toAnyComponents(this.cmps).map(Math.sign) as Components<N>
+    );
   }
 
   /**
@@ -302,27 +321,6 @@ export class Vector<const N extends number | undefined = undefined> {
     const magnitude = Math.sqrt(cmps.reduce((acc, cmp) => acc + cmp * cmp, 0));
     this.cmps = cmps.map(cmp => cmp / magnitude) as Components<N>;
     return this;
-  }
-
-  /**
-   * Sets each component of this vector to it's absolute value
-   * @returns {this} this
-   */
-  abs(): this {
-    this.cmps = toAnyComponents(this.cmps).map(Math.abs) as Components<N>;
-    return this;
-  }
-
-  /**
-   * Get the sign of each component in this vector
-   * @returns {Vector<N>} The signs of this vector where the component will be 1 if >= 0, otherwise -1
-   */
-  getSign(): Vector<N> {
-    return new Vector(
-      toAnyComponents(this.cmps).map(cmp =>
-        cmp >= 0 ? 1 : -1
-      ) as Components<N>
-    );
   }
 
   /**

@@ -1,8 +1,8 @@
 import { raise } from "@web-art/core";
 import { Guard, isArrayOf, isNumber } from "deep-guards";
 
-import { Vector } from "./index.js";
-import { AnyComponents, Components, VectorArg } from "./types.js";
+import { Vector } from "./index.ts";
+import { AnyComponents, Components, VectorArg } from "./types.ts";
 
 export const isAnyComponents = (value: unknown): value is AnyComponents =>
   isArrayOf(isNumber)(value) && value.length >= 1;

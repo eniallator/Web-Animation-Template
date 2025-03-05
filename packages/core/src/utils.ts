@@ -1,6 +1,6 @@
 import { Guard } from "deep-guards";
 
-import { Option } from "./option.js";
+import { Option } from "./option.ts";
 
 export const tuple = <const T extends unknown[]>(...tuple: T): T => tuple;
 

@@ -6,7 +6,7 @@ import {
   isUnionOf,
 } from "deep-guards";
 
-import { raise } from "./utils.js";
+import { raise } from "./utils.ts";
 
 class IndexError extends Error {
   constructor(message: string) {

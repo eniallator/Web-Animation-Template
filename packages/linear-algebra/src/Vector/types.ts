@@ -1,4 +1,4 @@
-import { Vector } from "./index.js";
+import { Vector } from "./index.ts";
 
 type RecursionLimit = 501;
 
