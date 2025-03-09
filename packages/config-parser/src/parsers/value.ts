@@ -15,10 +15,11 @@ import { ValueConfig } from "../types.ts";
 export const checkboxParser = (cfg: ValueConfig<boolean>) => {
   const defaultValue = cfg.default ?? false;
   return valueParser<boolean>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
       serialise: shortUrl =>
-        getValue() !== defaultValue
+        getValue() !==
+        (externalCfg != null ? externalCfg.default : defaultValue)
           ? `${shortUrl ? +getValue() : getValue()}`
           : null,
       updateValue: el => {
@@ -33,7 +34,7 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
         const initial =
           query != null
             ? isOneOf("1", "true")(query)
-            : (_initial ?? defaultValue);
+            : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
           Option.from(id)
@@ -76,17 +77,22 @@ export const numberParser = (cfg: ValueConfig<number>) => {
   const defaultValue =
     cfg.default ?? (cfg.attrs != null ? defaultNumber(cfg.attrs) : 0);
   return valueParser<number>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
       serialise: () =>
-        getValue() !== defaultValue ? numToStr(getValue()) : null,
+        getValue() !==
+        (externalCfg != null ? externalCfg.default : defaultValue)
+          ? numToStr(getValue())
+          : null,
       updateValue: el => {
         (el as HTMLInputElement).value = `${getValue()}`;
       },
       getValue: el => Number((el as HTMLInputElement).value),
       html: (id, query) => {
         const initial =
-          query != null ? Number(query) : (_initial ?? defaultValue);
+          query != null
+            ? Number(query)
+            : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
           Option.from(id)
@@ -114,17 +120,22 @@ export const numberParser = (cfg: ValueConfig<number>) => {
 export const rangeParser = (cfg: ValueConfig<number>) => {
   const defaultValue = cfg.default ?? defaultNumber(cfg.attrs);
   return valueParser<number>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
       serialise: () =>
-        getValue() !== defaultValue ? numToStr(getValue()) : null,
+        getValue() !==
+        (externalCfg != null ? externalCfg.default : defaultValue)
+          ? numToStr(getValue())
+          : null,
       updateValue: el => {
         (el as HTMLInputElement).value = `${getValue()}`;
       },
       getValue: el => Number((el as HTMLInputElement).value),
       html: (id, query) => {
         const initial =
-          query != null ? Number(query) : (_initial ?? defaultValue);
+          query != null
+            ? Number(query)
+            : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
           Option.from(id)
@@ -152,10 +163,11 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
 export const colorParser = (cfg: ValueConfig<string>) => {
   const defaultValue = cfg.default ?? "000000";
   return valueParser<string>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
       serialise: shortUrl =>
-        getValue() === defaultValue
+        getValue() ===
+        (externalCfg != null ? externalCfg.default : defaultValue)
           ? null
           : shortUrl
             ? intToB64(parseInt(getValue(), 16))
@@ -170,7 +182,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
             ? shortUrl
               ? b64ToInt(query).toString(16)
               : query.toUpperCase()
-            : (_initial ?? defaultValue);
+            : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
           Option.from(id)
@@ -198,9 +210,13 @@ export const colorParser = (cfg: ValueConfig<string>) => {
 export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
   const defaultValue = cfg.default ?? "";
   return valueParser<string>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
-      serialise: () => (getValue() !== defaultValue ? getValue() : null),
+      serialise: () =>
+        getValue() !==
+        (externalCfg != null ? externalCfg.default : defaultValue)
+          ? getValue()
+          : null,
       updateValue: el => {
         (el as HTMLInputElement | HTMLTextAreaElement).value = getValue();
       },
@@ -213,7 +229,8 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
             .concat(Object.entries(cfg.attrs ?? {}))
         );
 
-        const initial = query ?? _initial ?? defaultValue;
+        const initial =
+          query ?? externalCfg?.initial ?? externalCfg?.default ?? defaultValue;
         const el = dom.toHtml<HTMLInputElement | HTMLTextAreaElement>(
           cfg.area
             ? `<textarea ${attrs}>${initial}</textarea>`
@@ -233,10 +250,13 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
 export const datetimeParser = (cfg: ValueConfig<Date>) => {
   const defaultValue = cfg.default ?? new Date(0);
   return valueParser<Date>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
       serialise: shortUrl =>
-        getValue().getTime() === defaultValue.getTime()
+        getValue().getTime() ===
+        (externalCfg != null
+          ? externalCfg.default.getTime()
+          : defaultValue.getTime())
           ? null
           : shortUrl
             ? intToB64(getValue().getTime())
@@ -249,7 +269,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
         const initial =
           query != null
             ? new Date(shortUrl ? b64ToInt(query) : query)
-            : (_initial ?? defaultValue);
+            : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
           Option.from(id)
@@ -284,15 +304,23 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
   const defaultValue = cfg.default ?? (cfg.options[0] as SelectValue<A>);
 
   return valueParser<SelectValue<A>>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
-      serialise: () => (getValue() !== defaultValue ? getValue() : null),
+      serialise: () =>
+        getValue() !==
+        (externalCfg != null ? externalCfg.default : defaultValue)
+          ? getValue()
+          : null,
       updateValue: el => {
         (el as HTMLSelectElement).value = getValue();
       },
       getValue: el => (el as HTMLSelectElement).value as SelectValue<A>,
       html: (id, query) => {
-        const initial = isOption(query) ? query : (_initial ?? defaultValue);
+        const initial = isOption(query)
+          ? query
+          : isOption(externalCfg?.initial)
+            ? externalCfg.initial
+            : (externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
           Option.from(id)
@@ -322,9 +350,13 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
   const defaultValue = cfg.default ?? "";
   let currentValue = defaultValue;
   return valueParser<string>(
-    (onChange, getValue, _initial) => ({
+    (onChange, getValue, externalCfg) => ({
       default: defaultValue,
-      serialise: () => (getValue() !== defaultValue ? currentValue : null),
+      serialise: () =>
+        getValue() !==
+        (externalCfg != null ? externalCfg.default : defaultValue)
+          ? currentValue
+          : null,
       getValue: () => currentValue,
       updateValue: () => {
         currentValue = getValue();
@@ -344,7 +376,8 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
           <button class="secondary wrap-text">${cfg.text ?? ""}</button>
         </div>`);
 
-        currentValue = query ?? _initial ?? currentValue;
+        currentValue =
+          query ?? externalCfg?.initial ?? externalCfg?.default ?? currentValue;
         const inp = dom.get<HTMLInputElement>("input", el);
         inp.onchange = () => {
           if (inp.files?.[0] != null) {

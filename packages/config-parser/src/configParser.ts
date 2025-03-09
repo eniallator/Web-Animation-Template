@@ -13,13 +13,10 @@ import { configItem, hashString, parseQuery } from "./helpers.ts";
 import {
   AnyStringRecord,
   InitParserObject,
+  ParamConfigOptions,
   State,
   ValueParser,
 } from "./types.ts";
-
-export type ParamConfigOptions = {
-  query?: string;
-} & ({ shortUrl?: false } | { shortUrl: true; hashKeyLength?: number });
 
 export class ParamConfig<const R extends AnyStringRecord> {
   private readonly state: State<R>;
@@ -54,8 +51,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
           this.updates.push(id);
           this.tellListeners();
         },
-        () => this.state[id].value,
-        null
+        () => this.state[id].value
       );
 
       const query = initialValues[this.queryKey(id as string)] ?? null;

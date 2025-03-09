@@ -36,7 +36,7 @@ export type InitParser<P extends Parser<unknown>> = {
   methods: (
     onChange: (value: ParserValue<P>) => void,
     getValue: () => ParserValue<P>,
-    initial: ParserValue<P>
+    initial?: { default: ParserValue<P>; initial: ParserValue<P> | null }
   ) => P;
 };
 
@@ -68,3 +68,7 @@ export interface StateItem<T> {
 export type State<R extends AnyStringRecord> = {
   [K in keyof R]: StateItem<R[K]>;
 };
+
+export type ParamConfigOptions = {
+  query?: string;
+} & ({ shortUrl?: false } | { shortUrl: true; hashKeyLength?: number });

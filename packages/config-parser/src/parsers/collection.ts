@@ -23,6 +23,7 @@ const getRowValues = <const F extends readonly [unknown, ...unknown[]]>(
 const newRow = <const F extends readonly [unknown, ...unknown[]]>({
   queryItems,
   initialItems,
+  itemDefaults,
   getValue,
   onChange,
   initParsers,
@@ -31,6 +32,7 @@ const newRow = <const F extends readonly [unknown, ...unknown[]]>({
 }: {
   queryItems?: (string | null)[];
   initialItems?: F;
+  itemDefaults?: F;
   getValue: () => F;
   onChange: (value: F) => void;
   initParsers: InitValueParserTuple<F>;
@@ -47,7 +49,9 @@ const newRow = <const F extends readonly [unknown, ...unknown[]]>({
         onChange(getValue().with(i, value) as unknown as F);
       },
       () => getValue()[i],
-      initialItems?.[i] ?? null
+      itemDefaults?.[i] != null
+        ? { initial: initialItems?.[i] ?? null, default: itemDefaults[i] }
+        : undefined
     );
     const td = document.createElement("td");
     td.appendChild(parser.html(null, queryItems?.[i] ?? null, shortUrl));
@@ -88,6 +92,7 @@ export const collectionParser = <
       const rows = getValue().map((row, i) =>
         newRow({
           initialItems: row,
+          itemDefaults: cfg.default[i],
           getValue: () => getValue()[i] as F,
           onChange: value => {
             onChange(getValue().with(i, value));
@@ -171,6 +176,7 @@ export const collectionParser = <
         const [el, parsers] = newRow({
           queryItems: queryValues[i],
           initialItems: cfg.default[i],
+          itemDefaults: cfg.default[i],
           getValue: () => getValue()[i] as F,
           onChange: newRow => {
             onChange(getValue().with(i, newRow));

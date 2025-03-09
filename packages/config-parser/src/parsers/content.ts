@@ -17,9 +17,7 @@ export const buttonParser = (cfg: Config & { text?: string }) =>
       );
 
       const el = dom.toHtml(`<button${attrs}>${cfg.text ?? ""}</button>`);
-      el.onclick = () => {
-        onChange(null);
-      };
+      el.onclick = onChange;
       return el;
     },
   }));

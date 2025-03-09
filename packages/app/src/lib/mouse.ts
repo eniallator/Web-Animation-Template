@@ -34,9 +34,8 @@ export default class Mouse {
     const onChange = (cb?: MouseCallback) => (evt: MouseEvent | TouchEvent) => {
       if (isMouseEvent(evt)) {
         this._pos.setHead(evt.clientX, evt.clientY);
-      } else {
-        const touch = evt.touches[0] as Touch;
-        this._pos.setHead(touch.clientX, touch.clientY);
+      } else if (evt.touches[0] != null) {
+        this._pos.setHead(evt.touches[0].clientX, evt.touches[0].clientY);
       }
 
       const { width, height } = element.getBoundingClientRect();
