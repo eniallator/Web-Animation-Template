@@ -1,4 +1,4 @@
-import { raise } from "@web-art/core";
+import { calculateAngle, positiveMod, raise } from "@web-art/core";
 import { isArrayOf, isNumber } from "deep-guards";
 
 import {
@@ -120,7 +120,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   positiveMod(...args: VectorArg<N>[]): this {
-    return this.applyOperation((a, b) => ((a % b) + b) % b, ...args);
+    return this.applyOperation(positiveMod, ...args);
   }
 
   /**
@@ -329,22 +329,9 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} Angle between 0 and 2 * PI
    */
   getAngle(this: Vector<2>): number {
-    if (isSize(2)(this.cmps)) {
-      const [x, y] = this.cmps;
-
-      let out: number;
-      if (x === 0 && y === 0) out = 0;
-      else if (y === 0) out = x > 0 ? 0 : Math.PI;
-      else if (x === 0) out = y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
-      else if (x > 0 && y > 0) out = Math.PI / 2 - Math.atan(x / y);
-      else if (y > 0) out = Math.PI - Math.atan(y / -x);
-      else if (x > 0) out = (Math.PI * 3) / 2 + Math.atan(x / -y);
-      else out = (Math.PI * 3) / 2 - Math.atan(x / y);
-
-      return out;
-    } else {
-      throw new IncompatibleOperation("Requires a 2D vector");
-    }
+    return isSize(2)(this.cmps)
+      ? calculateAngle(...this.cmps)
+      : raise(new IncompatibleOperation("Requires a 2D vector"));
   }
 
   /**
@@ -381,16 +368,9 @@ export class Vector<const N extends number | undefined = undefined> {
         const [px, py] = pivot.cmps;
         const dx = x - px;
         const dy = y - py;
-        const dMag = Math.sqrt(dx * dx + dy * dy);
 
-        let currAngle: number;
-        if (x === 0 && y === 0) currAngle = 0;
-        else if (y === 0) currAngle = x > 0 ? 0 : Math.PI;
-        else if (x === 0) currAngle = y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
-        else if (x > 0 && y > 0) currAngle = Math.PI / 2 - Math.atan(x / y);
-        else if (y > 0) currAngle = Math.PI - Math.atan(y / -x);
-        else if (x > 0) currAngle = (Math.PI * 3) / 2 + Math.atan(x / -y);
-        else currAngle = (Math.PI * 3) / 2 - Math.atan(x / y);
+        const dMag = Math.sqrt(dx * dx + dy * dy);
+        const currAngle = calculateAngle(x, y);
 
         const oX = dMag * Math.cos(currAngle + angle);
         const oY = dMag * Math.sin(currAngle + angle);

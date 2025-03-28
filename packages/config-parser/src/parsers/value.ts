@@ -4,7 +4,6 @@ import {
   formatDate,
   formatIsoDate,
   intToB64,
-  Option,
   tuple,
 } from "@web-art/core";
 import { isOneOf, isString } from "deep-guards";
@@ -37,13 +36,10 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(
-              Object.entries(cfg.attrs ?? {}),
-              initial ? [tuple("checked", null)] : []
-            )
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(initial ? [tuple("checked", null)] : []),
+            ...(id != null ? [tuple("id", id)] : []),
+          ])
         );
 
         const el = dom.toHtml<HTMLInputElement>(
@@ -95,12 +91,10 @@ export const numberParser = (cfg: ValueConfig<number>) => {
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(Object.entries(cfg.attrs ?? {}), [
-              tuple("value", `${initial}`),
-            ])
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(id != null ? [tuple("id", id)] : []),
+            tuple("value", `${initial}`),
+          ])
         );
 
         const el = dom.toHtml<HTMLInputElement>(
@@ -138,12 +132,10 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(Object.entries(cfg.attrs ?? {}), [
-              tuple("value", `${initial}`),
-            ])
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(id != null ? [tuple("id", id)] : []),
+            tuple("value", `${initial}`),
+          ])
         );
 
         const el = dom.toHtml<HTMLInputElement>(
@@ -185,12 +177,10 @@ export const colorParser = (cfg: ValueConfig<string>) => {
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(Object.entries(cfg.attrs ?? {}), [
-              tuple("value", `#${initial}`),
-            ])
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(id != null ? [tuple("id", id)] : []),
+            tuple("value", `#${initial}`),
+          ])
         );
 
         const el = dom.toHtml<HTMLInputElement>(
@@ -223,10 +213,9 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
       getValue: el => (el as HTMLInputElement | HTMLTextAreaElement).value,
       html: (id, query) => {
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(Object.entries(cfg.attrs ?? {}))
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(id != null ? [tuple("id", id)] : []),
+          ])
         );
 
         const initial =
@@ -272,12 +261,10 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(Object.entries(cfg.attrs ?? {}), [
-              tuple("value", formatDate(initial)),
-            ])
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(id != null ? [tuple("id", id)] : []),
+            tuple("value", formatDate(initial)),
+          ])
         );
 
         const el = dom.toHtml<HTMLInputElement>(
@@ -323,10 +310,10 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
             : (externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(Object.entries(cfg.attrs ?? {}))
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(id != null ? [tuple("id", id)] : []),
+            tuple("value", `${initial}`),
+          ])
         );
 
         const el = dom.toHtml<HTMLSelectElement>(
@@ -334,7 +321,6 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
             .map(opt => `<option value="${opt}">${opt}</option>`)
             .join("")}</select>`
         );
-        el.value = initial;
         el.onchange = () => {
           onChange(el.value as SelectValue<A>);
         };
@@ -363,12 +349,10 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
       },
       html: (id, query) => {
         const attrs = dom.toAttrs(
-          Option.from(id)
-            .map(id => tuple<[string, string | null]>("id", id))
-            .toArray()
-            .concat(Object.entries(cfg.attrs ?? {}), [
-              tuple("style", "display: none;"),
-            ])
+          Object.entries<string | null>(cfg.attrs ?? {}).concat([
+            ...(id != null ? [tuple("id", id)] : []),
+            tuple("style", "display: none;"),
+          ])
         );
 
         const el = dom.toHtml(`<div>
@@ -377,15 +361,14 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
         </div>`);
 
         currentValue =
-          query ?? externalCfg?.initial ?? externalCfg?.default ?? currentValue;
+          query ?? externalCfg?.initial ?? externalCfg?.default ?? defaultValue;
         const inp = dom.get<HTMLInputElement>("input", el);
         inp.onchange = () => {
           if (inp.files?.[0] != null) {
             const reader = new FileReader();
             reader.onload = evt => {
               if (isString(evt.target?.result)) {
-                currentValue = evt.target.result;
-                onChange(evt.target.result);
+                onChange((currentValue = evt.target.result));
               }
             };
             reader.readAsDataURL(inp.files[0]);

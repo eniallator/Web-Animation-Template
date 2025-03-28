@@ -1,5 +1,6 @@
 const BASE_64_CHARS =
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-";
+
 export const intToB64 = (n: number, length?: number): string => {
   let base64 = "";
   n = Math.abs(n);

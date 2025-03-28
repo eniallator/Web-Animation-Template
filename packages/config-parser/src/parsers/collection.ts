@@ -1,5 +1,5 @@
 import { dom, filterAndMap, raise, tuple } from "@web-art/core";
-import { isExact } from "deep-guards";
+import { isExact, isString } from "deep-guards";
 
 import { valueParser } from "../create.ts";
 import { InitValueParserTuple, ValueParserTuple } from "../types.ts";
@@ -67,6 +67,7 @@ interface CollectionConfig<F extends readonly [unknown, ...unknown[]]> {
   initialCollapsed?: boolean;
   fields: InitValueParserTuple<F>;
   default: NoInfer<F>[];
+  attrs?: Record<string, string>;
 }
 
 export const collectionParser = <
@@ -111,8 +112,21 @@ export const collectionParser = <
       const ifExpandable = (html: string) => (expandable ? html : "");
       const colHtml = (title?: string, label?: string) =>
         `<th scope="col" title="${title ?? label ?? ""}">${label ?? ""}</th>`;
+
+      const { class: passedClass, ...rest } = cfg.attrs ?? {};
+      const classValue = [
+        "collection",
+        cfg.initialCollapsed && "collapsed",
+        passedClass != null && passedClass,
+      ]
+        .filter(isString)
+        .join(" ");
+      const attrs = dom.toAttrs(
+        Object.entries(rest).concat([["class", classValue]])
+      );
+
       const baseEl = dom.toHtml(`
-        <div id="${id}" class="collection${cfg.initialCollapsed ? " collapsed" : ""}">
+        <div id="${id}"${attrs}>
           <a class="heading">
             <span class="collection-label">${cfg.label}</span>
             <span class="collection-caret"></span>
@@ -121,7 +135,7 @@ export const collectionParser = <
             <div class="collection-content">
               <table>
                 <thead>
-                  <tr class="wrap-text">
+                  <tr>
                     ${ifExpandable(colHtml("row-select"))}
                     ${cfg.fields.map(({ title, label }) => colHtml(title, label)).join("")}
                   </tr>
@@ -175,7 +189,6 @@ export const collectionParser = <
       fieldParsers = [...new Array<undefined>(numParsers)].map((_, i) => {
         const [el, parsers] = newRow({
           queryItems: queryValues[i],
-          initialItems: cfg.default[i],
           itemDefaults: cfg.default[i],
           getValue: () => getValue()[i] as F,
           onChange: newRow => {
@@ -206,6 +219,7 @@ export const collectionParser = <
           fieldParsers = newValue.map((initial, i) => {
             const [_el, parsers] = newRow({
               initialItems: initial,
+              itemDefaults: cfg.default[i],
               getValue: () => getValue()[i] as F,
               onChange: value => {
                 onChange(getValue().with(i, value));
@@ -224,6 +238,7 @@ export const collectionParser = <
         dom.addListener(addButton, "click", () => {
           const idx = fieldParsers.length;
           const [el, parsers] = newRow({
+            itemDefaults: cfg.default[idx],
             getValue: () => getValue()[idx] as F,
             onChange: value => {
               onChange(getValue().with(idx, value));

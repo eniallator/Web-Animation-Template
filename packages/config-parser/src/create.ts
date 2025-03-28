@@ -14,7 +14,7 @@ export const valueParser = <T>(
   init: (
     onChange: (value: T) => void,
     getValue: () => T,
-    initial?: { default: T; initial: T | null }
+    initial?: { initial: T | null; default: T }
   ) => Omit<ValueParser<T>, "type">,
   label?: string,
   title?: string
@@ -25,14 +25,14 @@ export const valueParser = <T>(
 });
 
 export const contentParser = (
-  init: (onChange: () => void) => Omit<ContentParser, "type">,
+  initHtml: (onChange: () => void) => ContentParser["html"],
   label?: string,
   title?: string
 ): InitParser<ContentParser> => ({
   label,
   title,
   methods: onChange => ({
-    ...init(() => {
+    html: initHtml(() => {
       onChange(null);
     }),
     type: "Content",

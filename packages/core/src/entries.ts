@@ -1,10 +1,12 @@
 export type Entry<O extends object> = [keyof O, O[keyof O]];
 
-export const typedToEntries = <O extends object>(obj: O): Entry<O>[] =>
-  Object.entries(obj) as Entry<O>[];
+export const typedToEntries = <O extends object>(
+  obj: O
+): [keyof O, O[keyof O]][] => Object.entries(obj) as [keyof O, O[keyof O]][];
 
-export const typedFromEntries = <O extends object>(entries: Entry<O>[]): O =>
-  Object.fromEntries(entries) as O;
+export const typedFromEntries = <O extends object>(
+  entries: [keyof O, O[keyof O]][]
+): O => Object.fromEntries(entries) as O;
 
 export const mapObject = <I extends object, O extends object>(
   obj: I,

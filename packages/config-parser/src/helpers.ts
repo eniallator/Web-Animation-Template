@@ -6,15 +6,15 @@ export const configItem = (
   label?: string,
   title?: string
 ): HTMLElement => {
-  const labelStr =
-    label != null
-      ? `<label for="${id}" class="wrap-text">${label}</label>`
-      : "";
-  const labelAttr =
-    (title ?? label) != null ? ` title="${title ?? label}"` : "";
-  const itemEl = dom.toHtml(
-    `<div class="config-item"${labelAttr}>${labelStr}</div>`
-  );
+  const itemEl = dom.toHtml(`
+    <div class="config-item"${
+      (title ?? label) != null ? ` title="${title ?? label}"` : ""
+    }>${
+      label != null
+        ? `<label for="${id}" class="wrap-text">${label}</label>`
+        : ""
+    }</div>`);
+
   itemEl.appendChild(el);
   return itemEl;
 };
@@ -42,8 +42,9 @@ export const parseQuery = (
   let tokens;
   while ((tokens = queryRegex.exec(query)) != null) {
     const [_, key, value] = tokens;
-    if (key != null && value != null)
+    if (key != null && value != null) {
       queryEntries.push([key, decodeURIComponent(value)]);
+    }
   }
 
   return Object.fromEntries(queryEntries);

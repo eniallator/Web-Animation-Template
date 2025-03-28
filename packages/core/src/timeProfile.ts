@@ -145,14 +145,13 @@ export class TimeProfile {
     minDebugLevel: number,
     targetName: string
   ): F | null {
-    const stats: TimeableStats = TimeProfile.methodTimes[targetName]?.[
+    TimeProfile.methodTimes[targetName] =
+      TimeProfile.methodTimes[targetName] ?? {};
+
+    const stats: TimeableStats = TimeProfile.methodTimes[targetName][
       methodName
     ] ?? { minDebugLevel, calls: 0, totalExecutionTime: 0, setup: false };
-
-    TimeProfile.methodTimes[targetName] = {
-      ...(TimeProfile.methodTimes[targetName] ?? {}),
-      [methodName]: stats,
-    };
+    TimeProfile.methodTimes[targetName][methodName] = stats;
 
     if (minDebugLevel < stats.minDebugLevel) {
       stats.minDebugLevel = minDebugLevel;

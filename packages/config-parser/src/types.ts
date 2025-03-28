@@ -36,7 +36,7 @@ export type InitParser<P extends Parser<unknown>> = {
   methods: (
     onChange: (value: ParserValue<P>) => void,
     getValue: () => ParserValue<P>,
-    initial?: { default: ParserValue<P>; initial: ParserValue<P> | null }
+    initial?: { initial: ParserValue<P> | null; default: ParserValue<P> }
   ) => P;
 };
 
