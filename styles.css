@@ -270,6 +270,13 @@ canvas {
   overflow-x: auto;
 }
 
+.collection-content thead tr {
+  max-width: 100%;
+  white-space: wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
 .collection-actions {
   width: 100%;
   display: flex;
