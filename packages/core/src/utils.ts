@@ -45,11 +45,9 @@ export const filterAndMap = <I, O>(
   ) => Option<O> | O | null | undefined
 ): O[] =>
   arr.reduce((acc: O[], item, i, arr) => {
-    const mappedOrOpt = mapper(item, i, arr);
-    const mapped = isOption(mappedOrOpt)
-      ? mappedOrOpt.getOrNull()
-      : mappedOrOpt;
-    return mapped != null ? [...acc, mapped] : acc;
+    const outOrOpt = mapper(item, i, arr);
+    const out = isOption(outOrOpt) ? outOrOpt.getOrNull() : outOrOpt;
+    return out != null ? [...acc, out] : acc;
   }, []);
 
 export const findAndMap = <I, O>(
@@ -61,11 +59,9 @@ export const findAndMap = <I, O>(
   ) => Option<O> | O | null | undefined
 ): O | null => {
   for (let i = 0; i < arr.length; i++) {
-    const mappedOrOpt = mapper(arr[i] as I, i, arr);
-    const mapped = isOption(mappedOrOpt)
-      ? mappedOrOpt.getOrNull()
-      : mappedOrOpt;
-    if (mapped != null) return mapped;
+    const outOrOpt = mapper(arr[i] as I, i, arr);
+    const out = isOption(outOrOpt) ? outOrOpt.getOrNull() : outOrOpt;
+    if (out != null) return out;
   }
   return null;
 };
