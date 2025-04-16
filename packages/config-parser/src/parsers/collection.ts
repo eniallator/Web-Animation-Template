@@ -2,7 +2,8 @@ import { dom, filterAndMap, raise, tuple } from "@web-art/core";
 import { isExact, isString } from "deep-guards";
 
 import { valueParser } from "../create.ts";
-import { InitValueParserTuple, ValueParserTuple } from "../types.ts";
+
+import type { InitValueParserTuple, ValueParserTuple } from "../types.ts";
 
 const noItemErr = () =>
   new Error("Did not find an item element when getting a collections values");

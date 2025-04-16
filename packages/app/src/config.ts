@@ -7,11 +7,12 @@ import {
   datetimeParser,
   fileParser,
   numberParser,
-  ParamConfigOptions,
   rangeParser,
   selectParser,
   textParser,
 } from "@web-art/config-parser";
+
+import type { ParamConfigOptions } from "@web-art/config-parser";
 
 export const options: ParamConfigOptions = { shortUrl: false };
 export const config = createParsers({

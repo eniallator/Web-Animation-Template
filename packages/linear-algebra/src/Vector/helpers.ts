@@ -1,8 +1,10 @@
 import { raise } from "@web-art/core";
-import { Guard, isArrayOf, isNumber } from "deep-guards";
+import { isArrayOf, isNumber } from "deep-guards";
 
 import { Vector } from "./index.ts";
-import { AnyComponents, Components, VectorArg } from "./types.ts";
+
+import type { Guard } from "deep-guards";
+import type { AnyComponents, Components, VectorArg } from "./types.ts";
 
 export const isAnyComponents = (value: unknown): value is AnyComponents =>
   isArrayOf(isNumber)(value) && value.length >= 1;
@@ -12,9 +14,9 @@ export const toAnyComponents = (components: AnyComponents) => components;
 export const isAnyVector: Guard<Vector> = value => value instanceof Vector;
 
 export const isVector =
-  <N extends number | undefined>(n: N) =>
+  <N extends number | undefined>(size: N) =>
   (value: unknown): value is Vector<N> =>
-    isAnyVector(value) && (n === undefined || value.size() === n);
+    isAnyVector(value) && (size === undefined || value.size() === size);
 
 export const isSize =
   <const N extends number>(size: N) =>

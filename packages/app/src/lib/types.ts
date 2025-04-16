@@ -1,10 +1,9 @@
-import {
+import type {
   InitParserObject,
   InitParserValues,
   ParamConfig,
 } from "@web-art/config-parser";
-
-import Mouse from "./mouse";
+import type Mouse from "./mouse";
 
 export interface Time {
   lastFrame: number;
@@ -22,54 +21,33 @@ export interface AppContext<O extends InitParserObject> {
 }
 
 export interface AppContextWithState<
-  R extends InitParserObject,
-  S extends object,
-> extends AppContext<R> {
-  state: S;
-}
-
-export interface StatefulAppMethods<
   O extends InitParserObject,
-  S extends object,
-> {
-  type: "stateful";
-  init: (this: StatefulAppMethods<O, S>, appContext: AppContext<O>) => S;
-  animationFrame?: (
-    this: StatefulAppMethods<O, S>,
-    appContext: AppContextWithState<O, S>
-    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-  ) => S | null | undefined | void;
-  onResize?: (
-    this: StatefulAppMethods<O, S>,
-    evt: UIEvent,
-    appContext: AppContextWithState<O, S>
-    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-  ) => S | null | undefined | void;
+  S extends object | null,
+> extends AppContext<O> {
+  getState: () => S;
+  setState: (state: S) => void;
 }
 
-export interface StatelessAppMethods<O extends InitParserObject> {
-  type: "stateless";
-  init?: (this: StatelessAppMethods<O>, appContext: AppContext<O>) => void;
+export type AppMethods<
+  O extends InitParserObject,
+  S extends object | null,
+> = (S extends null
+  ? { init: (this: AppMethods<O, S>, appContext: AppContext<O>) => void }
+  : { init: (this: AppMethods<O, S>, appContext: AppContext<O>) => S }) & {
   animationFrame?: (
-    this: StatelessAppMethods<O>,
-    appContext: AppContext<O>
+    this: AppMethods<O, S>,
+    appContext: AppContextWithState<O, S>
   ) => void;
   onResize?: (
-    this: StatelessAppMethods<O>,
+    this: AppMethods<O, S>,
     evt: UIEvent,
-    appContext: AppContext<O>
+    appContext: AppContextWithState<O, S>
   ) => void;
-}
-
-export type AppMethods<O extends InitParserObject, S extends object = never> =
-  | StatefulAppMethods<O, S>
-  | StatelessAppMethods<O>;
-
-export const appMethods = {
-  stateful: <O extends InitParserObject, const S extends object>(
-    methods: Omit<StatefulAppMethods<O, S>, "type">
-  ): AppMethods<O, S> => ({ type: "stateful", ...methods }),
-  stateless: <O extends InitParserObject>(
-    methods: Omit<StatelessAppMethods<O>, "type">
-  ): AppMethods<O> => ({ type: "stateless", ...methods }),
 };
+
+export const appMethods = <
+  O extends InitParserObject,
+  const S extends object | null = null,
+>(
+  methods: AppMethods<O, S>
+): AppMethods<O, S> => methods;

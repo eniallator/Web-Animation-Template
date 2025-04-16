@@ -4,12 +4,8 @@ import { dom, raise } from "@web-art/core";
 import app from ".";
 import { config, options } from "./config";
 import Mouse from "./lib/mouse";
-import {
-  AppContext,
-  AppContextWithState,
-  StatefulAppMethods,
-  StatelessAppMethods,
-} from "./lib/types";
+
+import type { AppContext, AppContextWithState } from "./lib/types";
 
 dom.addListener(dom.get("#download-btn"), "click", () => {
   const anchor = document.createElement("a");
@@ -66,56 +62,30 @@ const appContext: AppContext<typeof config> = {
   ctx,
 };
 
-const initStateful = <S extends object>(
-  app: StatefulAppMethods<typeof config, S>
-) => {
-  const statefulContext: AppContextWithState<typeof config, S> = {
-    ...appContext,
-    state: app.init(appContext),
-  };
-
-  window.onresize = evt => {
-    updateCanvasBounds(canvas);
-    statefulContext.state =
-      app.onResize?.(evt, statefulContext) ?? statefulContext.state;
-  };
-
-  const animate = () => {
-    if (app.animationFrame != null) {
-      const { time } = statefulContext;
-      time.lastFrame = time.now;
-      time.now = Date.now() / 1000;
-      time.delta = time.now - time.lastFrame;
-
-      statefulContext.state =
-        app.animationFrame(statefulContext) ?? statefulContext.state;
-      requestAnimationFrame(animate);
-    }
-  };
-  animate();
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-confusing-void-expression
+let state = app.init(appContext) ?? null;
+const statefulContext: AppContextWithState<typeof config, typeof state> = {
+  ...appContext,
+  getState: () => state,
+  setState: newState => {
+    state = newState;
+  },
 };
 
-const initStateLess = (app: StatelessAppMethods<typeof config>) => {
-  app.init?.(appContext);
-
-  window.onresize = evt => {
-    updateCanvasBounds(canvas);
-    app.onResize?.(evt, appContext);
-  };
-
-  const animate = () => {
-    if (app.animationFrame != null) {
-      const { time } = appContext;
-      time.lastFrame = time.now;
-      time.now = Date.now() / 1000;
-      time.delta = time.now - time.lastFrame;
-
-      app.animationFrame(appContext);
-      requestAnimationFrame(animate);
-    }
-  };
-  animate();
+window.onresize = evt => {
+  updateCanvasBounds(canvas);
+  app.onResize?.(evt, statefulContext);
 };
 
-if (app.type === "stateful") initStateful(app);
-else initStateLess(app);
+const animate = () => {
+  if (app.animationFrame != null) {
+    const { time } = statefulContext;
+    time.lastFrame = time.now;
+    time.now = Date.now() / 1000;
+    time.delta = time.now - time.lastFrame;
+
+    app.animationFrame(statefulContext);
+    requestAnimationFrame(animate);
+  }
+};
+animate();

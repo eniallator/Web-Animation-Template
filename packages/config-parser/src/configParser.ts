@@ -1,6 +1,5 @@
 import {
   dom,
-  Entry,
   filterAndMap,
   intToB64,
   mapObject,
@@ -10,7 +9,9 @@ import {
 } from "@web-art/core";
 
 import { configItem, hashString, parseQuery } from "./helpers.ts";
-import {
+
+import type { Entry } from "@web-art/core";
+import type {
   AnyStringRecord,
   InitParserObject,
   ParamConfigOptions,
@@ -21,9 +22,8 @@ import {
 export class ParamConfig<const R extends AnyStringRecord> {
   private readonly state: State<R>;
   private readonly shortUrl: boolean;
-  private readonly updates: (keyof R)[];
   private readonly listeners: {
-    callback: (values: R, updates: (keyof R)[]) => void;
+    callback: (values: R, updatedId?: keyof R) => void;
     subscriptions: Set<keyof R>;
   }[];
   private readonly extraValue: string | undefined;
@@ -38,7 +38,6 @@ export class ParamConfig<const R extends AnyStringRecord> {
     this.shortUrl = shortUrl;
     this.hashKeyLength = (options.shortUrl ? options.hashKeyLength : null) ?? 6;
     this.listeners = [];
-    this.updates = [];
 
     const initialValues = parseQuery(query, this.shortUrl, this.hashKeyLength);
     this.extraValue = initialValues[this.queryKey("extra")];
@@ -48,8 +47,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
       const parser = methods(
         value => {
           if (value != null) this.state[id].value = value as R[keyof R];
-          this.updates.push(id);
-          this.tellListeners();
+          this.tellListeners(id);
         },
         () => this.state[id].value
       );
@@ -62,6 +60,12 @@ export class ParamConfig<const R extends AnyStringRecord> {
 
       return tuple(id, { parser, el, value });
     });
+  }
+
+  getAllValues(): R {
+    return mapObject(this.state, ([id, { value }]) =>
+      tuple(id, structuredClone(value))
+    );
   }
 
   getValue<I extends keyof R>(id: I): R[I] {
@@ -79,32 +83,22 @@ export class ParamConfig<const R extends AnyStringRecord> {
   }
 
   addListener(
-    callback: (values: R, updates: (keyof R)[]) => void,
+    callback: (values: R, updatedId?: keyof R) => void,
     subscriptions: (keyof R)[] = []
   ): void {
     this.listeners.push({ callback, subscriptions: new Set(subscriptions) });
   }
 
-  tellListeners(force: boolean = false): void {
-    if (force || this.updates.length > 0) {
-      (force
-        ? this.listeners
-        : this.listeners.filter(
-            ({ subscriptions }) =>
-              subscriptions.size === 0 ||
-              this.updates.some(update => subscriptions.has(update))
-          )
-      ).forEach(({ callback }) => {
-        callback(this.getAllValues(), [...this.updates]);
-      });
-      this.updates.length = 0;
-    }
-  }
-
-  getAllValues(): R {
-    return mapObject(this.state, ([id, { value }]) =>
-      tuple(id, structuredClone(value))
-    );
+  tellListeners(id?: keyof R): void {
+    (id == null
+      ? this.listeners
+      : this.listeners.filter(
+          ({ subscriptions }) =>
+            subscriptions.size === 0 || subscriptions.has(id)
+        )
+    ).forEach(({ callback }) => {
+      callback(this.getAllValues(), id);
+    });
   }
 
   serialiseToUrlParams(extra?: string): string {

@@ -9,17 +9,11 @@ import {
 import { raise } from "./utils.ts";
 
 class IndexError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "IndexError";
-  }
+  name = "IndexError" as const;
 }
 
 class AuditError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AuditError";
-  }
+  name = "AuditError" as const;
 }
 
 interface Timeable {

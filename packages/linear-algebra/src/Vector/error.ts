@@ -1,20 +1,25 @@
 export class IncompatibleVector extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "IncompatibleVector";
-  }
+  name = "IncompatibleVector" as const;
 }
+
+export const incompatibleVector = (size: number): IncompatibleVector =>
+  new IncompatibleVector(`Incompatible vector of size ${size}`);
 
 export class IncompatibleOperation extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "IncompatibleOperation";
-  }
+  name = "IncompatibleOperation" as const;
 }
 
+export const incompatibleOperation = (
+  size: number,
+  isMin: boolean = false
+): IncompatibleOperation =>
+  new IncompatibleOperation(
+    `Requires ${isMin ? "atleast " : ""}a ${size}D vector`
+  );
+
 export class OutOfBounds extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "OutOfBounds";
-  }
+  name = "OutOfBounds" as const;
 }
+
+export const outOfBounds = (index: number, size: number): OutOfBounds =>
+  new OutOfBounds(`Index ${index} out of bounds for vector of size ${size}`);

@@ -1,4 +1,4 @@
-import { Vector } from "./index.ts";
+import type { Vector } from "./index.ts";
 
 type RecursionLimit = 501;
 

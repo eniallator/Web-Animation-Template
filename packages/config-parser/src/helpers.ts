@@ -8,11 +8,9 @@ export const configItem = (
 ): HTMLElement => {
   const itemEl = dom.toHtml(`
     <div class="config-item"${
-      (title ?? label) != null ? ` title="${title ?? label}"` : ""
+      (title ?? label) ? ` title="${title ?? label}"` : ""
     }>${
-      label != null
-        ? `<label for="${id}" class="wrap-text">${label}</label>`
-        : ""
+      label ? `<label for="${id}" class="wrap-text">${label}</label>` : ""
     }</div>`);
 
   itemEl.appendChild(el);

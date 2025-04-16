@@ -1,6 +1,6 @@
-import { Guard } from "deep-guards";
-
 import { Option } from "./option.ts";
+
+import type { Guard } from "deep-guards";
 
 export const tuple = <const T extends unknown[]>(...tuple: T): T => tuple;
 
@@ -30,8 +30,8 @@ export const calculateAngle = (x: number, y: number) => {
   else if (y === 0) return x > 0 ? 0 : Math.PI;
   else if (x === 0) return y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
   else if (x > 0 && y > 0) return Math.PI / 2 - Math.atan(x / y);
-  else if (y > 0) return Math.PI - Math.atan(y / -x);
   else if (x > 0) return (Math.PI * 3) / 2 + Math.atan(x / -y);
+  else if (y > 0) return Math.PI - Math.atan(y / -x);
   else return (Math.PI * 3) / 2 - Math.atan(x / y);
 };
 

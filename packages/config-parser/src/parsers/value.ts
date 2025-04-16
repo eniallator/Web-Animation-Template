@@ -9,7 +9,8 @@ import {
 import { isOneOf, isString } from "deep-guards";
 
 import { valueParser } from "../create.ts";
-import { ValueConfig } from "../types.ts";
+
+import type { ValueConfig } from "../types.ts";
 
 export const checkboxParser = (cfg: ValueConfig<boolean>) => {
   const defaultValue = cfg.default ?? false;
