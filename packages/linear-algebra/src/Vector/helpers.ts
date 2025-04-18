@@ -1,10 +1,9 @@
-import { raise } from "@web-art/core";
 import { isArrayOf, isNumber } from "deep-guards";
 
 import { Vector } from "./index.ts";
 
 import type { Guard } from "deep-guards";
-import type { AnyComponents, Components, VectorArg } from "./types.ts";
+import type { AnyComponents, Components } from "./types.ts";
 
 export const isAnyComponents = (value: unknown): value is AnyComponents =>
   isArrayOf(isNumber)(value) && value.length >= 1;
@@ -30,13 +29,3 @@ export const isSameSize = <
   a: Vector<A>,
   b: Vector<B>
 ): boolean => a.size() === b.size();
-
-export const vectorArgAccessor = <N extends number | undefined>(
-  arg: VectorArg<N>,
-  size: N
-): ((i: number) => number) =>
-  isNumber(arg)
-    ? () => arg
-    : isVector(size)(arg)
-      ? i => arg.valueOf(i)
-      : raise(new Error(`Unknown vector argument ${arg}`));

@@ -2,30 +2,29 @@ import { Option } from "./option.ts";
 
 import type { Guard } from "deep-guards";
 
-export const tuple = <const T extends unknown[]>(...tuple: T): T => tuple;
+export const tuple = <const T extends unknown[]>(...tuple: T) => tuple;
 
-export const positiveMod = (a: number, b: number): number => ((a % b) + b) % b;
+export const positiveMod = (a: number, b: number) => ((a % b) + b) % b;
 
 export const raise = (error: Error): never => {
   throw error;
 };
 
-export const checkExhausted = (value: never): never => {
-  throw new Error(`Value not exhausted: ${JSON.stringify(value)}`);
-};
+export const checkExhausted = (value: never) =>
+  raise(new Error(`Value not exhausted: ${JSON.stringify(value)}`));
 
 export const formatIsoDate = (date: Date) =>
   date.toISOString().replace(/z.*$/i, "");
 
-export const formatDate = (date: Date): string =>
+export const formatDate = (date: Date) =>
   date
     .toLocaleString()
     .replace(
-      /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>\d+:\d+:\d+).*/,
+      /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>[:\d]+).*/,
       "$<y>-$<m>-$<d>T$<t>"
     );
 
-export const calculateAngle = (x: number, y: number) => {
+export const calculateAngle = (x: number, y: number): number => {
   if (x === 0 && y === 0) return 0;
   else if (y === 0) return x > 0 ? 0 : Math.PI;
   else if (x === 0) return y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
@@ -34,6 +33,12 @@ export const calculateAngle = (x: number, y: number) => {
   else if (y > 0) return Math.PI - Math.atan(y / -x);
   else return (Math.PI * 3) / 2 - Math.atan(x / y);
 };
+
+export const cartesianToPolar = (x: number, y: number) =>
+  tuple(Math.hypot(x, y), calculateAngle(x, y));
+
+export const polarToCartesian = (magnitude: number, angle: number) =>
+  tuple(magnitude * Math.cos(angle), magnitude * Math.sin(angle));
 
 const isOption: Guard<Option<unknown>> = value => value instanceof Option;
 export const filterAndMap = <I, O>(

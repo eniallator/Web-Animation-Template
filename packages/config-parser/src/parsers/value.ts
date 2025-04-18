@@ -1,10 +1,10 @@
 import {
-  b64ToInt,
+  b64ToUint,
   dom,
   formatDate,
   formatIsoDate,
-  intToB64,
   tuple,
+  uintToB64,
 } from "@web-art/core";
 import { isOneOf, isString } from "deep-guards";
 
@@ -163,7 +163,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
         (externalCfg != null ? externalCfg.default : defaultValue)
           ? null
           : shortUrl
-            ? intToB64(parseInt(getValue(), 16))
+            ? uintToB64(Math.abs(parseInt(getValue(), 16)))
             : getValue(),
       updateValue: el => {
         (el as HTMLInputElement).value = `#${getValue()}`;
@@ -173,7 +173,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
         const initial =
           query != null
             ? shortUrl
-              ? b64ToInt(query).toString(16)
+              ? b64ToUint(query).toString(16)
               : query.toUpperCase()
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
@@ -249,7 +249,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
           : defaultValue.getTime())
           ? null
           : shortUrl
-            ? intToB64(getValue().getTime())
+            ? uintToB64(getValue().getTime())
             : formatIsoDate(getValue()),
       updateValue: el => {
         (el as HTMLInputElement).value = formatDate(getValue());
@@ -258,7 +258,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
       html: (id, query, shortUrl) => {
         const initial =
           query != null
-            ? new Date(shortUrl ? b64ToInt(query) : query)
+            ? new Date(shortUrl ? b64ToUint(query) : query)
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(

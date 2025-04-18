@@ -12,6 +12,9 @@ class IndexError extends Error {
   name = "IndexError" as const;
 }
 
+const targetError = new IndexError("Target does not exist");
+const methodError = new IndexError("Method name does not exist on target");
+
 class AuditError extends Error {
   name = "AuditError" as const;
 }
@@ -47,12 +50,24 @@ const hasPrototype = isUnionOf(
 
 export class TimeProfile {
   private static readonly methods: Timeable[] = [];
-  private static methodTimes: Record<string, Record<string, TimeableStats>> =
-    {};
+  private static readonly methodTimes: Record<
+    string,
+    Record<string, TimeableStats>
+  > = {};
 
-  private recordedStats: Record<string, Record<string, Stats>> | null = null;
   private readonly debugLevel: number;
+  private recordedStats: Record<string, Record<string, Stats>> | null = null;
   private auditing: boolean = false;
+
+  private static safeMethodTimes(
+    target: string,
+    methodName: string
+  ): TimeableStats {
+    return (
+      (this.methodTimes[target] ?? raise(targetError))[methodName] ??
+      raise(methodError)
+    );
+  }
 
   /**
    * Registers a class for analyzing execution time
@@ -139,13 +154,14 @@ export class TimeProfile {
     minDebugLevel: number,
     targetName: string
   ): F | null {
-    TimeProfile.methodTimes[targetName] =
-      TimeProfile.methodTimes[targetName] ?? {};
-
-    const stats: TimeableStats = TimeProfile.methodTimes[targetName][
-      methodName
-    ] ?? { minDebugLevel, calls: 0, totalExecutionTime: 0, setup: false };
-    TimeProfile.methodTimes[targetName][methodName] = stats;
+    TimeProfile.methodTimes[targetName] ??= {};
+    TimeProfile.methodTimes[targetName][methodName] ??= {
+      minDebugLevel,
+      calls: 0,
+      totalExecutionTime: 0,
+      setup: false,
+    };
+    const stats = TimeProfile.methodTimes[targetName][methodName];
 
     if (minDebugLevel < stats.minDebugLevel) {
       stats.minDebugLevel = minDebugLevel;
@@ -197,15 +213,11 @@ export class TimeProfile {
             [methodName]: {
               ...methodStats,
               calls:
-                (
-                  TimeProfile.methodTimes[targetName]?.[methodName] ??
-                  raise(new Error("Something went wrong"))
-                ).calls - methodStats.calls,
+                TimeProfile.safeMethodTimes(targetName, methodName).calls -
+                methodStats.calls,
               totalExecutionTime:
-                (
-                  TimeProfile.methodTimes[targetName]?.[methodName] ??
-                  raise(new Error("Something went wrong"))
-                ).totalExecutionTime - methodStats.totalExecutionTime,
+                TimeProfile.safeMethodTimes(targetName, methodName)
+                  .totalExecutionTime - methodStats.totalExecutionTime,
             },
           };
         }
@@ -215,21 +227,28 @@ export class TimeProfile {
   }
 
   /**
-   * Performs an audit on a given function
-   * @param {function():Promise<void>} func Runs the function and then gets the stats for the function
-   * @returns {TimeAudit} Result of the audit
-   * @throws {AuditError} If there is an audit already going on
+   * Starts auditing, later to be retrieved with endAudit
    */
-  async audit(func: () => Promise<void>): Promise<TimeAudit> {
+  startAudit(): void {
     if (this.auditing) {
       throw new AuditError(
         "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
-
     this.auditing = true;
     this.recordCurrentStats();
-    await func();
+  }
+
+  /**
+   * Ends auditing, which was started with startAudit.
+   * @returns {TimeAudit} Stats generated between the startAudit and endAudit calls
+   */
+  endAudit(): TimeAudit {
+    if (!this.auditing) {
+      throw new AuditError(
+        "You must call startAudit before endAudit is called."
+      );
+    }
     const stats = this.generateStats();
     this.auditing = false;
 
@@ -238,24 +257,26 @@ export class TimeProfile {
 
   /**
    * Performs an audit on a given function
+   * @param {function():Promise<void>} func Runs the function and then gets the stats for the function
+   * @returns {TimeAudit} Result of the audit
+   * @throws {AuditError} If there is an audit already going on
+   */
+  async audit(func: () => Promise<void>): Promise<TimeAudit> {
+    this.startAudit();
+    await func();
+    return this.endAudit();
+  }
+
+  /**
+   * Performs an audit on a given function
    * @param {function():void} func Runs the function and then gets the stats for the function
    * @returns {TimeAudit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */
-  auditFunc(func: () => void): TimeAudit {
-    if (this.auditing) {
-      throw new AuditError(
-        "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
-      );
-    }
-
-    this.auditing = true;
-    this.recordCurrentStats();
+  auditSync(func: () => void): TimeAudit {
+    this.startAudit();
     func();
-    const stats = this.generateStats();
-    this.auditing = false;
-
-    return new TimeAudit(stats);
+    return this.endAudit();
   }
 }
 
@@ -268,9 +289,8 @@ class TimeAudit {
 
   private safeAccessStats(target: string, methodName: string): Stats {
     return (
-      (this.allStats[target] ?? raise(new IndexError("Target does not exist")))[
-        methodName
-      ] ?? raise(new IndexError("Method name does not exist on target"))
+      (this.allStats[target] ?? raise(targetError))[methodName] ??
+      raise(methodError)
     );
   }
 
@@ -300,9 +320,8 @@ class TimeAudit {
    * @yields {string} Current methodName
    */
   *methodNames(target: string): Generator<string> {
-    for (const methodName of Object.keys(
-      this.allStats[target] ?? raise(new IndexError("Target does not exist"))
-    )) {
+    const methods = this.allStats[target] ?? raise(targetError);
+    for (const methodName of Object.keys(methods)) {
       yield methodName;
     }
   }
@@ -337,21 +356,21 @@ class TimeAudit {
           (acc, [methodName, stats]) =>
             stats.calls > 0
               ? acc +
-                `  - ${methodName} Calls: ${stats.calls.toExponential(
-                  digits
-                )} Total Execution Time: ${stats.totalExecutionTime.toExponential(
-                  digits
-                )}ms Average Execution Time ${(
-                  stats.totalExecutionTime / stats.calls
-                ).toExponential(digits)}ms\n`
+                `  - ${methodName} Calls:` +
+                stats.calls.toExponential(digits) +
+                " Total Execution Time: " +
+                stats.totalExecutionTime.toExponential(digits) +
+                "ms Average Execution Time " +
+                (stats.totalExecutionTime / stats.calls).toExponential(digits) +
+                "ms\n"
               : acc,
           ""
         );
+
         return targetStats !== ""
           ? fullStr +
               (fullStr !== "" ? "\n\n" : "") +
-              `===== ${target} =====\n` +
-              targetStats
+              `===== ${target} =====\n${targetStats}`
           : fullStr;
       },
       ""
