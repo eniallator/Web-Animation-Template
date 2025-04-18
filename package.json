@@ -27,6 +27,7 @@
   "scripts": {
     "app": "yarn workspace @web-art/app",
     "core": "yarn workspace @web-art/core",
+    "prof": "yarn workspace @web-art/profile",
     "conf": "yarn workspace @web-art/config-parser",
     "linalg": "yarn workspace @web-art/linear-algebra",
     "build": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run build",

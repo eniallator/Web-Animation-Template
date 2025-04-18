@@ -1,0 +1,37 @@
+{
+  "author": "eniallator",
+  "description": "Time profiling module for my web art",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "name": "@web-art/profile",
+  "packageManager": "yarn@3.8.2",
+  "private": true,
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "version": "1.0.0",
+  "dependencies": {
+    "@web-art/core": "^workspace:",
+    "deep-guards": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/eslint": "^9.6.1",
+    "@typescript-eslint/eslint-plugin": "^8.30.1",
+    "@typescript-eslint/parser": "^8.30.1",
+    "eslint": "^9.24.0",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.6",
+    "prettier": "^3.5.3",
+    "strip-ansi": "^7.1.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ./src/**/*.ts",
+    "findissues": "yarn typecheck && yarn lint",
+    "prepublish": "yarn build && yarn typecheck && yarn lint"
+  }
+}

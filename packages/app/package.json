@@ -13,6 +13,7 @@
     "@web-art/config-parser": "^workspace:",
     "@web-art/core": "^workspace:",
     "@web-art/linear-algebra": "^workspace:",
+    "@web-art/profile": "^workspace:",
     "deep-guards": "^1.0.5"
   },
   "devDependencies": {
