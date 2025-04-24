@@ -1,3 +1,6 @@
+export const typedKeys = <O extends object>(obj: O): (keyof O)[] =>
+  Object.keys(obj) as (keyof O)[];
+
 export type Entry<O extends object> = [keyof O, O[keyof O]];
 
 export const typedToEntries = <O extends object>(

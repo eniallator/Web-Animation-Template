@@ -1,4 +1,4 @@
-import { raise } from "@web-art/core";
+import { typedToEntries } from "@web-art/core";
 import {
   isAnyRecord,
   isFunction,
@@ -7,9 +7,12 @@ import {
   isUnionOf,
 } from "deep-guards";
 
-import { AuditError, methodError, targetError } from "./error.ts";
+import { AuditError } from "./error.ts";
+import { safeAccess } from "./safeAccess.ts";
+import { unsafeTargetName } from "./tagged.ts";
 import { TimeAudit } from "./timeAudit.ts";
 
+import type { MethodName, TargetName } from "./tagged.ts";
 import type { Stats, Timeable, TimeableStats } from "./types.ts";
 
 const hasName = isUnionOf(isFunction, isObjectOf({ name: isString }));
@@ -21,23 +24,14 @@ const hasPrototype = isUnionOf(
 export class TimeProfile {
   private static readonly methods: Timeable[] = [];
   private static readonly methodTimes: Record<
-    string,
-    Record<string, TimeableStats>
+    TargetName,
+    Record<MethodName, TimeableStats>
   > = {};
 
   private readonly debugLevel: number;
-  private recordedStats: Record<string, Record<string, Stats>> | null = null;
+  private recordedStats: Record<TargetName, Record<MethodName, Stats>> | null =
+    null;
   private auditing: boolean = false;
-
-  private static safeMethodTimes(
-    target: string,
-    methodName: string
-  ): TimeableStats {
-    return (
-      (this.methodTimes[target] ?? raise(targetError))[methodName] ??
-      raise(methodError)
-    );
-  }
 
   /**
    * Registers a class for analyzing execution time
@@ -49,14 +43,16 @@ export class TimeProfile {
    */
   static registerMethods(
     target: unknown,
-    name: string = hasName(target) ? target.name : "Anonymous",
-    methodNames: string[] | undefined = undefined,
+    name: TargetName = unsafeTargetName(
+      hasName(target) ? target.name : "Anonymous"
+    ),
+    methodNames: MethodName[] | undefined = undefined,
     minDebugLevel: number = 1,
     addPrototype: boolean = methodNames == null
   ): void {
     if (methodNames == null) {
-      const properties = Object.getOwnPropertyNames(target);
-      const ignoreSet = new Set(["constructor", "prototype"]);
+      const properties = Object.getOwnPropertyNames(target) as MethodName[];
+      const ignoreSet = new Set(["constructor", "prototype"] as MethodName[]);
 
       methodNames = properties.filter(
         name =>
@@ -65,7 +61,7 @@ export class TimeProfile {
       );
     }
     this.methods.push({
-      name,
+      name: unsafeTargetName(name),
       target: target as Timeable["target"],
       methodNames,
       minDebugLevel,
@@ -73,7 +69,7 @@ export class TimeProfile {
     if (addPrototype && hasPrototype(target)) {
       TimeProfile.registerMethods(
         target.prototype,
-        `${name}.prototype`,
+        unsafeTargetName(`${name}.prototype`),
         undefined,
         minDebugLevel,
         false
@@ -120,9 +116,9 @@ export class TimeProfile {
     F extends (this: ThisType<T>, ...args: unknown[]) => unknown,
   >(
     method: F,
-    methodName: string,
+    methodName: MethodName,
     minDebugLevel: number,
-    targetName: string
+    targetName: TargetName
   ): F | null {
     TimeProfile.methodTimes[targetName] ??= {};
     TimeProfile.methodTimes[targetName][methodName] ??= {
@@ -153,10 +149,10 @@ export class TimeProfile {
 
   private recordCurrentStats() {
     this.recordedStats = {};
-    for (const [targetName, targetStats] of Object.entries(
+    for (const [targetName, targetStats] of typedToEntries(
       TimeProfile.methodTimes
     )) {
-      for (const [methodName, methodStats] of Object.entries(targetStats)) {
+      for (const [methodName, methodStats] of typedToEntries(targetStats)) {
         if (methodStats.minDebugLevel < this.debugLevel) {
           this.recordedStats[targetName] = {
             ...(this.recordedStats[targetName] ?? {}),
@@ -171,23 +167,25 @@ export class TimeProfile {
     }
   }
 
-  generateStats(): Record<string, Record<string, Stats>> {
-    const stats: Record<string, Record<string, Stats>> = {};
+  private generateStats(): Record<TargetName, Record<MethodName, Stats>> {
+    const stats: Record<TargetName, Record<MethodName, Stats>> = {};
     if (this.recordedStats != null) {
-      for (const [targetName, targetStats] of Object.entries(
+      for (const [targetName, targetStats] of typedToEntries(
         this.recordedStats
       )) {
-        for (const [methodName, methodStats] of Object.entries(targetStats)) {
+        for (const [methodName, methodStats] of typedToEntries(targetStats)) {
+          const methodTimes = safeAccess(
+            TimeProfile.methodTimes,
+            targetName,
+            methodName
+          );
           stats[targetName] = {
             ...(stats[targetName] ?? {}),
             [methodName]: {
               ...methodStats,
-              calls:
-                TimeProfile.safeMethodTimes(targetName, methodName).calls -
-                methodStats.calls,
+              calls: methodTimes.calls - methodStats.calls,
               totalExecutionTime:
-                TimeProfile.safeMethodTimes(targetName, methodName)
-                  .totalExecutionTime - methodStats.totalExecutionTime,
+                methodTimes.totalExecutionTime - methodStats.totalExecutionTime,
             },
           };
         }

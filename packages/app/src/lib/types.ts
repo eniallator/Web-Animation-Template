@@ -28,12 +28,13 @@ export interface AppContextWithState<
   setState: (state: S) => void;
 }
 
-export type AppMethods<
+export interface AppMethods<
   O extends InitParserObject,
   S extends object | null,
-> = (S extends null
-  ? { init: (this: AppMethods<O, S>, appContext: AppContext<O>) => void }
-  : { init: (this: AppMethods<O, S>, appContext: AppContext<O>) => S }) & {
+> {
+  init: S extends null
+    ? (this: AppMethods<O, S>, appContext: AppContext<O>) => void
+    : (this: AppMethods<O, S>, appContext: AppContext<O>) => S;
   animationFrame?: (
     this: AppMethods<O, S>,
     appContext: AppContextWithState<O, S>
@@ -43,7 +44,7 @@ export type AppMethods<
     evt: UIEvent,
     appContext: AppContextWithState<O, S>
   ) => void;
-};
+}
 
 export const appMethods = <
   O extends InitParserObject,

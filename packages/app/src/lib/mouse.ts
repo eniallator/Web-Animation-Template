@@ -1,8 +1,5 @@
 import { Vector } from "@web-art/linear-algebra";
 
-const isMouseEvent = (evt: MouseEvent | TouchEvent): evt is MouseEvent =>
-  evt.type.startsWith("mouse");
-
 type MouseCallback = (this: Mouse, evt: MouseEvent | TouchEvent) => void;
 
 interface MouseListeners {
@@ -10,6 +7,9 @@ interface MouseListeners {
   onMove?: MouseCallback;
   onUp?: MouseCallback;
 }
+
+const isMouseEvent = (evt: MouseEvent | TouchEvent): evt is MouseEvent =>
+  evt.type.startsWith("mouse");
 
 export default class Mouse {
   private readonly listeners: MouseListeners;
@@ -27,10 +27,6 @@ export default class Mouse {
     this._relativePos = Vector.zero(2);
     this._pos = Vector.zero(2);
 
-    this.initListeners(element);
-  }
-
-  private initListeners(element: HTMLElement) {
     const onChange = (cb?: MouseCallback) => (evt: MouseEvent | TouchEvent) => {
       if (isMouseEvent(evt)) {
         this._pos.setHead(evt.clientX, evt.clientY);

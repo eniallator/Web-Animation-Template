@@ -300,7 +300,7 @@ export class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Rounds each component
-   * @param {numDigits} number Digits to round to
+   * @param {number} numDigits Digits to round to
    * @returns {this} this
    */
   round(numDigits: number = 0): this {

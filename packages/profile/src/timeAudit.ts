@@ -1,39 +1,34 @@
-import { raise } from "@web-art/core";
+import { raise, typedKeys } from "@web-art/core";
 
-import { methodError, targetError } from "./error.ts";
+import { targetError } from "./error.ts";
+import { safeAccess } from "./safeAccess.ts";
 
+import type { MethodName, TargetName } from "./tagged.ts";
 import type { Stats } from "./types.ts";
 
 export class TimeAudit {
-  private readonly allStats: Record<string, Record<string, Stats>>;
+  private readonly allStats: Record<TargetName, Record<MethodName, Stats>>;
 
-  constructor(stats: Record<string, Record<string, Stats>>) {
+  constructor(stats: Record<TargetName, Record<MethodName, Stats>>) {
     this.allStats = stats;
   }
 
-  private safeAccessStats(target: string, methodName: string): Stats {
-    return (
-      (this.allStats[target] ?? raise(targetError))[methodName] ??
-      raise(methodError)
-    );
-  }
-
   /**
-   * Get the stats of a given target/methodName pair
-   * @param {string} target
+   * Get the stats of a given targetName/methodName pair
+   * @param {string} targetName
    * @param {string} methodName
    * @returns {Stats}
    */
-  getStats(target: string, methodName: string): Stats {
-    return this.safeAccessStats(target, methodName);
+  getStats(targetName: TargetName, methodName: MethodName): Stats {
+    return safeAccess(this.allStats, targetName, methodName);
   }
 
   /**
    * Generator which iterates over all the targets inside the stats
    * @yields {string} Current target
    */
-  *targets(): Generator<string> {
-    for (const target of Object.keys(this.allStats)) {
+  *targets(): Generator<TargetName> {
+    for (const target of typedKeys(this.allStats)) {
       yield target;
     }
   }
@@ -43,9 +38,9 @@ export class TimeAudit {
    * @param {string} target
    * @yields {string} Current methodName
    */
-  *methodNames(target: string): Generator<string> {
+  *methodNames(target: TargetName): Generator<MethodName> {
     const methods = this.allStats[target] ?? raise(targetError);
-    for (const methodName of Object.keys(methods)) {
+    for (const methodName of typedKeys(methods)) {
       yield methodName;
     }
   }
@@ -55,13 +50,17 @@ export class TimeAudit {
    * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string):void} callbackFn
    */
   forEach(
-    callbackFn: (stats: Stats, target: string, methodName: string) => void
+    callbackFn: (
+      stats: Stats,
+      target: TargetName,
+      methodName: MethodName
+    ) => void
   ): void {
-    for (const target of this.targets()) {
-      for (const methodName of this.methodNames(target)) {
+    for (const targetName of this.targets()) {
+      for (const methodName of this.methodNames(targetName)) {
         callbackFn(
-          { ...this.safeAccessStats(target, methodName) },
-          target,
+          safeAccess(this.allStats, targetName, methodName),
+          targetName,
           methodName
         );
       }

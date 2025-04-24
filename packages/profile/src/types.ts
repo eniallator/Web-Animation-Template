@@ -1,10 +1,11 @@
+import type { MethodName, TargetName } from "./tagged.ts";
+
+export type TimeableTarget = Record<string, () => unknown>;
+
 export interface Timeable {
-  name: string;
-  target: { prototype: Record<string, () => unknown> } & Record<
-    string,
-    () => unknown
-  >;
-  methodNames: string[];
+  name: TargetName;
+  target: { prototype: TimeableTarget } & TimeableTarget;
+  methodNames: MethodName[];
   minDebugLevel: number;
 }
 
