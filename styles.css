@@ -25,6 +25,10 @@ input:not([type="checkbox"]) {
   height: 1.75rem;
 }
 
+input[type="range"] {
+  padding: 0;
+}
+
 textarea,
 input:not([type="checkbox"]) {
   width: 11rem;
