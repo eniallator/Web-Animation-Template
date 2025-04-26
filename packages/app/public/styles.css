@@ -25,6 +25,10 @@ input:not([type="checkbox"]) {
   height: 1.75rem;
 }
 
+input[type="range"] {
+  padding: 0;
+}
+
 textarea,
 input:not([type="checkbox"]) {
   width: 11rem;
@@ -197,6 +201,10 @@ canvas {
   white-space: wrap;
 }
 
+.config-item .file button {
+  width: 100%;
+}
+
 .config-item table {
   border-radius: 0.5rem;
 }
@@ -303,8 +311,11 @@ canvas {
   margin: 0;
 }
 
-.collapsed .collection-content {
+.collapsed .collection-container {
   display: none;
+}
+.collapsed.collection .heading {
+  margin-bottom: 0;
 }
 
 .collection-caret {
@@ -357,13 +368,15 @@ dialog {
   .config-item {
     display: flex;
     flex-direction: column;
+    row-gap: 0.5rem;
     align-items: stretch;
   }
 
   .config-item input,
+  .config-item textarea,
   .config-item select {
-    margin-top: 0.5rem;
     width: unset;
+    max-width: unset;
   }
   .config-item input[type="checkbox"] {
     width: fit-content;
@@ -407,6 +420,8 @@ h1 {
   border: 0;
   max-width: 100%;
   max-height: calc(100vh - 13rem);
+  min-inline-size: 0;
+  margin: 0;
   padding: 0.75rem 1.5rem 1rem;
   overflow-y: auto;
   display: flex;
