@@ -225,11 +225,11 @@ export class TimeProfile {
 
   /**
    * Performs an audit on a given function
-   * @param {function():Promise<void>} func Runs the function and then gets the stats for the function
+   * @param {function(): Promise<void>} func Runs the function and then gets the stats for the function
    * @returns {TimeAudit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */
-  async audit(func: () => Promise<void>): Promise<TimeAudit> {
+  async auditAsync(func: () => Promise<void>): Promise<TimeAudit> {
     this.startAudit();
     await func();
     return this.endAudit();
@@ -237,7 +237,7 @@ export class TimeProfile {
 
   /**
    * Performs an audit on a given function
-   * @param {function():void} func Runs the function and then gets the stats for the function
+   * @param {function(): void} func Runs the function and then gets the stats for the function
    * @returns {TimeAudit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */

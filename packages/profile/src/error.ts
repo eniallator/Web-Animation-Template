@@ -1,4 +1,4 @@
-class IndexError extends Error {
+export class IndexError extends Error {
   name = "IndexError" as const;
 }
 

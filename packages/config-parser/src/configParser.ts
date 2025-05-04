@@ -1,7 +1,7 @@
 import {
+  b64,
   dom,
   filterAndMap,
-  uintToB64,
   mapObject,
   Option,
   tuple,
@@ -132,7 +132,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
 
   private queryKey(key: string): string {
     return this.shortUrl
-      ? uintToB64(Math.abs(hashString(key)), this.hashKeyLength)
+      ? b64.fromUint(Math.abs(hashString(key)), this.hashKeyLength)
       : encodeURIComponent(key);
   }
 }

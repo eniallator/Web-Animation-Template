@@ -1,11 +1,4 @@
-import {
-  b64ToUint,
-  dom,
-  formatDate,
-  formatIsoDate,
-  tuple,
-  uintToB64,
-} from "@web-art/core";
+import { b64, dom, formatDate, formatIsoDate, tuple } from "@web-art/core";
 
 import { valueParser } from "../../create.ts";
 
@@ -23,7 +16,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
           : defaultValue.getTime())
           ? null
           : shortUrl
-            ? uintToB64(getValue().getTime())
+            ? b64.fromUint(getValue().getTime())
             : formatIsoDate(getValue()),
       updateValue: el => {
         (el as HTMLInputElement).value = formatDate(getValue());
@@ -32,7 +25,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
       html: (id, query, shortUrl) => {
         const initial =
           query != null
-            ? new Date(shortUrl ? b64ToUint(query) : query)
+            ? new Date(shortUrl ? b64.toUint(query) : query)
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(

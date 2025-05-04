@@ -1,19 +1,11 @@
+import type { FixedLengthTuple } from "@web-art/core";
 import type { Vector } from "./index.ts";
-
-type RecursionLimit = 501;
 
 export type AnyComponents = [number, ...number[]];
 
-export type Components<
-  N extends number | undefined,
-  A extends number[] = [number],
-> = undefined extends N
+export type Components<N extends number | undefined> = undefined extends N
   ? AnyComponents
-  : A["length"] extends RecursionLimit
-    ? AnyComponents
-    : A["length"] extends N
-      ? A
-      : Components<N, [...A, number]>;
+  : FixedLengthTuple<number, NonNullable<N>>;
 
 export type MinSize<S extends number, N extends number | undefined> =
   Components<N> extends [...Components<S>, ...number[]] ? N : never;

@@ -1,18 +1,23 @@
 import { ParamConfig } from "@web-art/config-parser";
 import { dom, raise } from "@web-art/core";
 
-import app from ".";
-import { config, options } from "./config";
-import Mouse from "./lib/mouse";
+import { config, options } from "./config.ts";
+import { app } from "./index.ts";
+import { Mouse } from "./lib/index.ts";
 
-import type { AppContext, AppContextWithState } from "./lib/types";
+import type { AppContext, StatefulAppContext } from "./lib/index.ts";
 
 dom.addListener(dom.get("#download-btn"), "click", () => {
+  const title = document
+    .getElementsByTagName("title")[0]
+    ?.innerText.trim()
+    .toLocaleLowerCase()
+    .replace(/\s+/, "-");
+
   const anchor = document.createElement("a");
   anchor.href = canvas.toDataURL();
-  anchor.download = `${
-    document.getElementsByTagName("title")[0]?.innerText ?? "download"
-  }.png`;
+  anchor.download =
+    (title != null && title.length > 0 ? title : "download") + ".png";
 
   document.body.appendChild(anchor);
   anchor.click();
@@ -35,13 +40,10 @@ const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
 const canvas = dom.get<HTMLCanvasElement>("canvas");
 updateCanvasBounds(canvas);
 
-const ctx =
-  canvas.getContext("2d") ??
-  raise(
-    new Error(
-      `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
-    )
-  );
+const noCtxError = new Error(
+  "Could not get a 2D rendering context for element " + JSON.stringify(canvas)
+);
+const ctx = canvas.getContext("2d") ?? raise(noCtxError);
 
 const modal = dom.get<HTMLDialogElement>("#config-modal");
 dom.addListener(dom.get("#config-dropdown-btn"), "click", () => {
@@ -54,7 +56,7 @@ dom.addListener(modal, "click", evt => {
 const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"), options);
 paramConfig.addCopyToClipboardHandler("#share-btn");
 const now = Date.now() / 1000;
-const appContext: AppContext<typeof config> = {
+const appCtx: AppContext<typeof config> = {
   time: { now, start: now, lastFrame: now, delta: 0 },
   mouse: new Mouse(canvas),
   paramConfig,
@@ -63,9 +65,9 @@ const appContext: AppContext<typeof config> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-confusing-void-expression
-let state = app.init(appContext) ?? null;
-const statefulContext: AppContextWithState<typeof config, typeof state> = {
-  ...appContext,
+let state = app.init(appCtx) ?? null;
+const statefulCtx: StatefulAppContext<typeof config, typeof state> = {
+  ...appCtx,
   getState: () => state,
   setState: newState => {
     state = newState;
@@ -74,17 +76,17 @@ const statefulContext: AppContextWithState<typeof config, typeof state> = {
 
 window.onresize = evt => {
   updateCanvasBounds(canvas);
-  app.onResize?.(evt, statefulContext);
+  app.onResize?.(evt, statefulCtx);
 };
 
 const animate = () => {
   if (app.animationFrame != null) {
-    const { time } = statefulContext;
+    const { time } = statefulCtx;
     time.lastFrame = time.now;
     time.now = Date.now() / 1000;
     time.delta = time.now - time.lastFrame;
 
-    app.animationFrame(statefulContext);
+    app.animationFrame(statefulCtx);
     requestAnimationFrame(animate);
   }
 };

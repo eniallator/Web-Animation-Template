@@ -3,7 +3,7 @@ import type {
   InitParserValues,
   ParamConfig,
 } from "@web-art/config-parser";
-import type Mouse from "./mouse";
+import type { Mouse } from "./mouse.ts";
 
 export interface Time {
   lastFrame: number;
@@ -20,7 +20,7 @@ export interface AppContext<O extends InitParserObject> {
   time: Time;
 }
 
-export interface AppContextWithState<
+export interface StatefulAppContext<
   O extends InitParserObject,
   S extends object | null,
 > extends AppContext<O> {
@@ -37,18 +37,11 @@ export interface AppMethods<
     : (this: AppMethods<O, S>, appContext: AppContext<O>) => S;
   animationFrame?: (
     this: AppMethods<O, S>,
-    appContext: AppContextWithState<O, S>
+    appContext: StatefulAppContext<O, S>
   ) => void;
   onResize?: (
     this: AppMethods<O, S>,
     evt: UIEvent,
-    appContext: AppContextWithState<O, S>
+    appContext: StatefulAppContext<O, S>
   ) => void;
 }
-
-export const appMethods = <
-  O extends InitParserObject,
-  const S extends object | null = null,
->(
-  methods: AppMethods<O, S>
-): AppMethods<O, S> => methods;

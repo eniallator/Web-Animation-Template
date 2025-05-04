@@ -1,4 +1,4 @@
-import { raise, typedKeys } from "@web-art/core";
+import { raise, typedKeys, typedToEntries } from "@web-art/core";
 
 import { targetError } from "./error.ts";
 import { safeAccess } from "./safeAccess.ts";
@@ -47,7 +47,7 @@ export class TimeAudit {
 
   /**
    * Iterates over the audited stats
-   * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string):void} callbackFn
+   * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string): void} callbackFn
    */
   forEach(
     callbackFn: (
@@ -56,13 +56,9 @@ export class TimeAudit {
       methodName: MethodName
     ) => void
   ): void {
-    for (const targetName of this.targets()) {
-      for (const methodName of this.methodNames(targetName)) {
-        callbackFn(
-          safeAccess(this.allStats, targetName, methodName),
-          targetName,
-          methodName
-        );
+    for (const [targetName, methodStats] of typedToEntries(this.allStats)) {
+      for (const [methodName, stats] of typedToEntries(methodStats)) {
+        callbackFn(stats, targetName, methodName);
       }
     }
   }

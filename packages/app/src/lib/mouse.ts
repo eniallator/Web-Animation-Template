@@ -11,7 +11,7 @@ interface MouseListeners {
 const isMouseEvent = (evt: MouseEvent | TouchEvent): evt is MouseEvent =>
   evt.type.startsWith("mouse");
 
-export default class Mouse {
+export class Mouse {
   private readonly listeners: MouseListeners;
   private readonly _pos: Vector<2>;
   private readonly _relativePos: Vector<2>;

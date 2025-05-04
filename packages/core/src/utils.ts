@@ -1,5 +1,3 @@
-export const tuple = <const T extends unknown[]>(...tuple: T) => tuple;
-
 export const raise = (error: Error): never => {
   throw error;
 };

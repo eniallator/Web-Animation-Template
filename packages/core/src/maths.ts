@@ -1,8 +1,7 @@
-import { tuple } from "./utils.ts";
+import { tuple } from "./tuple.ts";
 
 export const calculateAngle = (x: number, y: number): number => {
-  if (x === 0 && y === 0) return 0;
-  else if (y === 0) return x > 0 ? 0 : Math.PI;
+  if (y === 0) return x >= 0 ? 0 : Math.PI;
   else if (x === 0) return y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
   else if (x > 0 && y > 0) return Math.PI / 2 - Math.atan(x / y);
   else if (x > 0) return (Math.PI * 3) / 2 + Math.atan(x / -y);

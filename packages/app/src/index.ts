@@ -1,7 +1,7 @@
-import { appMethods } from "./lib/types";
+import { appMethods } from "./lib/index.ts";
 
-import type { config } from "./config";
-import type { AppContext } from "./lib/types";
+import type { config } from "./config.ts";
+import type { AppContext } from "./lib/index.ts";
 
 const init = ({ canvas, ctx }: AppContext<typeof config>) => {
   ctx.fillStyle = "black";
@@ -12,7 +12,7 @@ const init = ({ canvas, ctx }: AppContext<typeof config>) => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
-export default appMethods<typeof config>({
+export const app = appMethods<typeof config>({
   init,
   onResize: (_evt, appContext) => {
     init(appContext);

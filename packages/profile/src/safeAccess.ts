@@ -7,8 +7,8 @@ import type { MethodName, TargetName } from "./tagged.ts";
 
 export const safeAccess = <T>(
   rec: Record<TargetName, Record<MethodName, T>>,
-  targetName: string,
-  methodName: string
+  targetName: TargetName,
+  methodName: MethodName
 ): T =>
   (rec[unsafeTargetName(targetName)] ?? raise(targetError))[
     unsafeMethodName(methodName)

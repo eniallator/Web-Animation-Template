@@ -9,15 +9,15 @@ export interface Timeable {
   minDebugLevel: number;
 }
 
+export interface Stats {
+  calls: number;
+  totalExecutionTime: number;
+  minDebugLevel: number;
+}
+
 export interface TimeableStats {
   calls: number;
   totalExecutionTime: number;
   minDebugLevel: number;
   setup: boolean;
-}
-
-export interface Stats {
-  calls: number;
-  totalExecutionTime: number;
-  minDebugLevel: number;
 }

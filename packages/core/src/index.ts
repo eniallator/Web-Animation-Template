@@ -7,4 +7,5 @@ export * from "./maths.ts";
 export * from "./monad.ts";
 export * from "./option.ts";
 export * from "./tagged.ts";
+export * from "./tuple.ts";
 export * from "./utils.ts";

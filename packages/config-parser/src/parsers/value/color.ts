@@ -1,4 +1,4 @@
-import { b64ToUint, dom, tuple, uintToB64 } from "@web-art/core";
+import { b64, dom, tuple } from "@web-art/core";
 
 import { valueParser } from "../../create.ts";
 
@@ -14,7 +14,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
         (externalCfg != null ? externalCfg.default : defaultValue)
           ? null
           : shortUrl
-            ? uintToB64(Math.abs(parseInt(getValue(), 16)))
+            ? b64.fromUint(Math.abs(parseInt(getValue(), 16)))
             : getValue(),
       updateValue: el => {
         (el as HTMLInputElement).value = `#${getValue()}`;
@@ -24,7 +24,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
         const initial =
           query != null
             ? shortUrl
-              ? b64ToUint(query).toString(16)
+              ? b64.toUint(query).toString(16)
               : query.toUpperCase()
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
