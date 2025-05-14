@@ -1,6 +1,5 @@
-import { raise, typedKeys, typedToEntries } from "@web-art/core";
+import { typedKeys, typedToEntries } from "@web-art/core";
 
-import { targetError } from "./error.ts";
 import { safeAccess } from "./safeAccess.ts";
 
 import type { MethodName, TargetName } from "./tagged.ts";
@@ -38,9 +37,8 @@ export class TimeAudit {
    * @param {string} target
    * @yields {string} Current methodName
    */
-  *methodNames(target: TargetName): Generator<MethodName> {
-    const methods = this.allStats[target] ?? raise(targetError);
-    for (const methodName of typedKeys(methods)) {
+  *methodNames(targetName: TargetName): Generator<MethodName> {
+    for (const methodName of typedKeys(safeAccess(this.allStats, targetName))) {
       yield methodName;
     }
   }
@@ -52,7 +50,7 @@ export class TimeAudit {
   forEach(
     callbackFn: (
       stats: Stats,
-      target: TargetName,
+      targetName: TargetName,
       methodName: MethodName
     ) => void
   ): void {
@@ -65,10 +63,13 @@ export class TimeAudit {
 
   /**
    * Prettifies the time audit so you can log it out
-   * @param {number} digits Number length in digits. Defaults to 5
+   * @param {number | undefined} digits Number length in digits
    * @returns {string}
    */
-  toString(digits: number = 5): string {
+  toString(digits?: number): string {
+    const formatNumber = (n: number): string =>
+      digits != null || n < 1 ? n.toExponential(digits) : `${n}`;
+
     return Object.entries(this.allStats).reduce(
       (fullStr, [target, methodStats]) => {
         const targetStats = Object.entries(methodStats).reduce(
@@ -76,11 +77,11 @@ export class TimeAudit {
             stats.calls > 0
               ? acc +
                 `  - ${methodName} Calls:` +
-                stats.calls.toExponential(digits) +
+                formatNumber(stats.calls) +
                 " Total Execution Time: " +
-                stats.totalExecutionTime.toExponential(digits) +
+                formatNumber(stats.totalExecutionTime) +
                 "ms Average Execution Time " +
-                (stats.totalExecutionTime / stats.calls).toExponential(digits) +
+                formatNumber(stats.totalExecutionTime / stats.calls) +
                 "ms\n"
               : acc,
           ""

@@ -11,9 +11,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
       default: defaultValue,
       serialise: shortUrl =>
         getValue().getTime() ===
-        (externalCfg != null
-          ? externalCfg.default.getTime()
-          : defaultValue.getTime())
+        (externalCfg?.default.getTime() ?? defaultValue.getTime())
           ? null
           : shortUrl
             ? b64.fromUint(getValue().getTime())

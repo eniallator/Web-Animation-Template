@@ -1,24 +1,25 @@
-import { dom, filterAndMap, raise, tuple } from "@web-art/core";
+import { dom, filterAndMap, tuple, zip } from "@web-art/core";
 import { isExact, isString } from "deep-guards";
 
 import { valueParser } from "../create.ts";
 
 import type { InitValueParserTuple, ValueParserTuple } from "../types.ts";
 
-const noItemErr = () =>
-  new Error("Did not find an item element when getting a collections values");
 const getRowValues = <const F extends readonly [unknown, ...unknown[]]>(
   baseEl: Element,
-  parsers: ValueParserTuple<F>[],
+  allParsers: ValueParserTuple<F>[],
   expandable: boolean
 ): F[] => {
   const container = dom.get("tbody", baseEl);
-  return [...container.querySelectorAll("tr")].map((el, i) => {
-    const itemEls = el.querySelectorAll<HTMLElement>("td > *");
-    return parsers[i]?.map((parser, i) =>
-      parser.getValue(itemEls[i + (expandable ? 1 : 0)] ?? raise(noItemErr()))
-    ) as unknown as F;
-  });
+
+  return zip(allParsers, [...container.querySelectorAll("tr")]).map(
+    ([parsers, el]) => {
+      const itemEls = el.querySelectorAll<HTMLElement>("td > *");
+      return parsers.map((parser, i) =>
+        parser.getValue(itemEls.item(i + Number(expandable)))
+      ) as unknown as F;
+    }
+  );
 };
 
 const newRow = <const F extends readonly [unknown, ...unknown[]]>({
@@ -41,9 +42,11 @@ const newRow = <const F extends readonly [unknown, ...unknown[]]>({
   shortUrl: boolean;
 }) => {
   const rowEl = dom.toHtml("<tr></tr>");
+
   if (expandable) {
     rowEl.innerHTML = '<td><input data-row-selector type="checkbox" /></td>';
   }
+
   const parsers = initParsers.map(({ methods }, i) => {
     const parser = methods(
       (value: F[number]) => {
@@ -54,11 +57,14 @@ const newRow = <const F extends readonly [unknown, ...unknown[]]>({
         ? { initial: initialItems?.[i] ?? null, default: itemDefaults[i] }
         : undefined
     );
+
     const td = document.createElement("td");
     td.appendChild(parser.html(null, queryItems?.[i] ?? null, shortUrl));
     rowEl.appendChild(td);
+
     return parser;
   }) as ValueParserTuple<F>;
+
   return tuple(rowEl, parsers);
 };
 

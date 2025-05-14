@@ -19,14 +19,15 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
       },
       getValue: el => (el as HTMLInputElement | HTMLTextAreaElement).value,
       html: (id, query) => {
+        const initial =
+          query ?? externalCfg?.initial ?? externalCfg?.default ?? defaultValue;
+
         const attrs = dom.toAttrs(
           Object.entries<string | null>(cfg.attrs ?? {}).concat([
             ...(id != null ? [tuple("id", id)] : []),
           ])
         );
 
-        const initial =
-          query ?? externalCfg?.initial ?? externalCfg?.default ?? defaultValue;
         const el = dom.toHtml<HTMLInputElement | HTMLTextAreaElement>(
           cfg.area
             ? `<textarea ${attrs}>${initial}</textarea>`

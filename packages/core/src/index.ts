@@ -9,3 +9,4 @@ export * from "./option.ts";
 export * from "./tagged.ts";
 export * from "./tuple.ts";
 export * from "./utils.ts";
+export * from "./zip.ts";

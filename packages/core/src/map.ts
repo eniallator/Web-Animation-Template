@@ -1,14 +1,16 @@
 import { Option } from "./option.ts";
 
 import type { Guard } from "deep-guards";
+import type { OptionType } from "./option.ts";
 
 type MapFn<I, O> = (
   val: I,
   index: number,
   arr: readonly I[]
-) => Option<O> | O | null | undefined;
+) => Option<O, OptionType> | O | null | undefined;
 
-const isOption: Guard<Option<unknown>> = value => value instanceof Option;
+const isOption: Guard<Option<unknown, OptionType>> = value =>
+  value instanceof Option;
 
 export const filterAndMap = <I, O>(
   arr: readonly I[],

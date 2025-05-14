@@ -65,7 +65,11 @@ export class Monad<A> {
     return this.value;
   }
 
-  toOption<B>(this: { get(): B | null | undefined }): Option<B> {
-    return Option.from(this.get());
+  toOption<B>(this: { value: B | null | undefined }): Option<B> {
+    return Option.from(this.value);
+  }
+
+  toArray(): A[] {
+    return [this.value];
   }
 }

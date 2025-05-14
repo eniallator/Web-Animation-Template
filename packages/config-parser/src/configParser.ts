@@ -106,8 +106,9 @@ export class ParamConfig<const R extends AnyStringRecord> {
       [this.queryKey(key), encodeURIComponent(value)].join(
         this.shortUrl ? "" : "="
       );
+
     return filterAndMap(typedToEntries(this.state), ([id, { parser }]) =>
-      Option.from(parser)
+      Option.some(parser)
         .guard((p): p is ValueParser<R[keyof R]> => p.type === "Value")
         .map(p => p.serialise(this.shortUrl))
         .map(serialised => urlPart(id as string, serialised))

@@ -36,7 +36,7 @@ export class TimeProfile {
   /**
    * Registers a class for analyzing execution time
    *  If called multiple times with the same method, the lower of the two debug levels is taken.
-   * @param {class} target The class/object to analyze
+   * @param {unknown} target The class/object to analyze
    * @param {string[]} [methodNames] The method names of the class/object to analyze. Defaults to all except the constructor.
    * @param {number} [minDebugLevel] The minimum debug level of these methods, where the lower it is, the higher priority it is to be included. Defaults to 1
    * @param {boolean} [addPrototype] Recursively call the prototype of the target. Defaults to true if the methodNames aren't given
@@ -60,12 +60,14 @@ export class TimeProfile {
           isFunction((target as Record<string, unknown>)[name])
       );
     }
+
     this.methods.push({
       name: unsafeTargetName(name),
       target: target as Timeable["target"],
       methodNames,
       minDebugLevel,
     });
+
     if (addPrototype && hasPrototype(target)) {
       TimeProfile.registerMethods(
         target.prototype,
@@ -83,6 +85,7 @@ export class TimeProfile {
    */
   constructor(debugLevel: number = Infinity) {
     this.debugLevel = debugLevel;
+
     TimeProfile.methods
       .filter(item => item.minDebugLevel < debugLevel)
       .forEach(item => {
@@ -92,6 +95,7 @@ export class TimeProfile {
             : isFunction(item.target.prototype[methodName])
               ? item.target.prototype[methodName]
               : null;
+
           if (method != null) {
             const patchedMethod = this.timeMethod(
               method,
@@ -99,6 +103,7 @@ export class TimeProfile {
               item.minDebugLevel,
               item.name
             );
+
             if (patchedMethod != null) {
               if (isFunction(item.target[methodName])) {
                 item.target[methodName] = patchedMethod;
@@ -154,13 +159,11 @@ export class TimeProfile {
     )) {
       for (const [methodName, methodStats] of typedToEntries(targetStats)) {
         if (methodStats.minDebugLevel < this.debugLevel) {
-          this.recordedStats[targetName] = {
-            ...(this.recordedStats[targetName] ?? {}),
-            [methodName]: {
-              calls: methodStats.calls,
-              totalExecutionTime: methodStats.totalExecutionTime,
-              minDebugLevel: methodStats.minDebugLevel,
-            },
+          this.recordedStats[targetName] ??= {};
+          this.recordedStats[targetName][methodName] = {
+            calls: methodStats.calls,
+            totalExecutionTime: methodStats.totalExecutionTime,
+            minDebugLevel: methodStats.minDebugLevel,
           };
         }
       }
@@ -179,14 +182,13 @@ export class TimeProfile {
             targetName,
             methodName
           );
-          stats[targetName] = {
-            ...(stats[targetName] ?? {}),
-            [methodName]: {
-              ...methodStats,
-              calls: methodTimes.calls - methodStats.calls,
-              totalExecutionTime:
-                methodTimes.totalExecutionTime - methodStats.totalExecutionTime,
-            },
+
+          stats[targetName] ??= {};
+          stats[targetName][methodName] = {
+            minDebugLevel: methodStats.minDebugLevel,
+            calls: methodTimes.calls - methodStats.calls,
+            totalExecutionTime:
+              methodTimes.totalExecutionTime - methodStats.totalExecutionTime,
           };
         }
       }
