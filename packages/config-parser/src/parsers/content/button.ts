@@ -7,8 +7,9 @@ import type { Config } from "../../types.ts";
 export const buttonParser = (cfg: Config & { text?: string }) =>
   contentParser(onChange => id => {
     const { class: passedClass, ...rest } = cfg.attrs ?? {};
-    const classValue =
-      "primary wrap-text" + (passedClass != null ? " " + passedClass : "");
+    const classValue = `primary wrap-text${
+      passedClass != null ? " " + passedClass : ""
+    }`;
     const attrs = dom.toAttrs(
       Object.entries<string | null>(rest).concat([
         ...(id != null ? [tuple("id", id)] : []),

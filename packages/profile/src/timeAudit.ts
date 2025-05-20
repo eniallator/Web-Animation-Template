@@ -1,6 +1,11 @@
-import { typedKeys, typedToEntries } from "@web-art/core";
+import {
+  raise,
+  typedKeys,
+  typedProperties,
+  typedToEntries,
+} from "@web-art/core";
 
-import { safeAccess } from "./safeAccess.ts";
+import { IndexError } from "./error.ts";
 
 import type { MethodName, TargetName } from "./tagged.ts";
 import type { Stats } from "./types.ts";
@@ -19,7 +24,10 @@ export class TimeAudit {
    * @returns {Stats}
    */
   getStats(targetName: TargetName, methodName: MethodName): Stats {
-    return safeAccess(this.allStats, targetName, methodName);
+    return (
+      this.allStats[targetName]?.[methodName] ??
+      raise(new IndexError("Method name does not exist on target"))
+    );
   }
 
   /**
@@ -38,14 +46,17 @@ export class TimeAudit {
    * @yields {string} Current methodName
    */
   *methodNames(targetName: TargetName): Generator<MethodName> {
-    for (const methodName of typedKeys(safeAccess(this.allStats, targetName))) {
+    for (const methodName of typedProperties(
+      this.allStats[targetName] ??
+        raise(new IndexError("Target does not exist"))
+    )) {
       yield methodName;
     }
   }
 
   /**
    * Iterates over the audited stats
-   * @param {function({calls: number, totalExecutionTime: number, minDebugLevel: number}, string, string): void} callbackFn
+   * @param {function({calls: number, executionTime: number, minDebugLevel: number}, string, string): void} callbackFn
    */
   forEach(
     callbackFn: (
@@ -55,7 +66,7 @@ export class TimeAudit {
     ) => void
   ): void {
     for (const [targetName, methodStats] of typedToEntries(this.allStats)) {
-      for (const [methodName, stats] of typedToEntries(methodStats)) {
+      for (const [methodName, stats] of typedToEntries(methodStats, true)) {
         callbackFn(stats, targetName, methodName);
       }
     }
@@ -70,27 +81,26 @@ export class TimeAudit {
     const formatNumber = (n: number): string =>
       digits != null || n < 1 ? n.toExponential(digits) : `${n}`;
 
-    return Object.entries(this.allStats).reduce(
+    return typedToEntries(this.allStats).reduce(
       (fullStr, [target, methodStats]) => {
-        const targetStats = Object.entries(methodStats).reduce(
-          (acc, [methodName, stats]) =>
-            stats.calls > 0
-              ? acc +
-                `  - ${methodName} Calls:` +
-                formatNumber(stats.calls) +
-                " Total Execution Time: " +
-                formatNumber(stats.totalExecutionTime) +
-                "ms Average Execution Time " +
-                formatNumber(stats.totalExecutionTime / stats.calls) +
-                "ms\n"
+        const targetStats = typedToEntries(methodStats, true).reduce(
+          (acc, [methodName, { calls, executionTime }]) =>
+            calls > 0
+              ? `${acc}\n  - ${methodName.toString()} Calls:${formatNumber(
+                  calls
+                )} Execution Time: ${formatNumber(
+                  executionTime
+                )}ms Average Execution Time: ${formatNumber(
+                  executionTime / calls
+                )}ms`
               : acc,
           ""
         );
 
         return targetStats !== ""
-          ? fullStr +
-              (fullStr !== "" ? "\n\n" : "") +
-              `===== ${target} =====\n${targetStats}`
+          ? `${fullStr}${
+              fullStr !== "" ? "\n\n" : ""
+            }===== ${target} =====${targetStats}`
           : fullStr;
       },
       ""

@@ -27,16 +27,14 @@ export class Mouse {
     this._relativePos = Vector.zero(2);
     this._pos = Vector.zero(2);
 
-    const onChange = (cb?: MouseCallback) => (evt: MouseEvent | TouchEvent) => {
-      if (isMouseEvent(evt)) {
-        this._pos.setHead(evt.clientX, evt.clientY);
-      } else if (evt.touches[0] != null) {
-        this._pos.setHead(evt.touches[0].clientX, evt.touches[0].clientY);
-      }
+    const onChange = (cb: MouseCallback) => (evt: MouseEvent | TouchEvent) => {
+      const evtPos = isMouseEvent(evt) ? evt : evt.touches[0];
+      if (evtPos != null) this._pos.setHead(evtPos.clientX, evtPos.clientY);
 
       const { width, height } = element.getBoundingClientRect();
       this._relativePos.setHead(this._pos.x() / width, this._pos.y() / height);
-      cb?.call(this, evt);
+
+      cb.call(this, evt);
     };
 
     element.onmousemove = element.ontouchmove = onChange(evt => {

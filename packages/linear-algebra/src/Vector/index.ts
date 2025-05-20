@@ -35,7 +35,7 @@ export class Vector<const N extends number | undefined = undefined> {
     this.cmps = cmps;
   }
 
-  private vectorAccessor(arg: VectorArg<N>): (i: number) => number {
+  private _argAccessor(arg: VectorArg<N>): (i: number) => number {
     if (isNumber(arg)) {
       return () => arg;
     } else {
@@ -46,12 +46,12 @@ export class Vector<const N extends number | undefined = undefined> {
     }
   }
 
-  private applyOperation(
+  private _applyOperation(
     operation: (a: number, b: number) => number,
     args: VectorArg<N>[]
   ): this {
     for (const arg of args) {
-      const argAt = this.vectorAccessor(arg);
+      const argAt = this._argAccessor(arg);
       this.cmps = toAnyComponents(this.cmps).map((cmp, i) =>
         operation(cmp, argAt(i))
       ) as Components<N>;
@@ -161,15 +161,14 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {string} the formatted string
    */
   toString(fractionDigits?: number): string {
-    const cmps = toAnyComponents(this.cmps);
-    const cmpsStr = cmps.reduce(
-      (acc, cmp) =>
+    const cmpsStr = toAnyComponents(this.cmps).reduce(
+      (acc, n) =>
         acc +
         (acc.length > 0 ? ", " : "") +
-        (fractionDigits != null ? cmp.toFixed(fractionDigits) : cmp.toString()),
+        (fractionDigits != null ? n.toFixed(fractionDigits) : n.toString()),
       ""
     );
-    return `Vector<${cmps.length}>[${cmpsStr}]`;
+    return `Vector<${toAnyComponents(this.cmps).length}>[${cmpsStr}]`;
   }
 
   /**
@@ -178,7 +177,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   pow(...args: VectorArg<N>[]): this {
-    return this.applyOperation((a, b) => a ** b, args);
+    return this._applyOperation((a, b) => a ** b, args);
   }
 
   /**
@@ -187,7 +186,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   add(...args: VectorArg<N>[]): this {
-    return this.applyOperation((a, b) => a + b, args);
+    return this._applyOperation((a, b) => a + b, args);
   }
 
   /**
@@ -196,7 +195,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   sub(...args: VectorArg<N>[]): this {
-    return this.applyOperation((a, b) => a - b, args);
+    return this._applyOperation((a, b) => a - b, args);
   }
 
   /**
@@ -205,7 +204,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   multiply(...args: VectorArg<N>[]): this {
-    return this.applyOperation((a, b) => a * b, args);
+    return this._applyOperation((a, b) => a * b, args);
   }
 
   /**
@@ -214,7 +213,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   divide(...args: VectorArg<N>[]): this {
-    return this.applyOperation((a, b) => a / b, args);
+    return this._applyOperation((a, b) => a / b, args);
   }
 
   /**
@@ -223,7 +222,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   mod(...args: VectorArg<N>[]): this {
-    return this.applyOperation((a, b) => a % b, args);
+    return this._applyOperation((a, b) => a % b, args);
   }
 
   /**
@@ -232,7 +231,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   positiveMod(...args: VectorArg<N>[]): this {
-    return this.applyOperation(positiveMod, args);
+    return this._applyOperation(positiveMod, args);
   }
 
   /**
@@ -242,7 +241,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {Vector<N>} Interpolated vector
    */
   lerp(t: number, arg: VectorArg<N>): this {
-    return this.applyOperation((a, b) => a - (a - b) * t, [arg]);
+    return this._applyOperation((a, b) => a - (a - b) * t, [arg]);
   }
 
   /**
@@ -251,7 +250,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   min(arg: VectorArg<N>): this {
-    return this.applyOperation(Math.min, [arg]);
+    return this._applyOperation(Math.min, [arg]);
   }
 
   /**
@@ -260,7 +259,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   max(arg: VectorArg<N>): this {
-    return this.applyOperation(Math.max, [arg]);
+    return this._applyOperation(Math.max, [arg]);
   }
 
   /**
@@ -268,7 +267,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   sum(): number {
-    return toAnyComponents(this.cmps).reduce((acc, cmp) => acc + cmp, 0);
+    return toAnyComponents(this.cmps).reduce((a, b) => a + b);
   }
 
   /**
@@ -304,11 +303,10 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   round(numDigits: number = 0): this {
-    const scale = 10 ** numDigits;
-    this.cmps = toAnyComponents(this.cmps).map(
-      n => Math.round(n * scale) / scale
-    ) as Components<N>;
-    return this;
+    return this._applyOperation(
+      (a, b) => Math.round(a * b) / b,
+      [10 ** numDigits]
+    );
   }
 
   /**
@@ -343,9 +341,9 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} Dot product
    */
   dot(arg: VectorArg<N>): number {
-    const argAt = this.vectorAccessor(arg);
+    const argAt = this._argAccessor(arg);
     return toAnyComponents(this.cmps).reduce(
-      (acc, cmp, i) => acc + cmp * argAt(i),
+      (acc, n, i) => acc + n * argAt(i),
       0
     );
   }
@@ -372,7 +370,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} Squared magnitude of this vector
    */
   getSquaredMagnitude(): number {
-    return toAnyComponents(this.cmps).reduce((acc, cmp) => acc + cmp * cmp, 0);
+    return toAnyComponents(this.cmps).reduce((acc, n) => acc + n ** 2, 0);
   }
 
   /**
@@ -389,9 +387,9 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} squared magnitude
    */
   sqrDistTo(arg: VectorArg<N>): number {
-    const argAt = this.vectorAccessor(arg);
+    const argAt = this._argAccessor(arg);
     return toAnyComponents(this.cmps).reduce(
-      (acc, cmp, i) => acc + (cmp - argAt(i)) ** 2,
+      (acc, n, i) => acc + (n - argAt(i)) ** 2,
       0
     );
   }
@@ -402,7 +400,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} magnitude
    */
   distTo(arg: VectorArg<N>): number {
-    const argAt = this.vectorAccessor(arg);
+    const argAt = this._argAccessor(arg);
     return Math.hypot(
       ...toAnyComponents(this.cmps).map((cmp, i) => cmp - argAt(i))
     );
@@ -435,10 +433,10 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   normalise(): this {
-    const cmps = toAnyComponents(this.cmps);
-    const magnitude = Math.hypot(...cmps);
-    this.cmps = cmps.map(cmp => cmp / magnitude) as Components<N>;
-    return this;
+    return this._applyOperation(
+      (a, b) => a / b,
+      [Math.hypot(...toAnyComponents(this.cmps))]
+    );
   }
 
   /**
@@ -702,8 +700,8 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns if this vector is within the given bounds
    */
   inBounds(dimensions: VectorArg<N>, positions: VectorArg<N> = 0): boolean {
-    const dimAt = this.vectorAccessor(dimensions);
-    const posAt = this.vectorAccessor(positions);
+    const dimAt = this._argAccessor(dimensions);
+    const posAt = this._argAccessor(positions);
 
     return toAnyComponents(this.cmps).every(
       (cmp, i) => cmp >= posAt(i) && cmp < posAt(i) + dimAt(i)

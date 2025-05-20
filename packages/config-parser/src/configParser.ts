@@ -90,14 +90,10 @@ export class ParamConfig<const R extends AnyStringRecord> {
   }
 
   tellListeners(id?: keyof R): void {
-    (id == null
-      ? this.listeners
-      : this.listeners.filter(
-          ({ subscriptions }) =>
-            subscriptions.size === 0 || subscriptions.has(id)
-        )
-    ).forEach(({ callback }) => {
-      callback(this.getAllValues(), id);
+    this.listeners.forEach(({ subscriptions, callback }) => {
+      if (id == null || subscriptions.size === 0 || subscriptions.has(id)) {
+        callback(this.getAllValues(), id);
+      }
     });
   }
 
@@ -126,7 +122,9 @@ export class ParamConfig<const R extends AnyStringRecord> {
         typeof extra === "function" ? extra(this.getAllValues()) : extra
       );
       const { protocol, host, pathname } = location;
-      const shareUrl = `${protocol}//${host}${pathname}${query.length > 0 ? "?" + query : ""}`;
+      const shareUrl = `${protocol}//${host}${pathname}${
+        query.length > 0 ? "?" + query : ""
+      }`;
       void navigator.clipboard.writeText(shareUrl);
     });
   }

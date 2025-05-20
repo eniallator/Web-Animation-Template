@@ -124,7 +124,7 @@ export const collectionParser = <
       const classValue = [
         "collection",
         cfg.initialCollapsed && "collapsed",
-        passedClass != null && passedClass,
+        passedClass,
       ]
         .filter(isString)
         .join(" ");

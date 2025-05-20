@@ -16,8 +16,9 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
 
   const anchor = document.createElement("a");
   anchor.href = canvas.toDataURL();
-  anchor.download =
-    (title != null && title.length > 0 ? title : "download") + ".png";
+  anchor.download = `${
+    title != null && title.length > 0 ? title : "download"
+  }.png`;
 
   document.body.appendChild(anchor);
   anchor.click();
@@ -41,7 +42,7 @@ const canvas = dom.get<HTMLCanvasElement>("canvas");
 updateCanvasBounds(canvas);
 
 const noCtxError = new Error(
-  "Could not get a 2D rendering context for element " + JSON.stringify(canvas)
+  `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
 );
 const ctx = canvas.getContext("2d") ?? raise(noCtxError);
 

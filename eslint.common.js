@@ -20,6 +20,7 @@ export default function config(extra = {}) {
 
       rules: {
         "@typescript-eslint/consistent-type-imports": "error",
+        "@typescript-eslint/no-unnecessary-condition": "error",
         // CORE
         // According to https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/indent.md
         // the default indentation rule can cause eslint to report erroneous style errors.
