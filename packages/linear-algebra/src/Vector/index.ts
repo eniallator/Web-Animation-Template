@@ -1,5 +1,4 @@
 import {
-  calculateAngle,
   cartesianToPolar,
   polarToCartesian,
   positiveMod,
@@ -28,7 +27,7 @@ import type {
   VectorReduceCallback,
 } from "./types.ts";
 
-export class Vector<const N extends number | undefined = undefined> {
+export class Vector<N extends number | undefined = undefined> {
   private cmps: Components<N>;
 
   private constructor(cmps: Components<N>) {
@@ -47,15 +46,13 @@ export class Vector<const N extends number | undefined = undefined> {
   }
 
   private _applyOperation(
-    operation: (a: number, b: number) => number,
+    operation: (cmp: number, arg: number) => number,
     args: VectorArg<N>[]
   ): this {
-    for (const arg of args) {
+    this.cmps = args.reduce((cmps, arg) => {
       const argAt = this._argAccessor(arg);
-      this.cmps = toAnyComponents(this.cmps).map((cmp, i) =>
-        operation(cmp, argAt(i))
-      ) as Components<N>;
-    }
+      return cmps.map((cmp, i) => operation(cmp, argAt(i))) as AnyComponents;
+    }, toAnyComponents(this.cmps)) as Components<N>;
     return this;
   }
 
@@ -157,18 +154,19 @@ export class Vector<const N extends number | undefined = undefined> {
 
   /**
    * Converts this vector to a string in the format: "Vector<N>[component1, component2, ...]"
-   * @param {number} fractionDigits optional precision to format the components to
+   * @param {number} digits optional precision to format the components to
    * @returns {string} the formatted string
    */
-  toString(fractionDigits?: number): string {
-    const cmpsStr = toAnyComponents(this.cmps).reduce(
-      (acc, n) =>
+  toString(digits?: number): string {
+    const cmps = toAnyComponents(this.cmps);
+    const cmpsStr = cmps.reduce(
+      (acc, cmp) =>
         acc +
         (acc.length > 0 ? ", " : "") +
-        (fractionDigits != null ? n.toFixed(fractionDigits) : n.toString()),
+        (digits != null ? cmp.toFixed(digits) : cmp.toString()),
       ""
     );
-    return `Vector<${toAnyComponents(this.cmps).length}>[${cmpsStr}]`;
+    return `Vector<${cmps.length}>[${cmpsStr}]`;
   }
 
   /**
@@ -177,7 +175,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   pow(...args: VectorArg<N>[]): this {
-    return this._applyOperation((a, b) => a ** b, args);
+    return this._applyOperation((cmp, arg) => cmp ** arg, args);
   }
 
   /**
@@ -186,7 +184,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   add(...args: VectorArg<N>[]): this {
-    return this._applyOperation((a, b) => a + b, args);
+    return this._applyOperation((cmp, arg) => cmp + arg, args);
   }
 
   /**
@@ -195,7 +193,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   sub(...args: VectorArg<N>[]): this {
-    return this._applyOperation((a, b) => a - b, args);
+    return this._applyOperation((cmp, arg) => cmp - arg, args);
   }
 
   /**
@@ -204,7 +202,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   multiply(...args: VectorArg<N>[]): this {
-    return this._applyOperation((a, b) => a * b, args);
+    return this._applyOperation((cmp, arg) => cmp * arg, args);
   }
 
   /**
@@ -213,7 +211,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   divide(...args: VectorArg<N>[]): this {
-    return this._applyOperation((a, b) => a / b, args);
+    return this._applyOperation((cmp, arg) => cmp / arg, args);
   }
 
   /**
@@ -222,7 +220,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   mod(...args: VectorArg<N>[]): this {
-    return this._applyOperation((a, b) => a % b, args);
+    return this._applyOperation((cmp, arg) => cmp % arg, args);
   }
 
   /**
@@ -241,7 +239,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {Vector<N>} Interpolated vector
    */
   lerp(t: number, arg: VectorArg<N>): this {
-    return this._applyOperation((a, b) => a - (a - b) * t, [arg]);
+    return this._applyOperation((cmp, arg) => cmp - (cmp - arg) * t, [arg]);
   }
 
   /**
@@ -267,7 +265,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   sum(): number {
-    return toAnyComponents(this.cmps).reduce((a, b) => a + b);
+    return toAnyComponents(this.cmps).reduce((cmp, arg) => cmp + arg);
   }
 
   /**
@@ -303,10 +301,10 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   round(numDigits: number = 0): this {
-    return this._applyOperation(
-      (a, b) => Math.round(a * b) / b,
-      [10 ** numDigits]
-    );
+    const cmps = toAnyComponents(this.cmps);
+    const base = 10 ** numDigits;
+    this.cmps = cmps.map(cmp => Math.round(cmp * base) / base) as Components<N>;
+    return this;
   }
 
   /**
@@ -330,9 +328,8 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {Vector<N>} The signs of this vector where the component will be 1 if >= 0, otherwise -1
    */
   getSign(): Vector<N> {
-    return new Vector(
-      toAnyComponents(this.cmps).map(Math.sign) as Components<N>
-    );
+    const cmps = toAnyComponents(this.cmps);
+    return new Vector(cmps.map(Math.sign) as Components<N>);
   }
 
   /**
@@ -341,11 +338,9 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} Dot product
    */
   dot(arg: VectorArg<N>): number {
+    const cmps = toAnyComponents(this.cmps);
     const argAt = this._argAccessor(arg);
-    return toAnyComponents(this.cmps).reduce(
-      (acc, n, i) => acc + n * argAt(i),
-      0
-    );
+    return cmps.reduce((acc, cmp, i) => acc + cmp * argAt(i), 0);
   }
 
   /**
@@ -370,7 +365,7 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} Squared magnitude of this vector
    */
   getSquaredMagnitude(): number {
-    return toAnyComponents(this.cmps).reduce((acc, n) => acc + n ** 2, 0);
+    return toAnyComponents(this.cmps).reduce((acc, cmp) => acc + cmp ** 2, 0);
   }
 
   /**
@@ -387,11 +382,9 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number} squared magnitude
    */
   sqrDistTo(arg: VectorArg<N>): number {
+    const cmps = toAnyComponents(this.cmps);
     const argAt = this._argAccessor(arg);
-    return toAnyComponents(this.cmps).reduce(
-      (acc, n, i) => acc + (n - argAt(i)) ** 2,
-      0
-    );
+    return cmps.reduce((acc, cmp, i) => acc + (cmp - argAt(i)) ** 2, 0);
   }
 
   /**
@@ -401,9 +394,8 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   distTo(arg: VectorArg<N>): number {
     const argAt = this._argAccessor(arg);
-    return Math.hypot(
-      ...toAnyComponents(this.cmps).map((cmp, i) => cmp - argAt(i))
-    );
+    const cmps = toAnyComponents(this.cmps);
+    return Math.hypot(...cmps.map((cmp, i) => cmp - argAt(i)));
   }
 
   /**
@@ -424,8 +416,8 @@ export class Vector<const N extends number | undefined = undefined> {
    */
   getNorm(): Vector<N> {
     const cmps = toAnyComponents(this.cmps);
-    const magnitude = Math.hypot(...cmps);
-    return new Vector(cmps.map(cmp => cmp / magnitude) as Components<N>);
+    const mag = Math.hypot(...cmps);
+    return new Vector(cmps.map(cmp => cmp / mag) as Components<N>);
   }
 
   /**
@@ -433,20 +425,20 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {this} this
    */
   normalise(): this {
-    return this._applyOperation(
-      (a, b) => a / b,
-      [Math.hypot(...toAnyComponents(this.cmps))]
-    );
+    const cmps = toAnyComponents(this.cmps);
+    const mag = Math.hypot(...cmps);
+    this.cmps = cmps.map(cmp => cmp / mag) as Components<N>;
+    return this;
   }
 
   /**
    * Gets the angle of this vector
    * @type {Vector<2>}
-   * @returns {number} Angle between 0 and 2 * PI
+   * @returns {number} Angle between -PI and +PI
    */
   getAngle(this: Vector<2>): number {
     return isSize(2)(this.cmps)
-      ? calculateAngle(...this.cmps)
+      ? Math.atan2(this.cmps[1], this.cmps[0])
       : raise(incompatibleOperation(2));
   }
 
@@ -547,9 +539,8 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   y(this: Vector<MinSize<2, N>>): number {
-    return (
-      toAnyComponents(this.cmps)[1] ?? raise(incompatibleOperation(2, true))
-    );
+    const cmps = toAnyComponents(this.cmps);
+    return cmps[1] ?? raise(incompatibleOperation(2, true));
   }
 
   /**
@@ -557,9 +548,8 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   z(this: Vector<MinSize<3, N>>): number {
-    return (
-      toAnyComponents(this.cmps)[2] ?? raise(incompatibleOperation(3, true))
-    );
+    const cmps = toAnyComponents(this.cmps);
+    return cmps[2] ?? raise(incompatibleOperation(3, true));
   }
 
   /**
@@ -567,9 +557,8 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {number}
    */
   w(this: Vector<MinSize<4, N>>): number {
-    return (
-      toAnyComponents(this.cmps)[3] ?? raise(incompatibleOperation(4, true))
-    );
+    const cmps = toAnyComponents(this.cmps);
+    return cmps[3] ?? raise(incompatibleOperation(4, true));
   }
 
   /**
@@ -605,9 +594,8 @@ export class Vector<const N extends number | undefined = undefined> {
     thisArg?: ThisType<unknown>
   ): Vector<N> {
     const fn = mapper as VectorCallback<number>;
-    return new Vector(
-      toAnyComponents(this.cmps).map(fn, thisArg) as Components<N>
-    );
+    const cmps = toAnyComponents(this.cmps);
+    return new Vector(cmps.map(fn, thisArg) as Components<N>);
   }
 
   /**
@@ -660,9 +648,8 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns {Vector<N>} The new Vector
    */
   with(index: number, value: number): Vector<N> {
-    return new Vector<N>(
-      toAnyComponents(this.cmps).with(index, value) as Components<N>
-    );
+    const cmps = toAnyComponents(this.cmps);
+    return new Vector(cmps.with(index, value) as Components<N>);
   }
 
   /**
@@ -700,12 +687,10 @@ export class Vector<const N extends number | undefined = undefined> {
    * @returns if this vector is within the given bounds
    */
   inBounds(dimensions: VectorArg<N>, positions: VectorArg<N> = 0): boolean {
+    const cmps = toAnyComponents(this.cmps);
     const dimAt = this._argAccessor(dimensions);
     const posAt = this._argAccessor(positions);
-
-    return toAnyComponents(this.cmps).every(
-      (cmp, i) => cmp >= posAt(i) && cmp < posAt(i) + dimAt(i)
-    );
+    return cmps.every((cmp, i) => cmp >= posAt(i) && cmp < posAt(i) + dimAt(i));
   }
 
   [Symbol.isConcatSpreadable] = true;

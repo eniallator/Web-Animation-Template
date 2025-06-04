@@ -8,14 +8,21 @@ type FoldOptionType<T extends OptionType, S, N, D = S | N> = T extends "some"
     ? N
     : D;
 
-export class Option<A, T extends OptionType = undefined> {
+type UnpackTupledOptions<O extends readonly Option<NonNullable<unknown>>[]> = {
+  [K in keyof O]: O[K] extends Option<infer T> ? T : O[K];
+};
+
+export class Option<
+  A extends NonNullable<unknown>,
+  T extends OptionType = undefined,
+> {
   private readonly value: A | null | undefined;
 
   private constructor(value: A | null | undefined) {
     this.value = value;
   }
 
-  static none<A>(): Option<A, "none"> {
+  static none<A extends NonNullable<unknown>>(): Option<A, "none"> {
     return new Option<A, "none">(null);
   }
 
@@ -23,27 +30,39 @@ export class Option<A, T extends OptionType = undefined> {
     return new Option(value);
   }
 
-  static from<A>(value: A | null | undefined): Option<A> {
+  static from<A extends NonNullable<unknown>>(
+    value: A | null | undefined
+  ): Option<A> {
     return new Option(value);
   }
 
-  static fromExact<const A>(value: A | null | undefined): Option<A> {
+  static fromExact<const A extends NonNullable<unknown>>(
+    value: A | null | undefined
+  ): Option<A> {
     return new Option(value);
   }
 
-  isSome(): this is Option<A, "some"> {
-    return this.value != null;
+  static tupled<const A extends Option<NonNullable<unknown>>[]>(
+    tup: A
+  ): Option<UnpackTupledOptions<A>> {
+    const values: unknown[] = [];
+    for (const opt of tup) {
+      const value = opt.getOrNull();
+      if (value != null) values.push(value);
+      else return new Option<UnpackTupledOptions<A>>(null);
+    }
+    return new Option(values) as Option<UnpackTupledOptions<A>>;
   }
 
-  isNone(): this is Option<A, "none"> {
-    return this.value == null;
-  }
-
-  map<B>(fn: (value: A) => B | null | undefined): Option<B, OptionType> {
+  map<B extends NonNullable<unknown>>(
+    fn: (value: A) => B | null | undefined
+  ): Option<B, OptionType> {
     return new Option(this.value != null ? fn(this.value) : null);
   }
 
-  flatMap<B>(fn: (value: A) => Option<B>): Option<B> {
+  flatMap<B extends NonNullable<unknown>>(
+    fn: (value: A) => Option<B>
+  ): Option<B> {
     return this.value != null ? fn(this.value) : new Option<B>(null);
   }
 
@@ -57,6 +76,14 @@ export class Option<A, T extends OptionType = undefined> {
     return new Option<B>(
       this.value != null && guard(this.value) ? this.value : null
     );
+  }
+
+  isSome(): this is Option<A, "some"> {
+    return this.value != null;
+  }
+
+  isNone(): this is Option<A, "none"> {
+    return this.value == null;
   }
 
   tap(fn: (value: A) => void): this {
@@ -76,7 +103,7 @@ export class Option<A, T extends OptionType = undefined> {
     return (this.value ?? undefined) as FoldOptionType<T, A, undefined>;
   }
 
-  getOrThrow(err: Error): A {
+  getOrThrow(err: Error = new Error("Option value is nullable")): A {
     return this.value ?? raise(err);
   }
 

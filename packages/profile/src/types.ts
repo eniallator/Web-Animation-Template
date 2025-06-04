@@ -1,13 +1,18 @@
-import type { MethodName } from "./tagged.ts";
+import type { AnyFunction } from "@web-art/core";
 
-export type TimeableTarget = Record<MethodName, () => unknown>;
+export type Property = string | symbol;
+export type TimeableTarget = Record<Property, AnyFunction>;
 
 export interface Stats {
   calls: number;
   executionTime: number;
 }
 
-export interface TimeableStats extends Stats {
+export interface RecordableStats extends Stats {
   minDebugLevel: number;
-  setup: boolean;
 }
+
+export type AllStats<S> = Map<
+  TimeableTarget,
+  { targetName: string; properties: Record<Property, S> }
+>;

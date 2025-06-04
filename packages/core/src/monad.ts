@@ -26,7 +26,7 @@ export class Monad<A> {
   static tupled<const M extends readonly Monad<unknown>[]>(
     monads: M
   ): Monad<UnpackTupledMonads<M>> {
-    return new Monad(monads.map(monad => monad.value) as UnpackTupledMonads<M>);
+    return new Monad(monads.map(({ value }) => value) as UnpackTupledMonads<M>);
   }
 
   /**
@@ -65,7 +65,9 @@ export class Monad<A> {
     return this.value;
   }
 
-  toOption<B>(this: { value: B | null | undefined }): Option<B> {
+  toOption<B extends NonNullable<unknown>>(this: {
+    value: B | null | undefined;
+  }): Option<B> {
     return Option.from(this.value);
   }
 

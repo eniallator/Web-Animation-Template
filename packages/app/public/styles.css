@@ -18,6 +18,7 @@ main {
 select,
 textarea,
 input:not([type="checkbox"]) {
+  width: 11rem;
   border: 0;
   font: inherit;
   font-size: inherit;
@@ -27,20 +28,12 @@ input:not([type="checkbox"]) {
 
 input[type="range"] {
   padding: 0;
-}
-
-textarea,
-input:not([type="checkbox"]) {
-  width: 11rem;
-  min-width: 11rem;
-  max-width: 11rem;
+  width: 12rem;
 }
 
 select,
 input[type="color"] {
   width: 12rem;
-  min-width: 12rem;
-  max-width: 12rem;
 }
 
 .wrap-text {

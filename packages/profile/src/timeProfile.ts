@@ -1,141 +1,34 @@
-import { typedKeys, typedProperties, typedToEntries } from "@web-art/core";
-import {
-  isAnyRecord,
-  isFunction,
-  isObjectOf,
-  isString,
-  isUnionOf,
-} from "deep-guards";
-
 import { AuditError } from "./error.ts";
-import { unsafeTargetName } from "./tagged.ts";
+import { PropertyWatcher } from "./propertyWatcher.ts";
 import { TimeAudit } from "./timeAudit.ts";
 
-import type { MethodName, TargetName } from "./tagged.ts";
-import type { Stats, TimeableStats, TimeableTarget } from "./types.ts";
-
-const hasName = isUnionOf(isFunction, isObjectOf({ name: isString }));
-const hasPrototype = isUnionOf(
-  isFunction,
-  isObjectOf({ prototype: isAnyRecord })
-);
+import type { AllStats, Property, Stats } from "./types.ts";
 
 export class TimeProfile {
-  private static readonly methodTimes: Record<
-    TargetName,
-    Record<MethodName, TimeableStats>
-  > = {};
+  private static readonly propertyWatcher: PropertyWatcher =
+    new PropertyWatcher();
 
-  private static getStats(
-    debugLevel: number,
-    recordedStats?: Record<TargetName, Record<MethodName, Stats>>
-  ) {
-    const stats: Record<TargetName, Record<MethodName, Stats>> = {};
-
-    for (const [targetName, targetStats] of typedToEntries(this.methodTimes)) {
-      if (recordedStats != null && recordedStats[targetName] == null) continue;
-
-      for (const [methodName, methodStats] of typedToEntries(targetStats)) {
-        if (methodStats.minDebugLevel < debugLevel) {
-          stats[targetName] ??= {};
-          stats[targetName][methodName] = {
-            calls:
-              methodStats.calls -
-              (recordedStats?.[targetName]?.[methodName]?.calls ?? 0),
-            executionTime:
-              methodStats.executionTime -
-              (recordedStats?.[targetName]?.[methodName]?.executionTime ?? 0),
-          };
-        }
-      }
-    }
-
-    return stats;
-  }
-
-  private static tryPatchMethod(
-    target: TimeableTarget,
-    targetName: TargetName,
-    methodName: MethodName,
-    minDebugLevel: number
-  ): void {
-    this.methodTimes[targetName] ??= {};
-    this.methodTimes[targetName][methodName] ??= {
-      calls: 0,
-      executionTime: 0,
-      minDebugLevel,
-      setup: false,
-    };
-    const stats = this.methodTimes[targetName][methodName];
-
-    if (minDebugLevel < stats.minDebugLevel) {
-      stats.minDebugLevel = minDebugLevel;
-    }
-
-    if (!stats.setup) {
-      stats.setup = true;
-
-      const origMethod = target[methodName] as (...args: unknown[]) => unknown;
-
-      target[methodName] = function (...args: unknown[]): unknown {
-        const startTime = performance.now();
-        const ret = origMethod.apply(this, args);
-        stats.executionTime += performance.now() - startTime;
-        stats.calls++;
-        return ret;
-      };
-    }
-  }
+  private readonly debugLevel: number;
+  private snapshot: AllStats<Stats> | null = null;
 
   /**
    * Registers a class for analyzing execution time
-   *  If called multiple times with the same method, the lower of the two debug levels is taken.
-   * @param {unknown} _target The class/object to analyze
-   * @param {string[]} methodNames The method names of the class/object to analyze. Defaults to all except the constructor.
-   * @param {number} [minDebugLevel] The minimum debug level of these methods, where the lower it is, the higher priority it is to be included. Defaults to 1
-   * @param {boolean} [addPrototype] Recursively call the prototype of the target. Defaults to true if the methodNames aren't given
+   *  If called multiple times with the same property/properties, the lower of the two debug levels is taken.
+   * @param {unknown} target The class/object to analyze
+   * @param {string[]} properties The properties of the class/object to analyze. Defaults to all except the constructor.
+   * @param {number} [minDebugLevel] The minimum debug level of these properties, where the lower it is, the higher priority it is to be included. Defaults to 1
+   * @param {boolean} [addPrototype] Recursively call the prototype of the target. Defaults to true if the properties aren't given
    */
   static registerMethods(
-    _target: NonNullable<unknown>,
+    target: NonNullable<unknown>,
     params: {
-      targetName?: TargetName;
+      targetName?: string;
       minDebugLevel?: number;
       includePrototype?: boolean;
-    } & ({ includeSymbols?: boolean } | { methodNames: MethodName[] }) = {}
-  ): void {
-    const target = _target as TimeableTarget;
-    const {
-      targetName = unsafeTargetName(
-        hasName(_target) ? _target.name : "Anonymous"
-      ),
-      minDebugLevel = 1,
-      includePrototype = !("methodNames" in params),
-    } = params;
-
-    const methodNames = (
-      "includeSymbols" in params && params.includeSymbols
-        ? typedProperties(target)
-        : typedKeys(target)
-    ).filter(name => name !== "constructor" && isFunction(target[name]));
-
-    methodNames.forEach(methodName => {
-      if (isFunction(target[methodName])) {
-        this.tryPatchMethod(target, targetName, methodName, minDebugLevel);
-      }
-    });
-
-    if (includePrototype && hasPrototype(target)) {
-      TimeProfile.registerMethods(target.prototype, {
-        ...params,
-        targetName: unsafeTargetName(`${targetName}.prototype`),
-        includePrototype: false,
-      });
-    }
+    } & ({ includeSymbols?: boolean } | { properties: Property[] }) = {}
+  ) {
+    this.propertyWatcher.registerMethods(target, params);
   }
-
-  private readonly debugLevel: number;
-  private recordedStats: Record<TargetName, Record<MethodName, Stats>> | null =
-    null;
 
   /**
    * TimeAnalysis class constructor
@@ -149,13 +42,13 @@ export class TimeProfile {
    * Starts auditing, later to be retrieved with endAudit
    */
   startAudit(): void {
-    if (this.recordedStats != null) {
+    if (this.snapshot != null) {
       throw new AuditError(
         "Cannot do two audits at the same time with the same instance! Wait until the first is finished or create another instance"
       );
     }
 
-    this.recordedStats = TimeProfile.getStats(this.debugLevel);
+    this.snapshot = TimeProfile.propertyWatcher.getStats(this.debugLevel);
   }
 
   /**
@@ -163,14 +56,17 @@ export class TimeProfile {
    * @returns {TimeAudit} Stats generated between the startAudit and endAudit calls
    */
   endAudit(): TimeAudit {
-    if (this.recordedStats == null) {
+    if (this.snapshot == null) {
       throw new AuditError(
         "You must call startAudit before endAudit is called."
       );
     }
 
-    const stats = TimeProfile.getStats(this.debugLevel, this.recordedStats);
-    this.recordedStats = null;
+    const stats = TimeProfile.propertyWatcher.getStats(
+      this.debugLevel,
+      this.snapshot
+    );
+    this.snapshot = null;
 
     return new TimeAudit(stats);
   }

@@ -1,31 +1,25 @@
-import {
-  raise,
-  typedKeys,
-  typedProperties,
-  typedToEntries,
-} from "@web-art/core";
+import { raise, typedKeys, typedToEntries } from "@web-art/core";
 
 import { IndexError } from "./error.ts";
 
-import type { MethodName, TargetName } from "./tagged.ts";
-import type { Stats } from "./types.ts";
+import type { AllStats, Property, Stats, TimeableTarget } from "./types.ts";
 
 export class TimeAudit {
-  private readonly allStats: Record<TargetName, Record<MethodName, Stats>>;
+  private readonly allStats: AllStats<Stats>;
 
-  constructor(stats: Record<TargetName, Record<MethodName, Stats>>) {
+  constructor(stats: AllStats<Stats>) {
     this.allStats = stats;
   }
 
   /**
-   * Get the stats of a given targetName/methodName pair
-   * @param {string} targetName
-   * @param {string} methodName
+   * Get the stats of a given target/property pair
+   * @param {string} target
+   * @param {string | Symbol} property
    * @returns {Stats}
    */
-  getStats(targetName: TargetName, methodName: MethodName): Stats {
+  getStats(target: TimeableTarget, property: Property): Stats {
     return (
-      this.allStats[targetName]?.[methodName] ??
+      this.allStats.get(target)?.properties[property] ??
       raise(new IndexError("Method name does not exist on target"))
     );
   }
@@ -34,42 +28,45 @@ export class TimeAudit {
    * Generator which iterates over all the targets inside the stats
    * @yields {string} Current target
    */
-  *targets(): Generator<TargetName> {
-    for (const target of typedKeys(this.allStats)) {
+  *targets(): Generator<TimeableTarget> {
+    for (const target of this.allStats.keys()) {
       yield target;
     }
   }
 
   /**
-   * Generator which iterates over the target's methodNames
+   * Generator which iterates over the target's properties
    * @param {string} target
-   * @yields {string} Current methodName
+   * @yields {string | symbol} Current property
    */
-  *methodNames(targetName: TargetName): Generator<MethodName> {
-    for (const methodName of typedProperties(
-      this.allStats[targetName] ??
-        raise(new IndexError("Target does not exist"))
-    )) {
-      yield methodName;
+  *properties(target: TimeableTarget): Generator<Property> {
+    const allPropertyStats =
+      this.allStats.get(target) ??
+      raise(new IndexError("Target does not exist"));
+    for (const property of typedKeys(allPropertyStats, true)) {
+      yield property;
     }
   }
 
   /**
    * Iterates over the audited stats
-   * @param {function({calls: number, executionTime: number, minDebugLevel: number}, string, string): void} callbackFn
+   * @param {function({calls: number, executionTime: number, minDebugLevel: number}, TimeableTarget, string | symbol): void} callbackFn
    */
   forEach(
     callbackFn: (
+      this: TimeAudit,
       stats: Stats,
-      targetName: TargetName,
-      methodName: MethodName
+      target: TimeableTarget,
+      property: Property
     ) => void
   ): void {
-    for (const [targetName, methodStats] of typedToEntries(this.allStats)) {
-      for (const [methodName, stats] of typedToEntries(methodStats, true)) {
-        callbackFn(stats, targetName, methodName);
-      }
-    }
+    this.allStats.entries().forEach(([target, propertyStats]) => {
+      typedToEntries(propertyStats.properties, true).forEach(
+        ([property, stats]) => {
+          callbackFn.call(this, stats, target, property);
+        }
+      );
+    });
   }
 
   /**
@@ -81,29 +78,26 @@ export class TimeAudit {
     const formatNumber = (n: number): string =>
       digits != null || n < 1 ? n.toExponential(digits) : `${n}`;
 
-    return typedToEntries(this.allStats).reduce(
-      (fullStr, [target, methodStats]) => {
-        const targetStats = typedToEntries(methodStats, true).reduce(
-          (acc, [methodName, { calls, executionTime }]) =>
-            calls > 0
-              ? `${acc}\n  - ${methodName.toString()} Calls:${formatNumber(
-                  calls
-                )} Execution Time: ${formatNumber(
-                  executionTime
-                )}ms Average Execution Time: ${formatNumber(
-                  executionTime / calls
-                )}ms`
-              : acc,
-          ""
-        );
+    return this.allStats.entries().reduce((fullStr, [_, targetStats]) => {
+      const targetStr = typedToEntries(targetStats.properties, true).reduce(
+        (acc, [property, { calls, executionTime }]) =>
+          calls > 0
+            ? `${acc}\n  - ${property.toString()} Calls:${formatNumber(
+                calls
+              )} Execution Time: ${formatNumber(
+                executionTime
+              )}ms Average Execution Time: ${formatNumber(
+                executionTime / calls
+              )}ms`
+            : acc,
+        ""
+      );
 
-        return targetStats !== ""
-          ? `${fullStr}${
-              fullStr !== "" ? "\n\n" : ""
-            }===== ${target} =====${targetStats}`
-          : fullStr;
-      },
-      ""
-    );
+      return targetStr !== ""
+        ? `${fullStr}${fullStr !== "" ? "\n\n" : ""}===== ${
+            targetStats.targetName
+          } =====${targetStr}`
+        : fullStr;
+    }, "");
   }
 }

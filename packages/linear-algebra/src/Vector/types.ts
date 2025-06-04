@@ -1,11 +1,11 @@
-import type { FixedLengthTuple } from "@web-art/core";
+import type { FillTuple } from "@web-art/core";
 import type { Vector } from "./index.ts";
 
 export type AnyComponents = [number, ...number[]];
 
 export type Components<N extends number | undefined> = undefined extends N
   ? AnyComponents
-  : FixedLengthTuple<number, NonNullable<N>>;
+  : FillTuple<number, NonNullable<N>>;
 
 export type MinSize<S extends number, N extends number | undefined> =
   Components<N> extends [...Components<S>, ...number[]] ? N : never;

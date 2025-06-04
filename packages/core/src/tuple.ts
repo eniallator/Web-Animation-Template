@@ -2,7 +2,7 @@ export const tuple = <const T extends unknown[]>(...tuple: T) => tuple;
 
 type RecursionLimit = 1001;
 
-export type FixedLengthTuple<
+export type FillTuple<
   T,
   N extends number,
   A extends T[] = [T],
@@ -10,4 +10,4 @@ export type FixedLengthTuple<
   ? [T, ...T[]]
   : A["length"] extends N
     ? A
-    : FixedLengthTuple<T, N, [...A, T]>;
+    : FillTuple<T, N, [...A, T]>;

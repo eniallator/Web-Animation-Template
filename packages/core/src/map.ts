@@ -3,16 +3,16 @@ import { Option } from "./option.ts";
 import type { Guard } from "deep-guards";
 import type { OptionType } from "./option.ts";
 
-type MapFn<I, O> = (
+type MapFn<I, O extends NonNullable<unknown>> = (
   val: I,
   index: number,
   arr: readonly I[]
 ) => Option<O, OptionType> | O | null | undefined;
 
-const isOption: Guard<Option<unknown, OptionType>> = value =>
+const isOption: Guard<Option<NonNullable<unknown>, OptionType>> = value =>
   value instanceof Option;
 
-export const filterAndMap = <I, O>(
+export const filterAndMap = <I, O extends NonNullable<unknown>>(
   arr: readonly I[],
   callback: MapFn<I, O>
 ): O[] =>
@@ -22,7 +22,7 @@ export const filterAndMap = <I, O>(
     return out != null ? [...acc, out] : acc;
   }, []);
 
-export const findAndMap = <I, O>(
+export const findAndMap = <I, O extends NonNullable<unknown>>(
   arr: readonly I[],
   callback: MapFn<I, O>
 ): O | null => {
