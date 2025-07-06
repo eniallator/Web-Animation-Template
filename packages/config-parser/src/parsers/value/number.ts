@@ -9,7 +9,7 @@ export const defaultNumber = (attrs?: Record<string, string>) => {
   const max = Number(attrs?.["max"] ?? 100);
   const step = Number(attrs?.["step"] ?? 1);
 
-  return Math.ceil((max - min) / (2 * step)) * step + min;
+  return Math.ceil((max - min) / step) * step + min;
 };
 
 export const numToStr = (n: number) =>
@@ -45,9 +45,7 @@ export const numberParser = (cfg: ValueConfig<number>) => {
           ])
         );
 
-        const el = dom.toHtml<HTMLInputElement>(
-          `<input type="number"${attrs} />`
-        );
+        const el = dom.toHtml(`<input type="number" ${attrs} />`);
         el.onchange = () => {
           onChange(Number(el.value));
         };

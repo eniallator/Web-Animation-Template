@@ -1,5 +1,4 @@
 import {
-  b64,
   dom,
   filterAndMap,
   mapObject,
@@ -8,7 +7,7 @@ import {
   typedToEntries,
 } from "@web-art/core";
 
-import { configItem, hashString, parseQuery } from "./helpers.ts";
+import { configItem, parseQuery, queryKey } from "./helpers.ts";
 
 import type { Entry } from "@web-art/core";
 import type {
@@ -21,26 +20,24 @@ import type {
 
 export class ParamConfig<const R extends AnyStringRecord> {
   private readonly state: State<R>;
-  private readonly shortUrl: boolean;
   private readonly listeners: {
     callback: (values: R, updatedId?: keyof R) => void;
     subscriptions: Set<keyof R>;
   }[];
   private readonly extraValue: string | undefined;
-  private readonly hashKeyLength: number;
+  private readonly hashLength: number | null;
 
   constructor(
     initParsers: InitParserObject<R>,
     baseEl: HTMLElement,
     options: ParamConfigOptions = {}
   ) {
-    const { query = location.search, shortUrl = false } = options;
-    this.shortUrl = shortUrl;
-    this.hashKeyLength = (options.shortUrl ? options.hashKeyLength : null) ?? 6;
+    const { query = location.search } = options;
+    this.hashLength = options.shortUrl ? (options.hashLength ?? 6) : null;
     this.listeners = [];
 
-    const initialValues = parseQuery(query, this.shortUrl, this.hashKeyLength);
-    this.extraValue = initialValues[this.queryKey("extra")];
+    const initialValues = parseQuery(query, this.hashLength);
+    this.extraValue = initialValues[queryKey("extra", this.hashLength)];
 
     this.state = mapObject(initParsers, ([id, initParser]): Entry<State<R>> => {
       const { label, title, methods } = initParser;
@@ -52,8 +49,9 @@ export class ParamConfig<const R extends AnyStringRecord> {
         () => this.state[id].value
       );
 
-      const query = initialValues[this.queryKey(id as string)] ?? null;
-      const el = parser.html(id as string, query, this.shortUrl);
+      const key = queryKey(id as string, this.hashLength);
+      const query = initialValues[key] ?? null;
+      const el = parser.html(id as string, query, options.shortUrl ?? false);
       baseEl.appendChild(configItem(id as string, el, label, title));
       const value =
         parser.type === "Value" ? parser.getValue(el) : (null as R[keyof R]);
@@ -75,7 +73,9 @@ export class ParamConfig<const R extends AnyStringRecord> {
   setValue<I extends keyof R>(id: I, value: R[I]): void {
     this.state[id].value = value;
     const { parser, el } = this.state[id];
-    if (parser.type === "Value") parser.updateValue(el, this.shortUrl);
+    if (parser.type === "Value") {
+      parser.updateValue(el, this.hashLength != null);
+    }
   }
 
   get extra() {
@@ -99,14 +99,14 @@ export class ParamConfig<const R extends AnyStringRecord> {
 
   serialiseToUrlParams(extra?: string): string {
     const urlPart = (key: string, value: string) =>
-      [this.queryKey(key), encodeURIComponent(value)].join(
-        this.shortUrl ? "" : "="
+      [queryKey(key, this.hashLength), encodeURIComponent(value)].join(
+        this.hashLength != null ? "" : "="
       );
 
     return filterAndMap(typedToEntries(this.state), ([id, { parser }]) =>
       Option.some(parser)
         .guard((p): p is ValueParser<R[keyof R]> => p.type === "Value")
-        .map(p => p.serialise(this.shortUrl))
+        .map(p => p.serialise(this.hashLength != null))
         .map(serialised => urlPart(id as string, serialised))
     )
       .concat(...(extra != null ? [urlPart("extra", extra)] : []))
@@ -127,11 +127,5 @@ export class ParamConfig<const R extends AnyStringRecord> {
       }`;
       void navigator.clipboard.writeText(shareUrl);
     });
-  }
-
-  private queryKey(key: string): string {
-    return this.shortUrl
-      ? b64.fromUint(Math.abs(hashString(key)), this.hashKeyLength)
-      : encodeURIComponent(key);
   }
 }

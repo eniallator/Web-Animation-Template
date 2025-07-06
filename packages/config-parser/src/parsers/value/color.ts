@@ -35,9 +35,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
           ])
         );
 
-        const el = dom.toHtml<HTMLInputElement>(
-          `<input type="color"${attrs} />`
-        );
+        const el = dom.toHtml(`<input type="color" ${attrs} />`);
         el.oninput = () => {
           onChange(el.value.slice(1).toUpperCase());
         };

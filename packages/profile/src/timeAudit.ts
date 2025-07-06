@@ -2,24 +2,24 @@ import { raise, typedKeys, typedToEntries } from "@web-art/core";
 
 import { IndexError } from "./error.ts";
 
-import type { AllStats, Property, Stats, TimeableTarget } from "./types.ts";
+import type { TargetMap, MethodName, Stats } from "./types.ts";
 
 export class TimeAudit {
-  private readonly allStats: AllStats<Stats>;
+  private readonly allStats: TargetMap<Stats>;
 
-  constructor(stats: AllStats<Stats>) {
+  constructor(stats: TargetMap<Stats>) {
     this.allStats = stats;
   }
 
   /**
-   * Get the stats of a given target/property pair
+   * Get the stats of a given target/methodName pair
    * @param {string} target
-   * @param {string | Symbol} property
+   * @param {string | Symbol} methodName
    * @returns {Stats}
    */
-  getStats(target: TimeableTarget, property: Property): Stats {
+  getStats(target: NonNullable<unknown>, methodName: MethodName): Stats {
     return (
-      this.allStats.get(target)?.properties[property] ??
+      this.allStats.get(target)?.methods[methodName] ??
       raise(new IndexError("Method name does not exist on target"))
     );
   }
@@ -28,42 +28,39 @@ export class TimeAudit {
    * Generator which iterates over all the targets inside the stats
    * @yields {string} Current target
    */
-  *targets(): Generator<TimeableTarget> {
-    for (const target of this.allStats.keys()) {
-      yield target;
-    }
+  *targets(): Generator<NonNullable<unknown>> {
+    for (const target of this.allStats.keys()) yield target;
   }
 
   /**
-   * Generator which iterates over the target's properties
+   * Generator which iterates over the target's methodNames
    * @param {string} target
-   * @yields {string | symbol} Current property
+   * @yields {string | symbol} Current methodName
    */
-  *properties(target: TimeableTarget): Generator<Property> {
-    const allPropertyStats =
+  *properties(target: NonNullable<unknown>): Generator<MethodName> {
+    const allMethods =
       this.allStats.get(target) ??
       raise(new IndexError("Target does not exist"));
-    for (const property of typedKeys(allPropertyStats, true)) {
-      yield property;
-    }
+
+    for (const methodName of typedKeys(allMethods, true)) yield methodName;
   }
 
   /**
    * Iterates over the audited stats
-   * @param {function({calls: number, executionTime: number, minDebugLevel: number}, TimeableTarget, string | symbol): void} callbackFn
+   * @param {function({calls: number, executionTime: number, minDebugLevel: number}, NonNullable<unknown>, string | symbol): void} callbackFn
    */
   forEach(
     callbackFn: (
       this: TimeAudit,
       stats: Stats,
-      target: TimeableTarget,
-      property: Property
+      target: NonNullable<unknown>,
+      methodName: MethodName
     ) => void
   ): void {
-    this.allStats.entries().forEach(([target, propertyStats]) => {
-      typedToEntries(propertyStats.properties, true).forEach(
-        ([property, stats]) => {
-          callbackFn.call(this, stats, target, property);
+    this.allStats.entries().forEach(([target, methodStats]) => {
+      typedToEntries(methodStats.methods, true).forEach(
+        ([methodName, stats]) => {
+          callbackFn.call(this, stats, target, methodName);
         }
       );
     });
@@ -79,10 +76,10 @@ export class TimeAudit {
       digits != null || n < 1 ? n.toExponential(digits) : `${n}`;
 
     return this.allStats.entries().reduce((fullStr, [_, targetStats]) => {
-      const targetStr = typedToEntries(targetStats.properties, true).reduce(
-        (acc, [property, { calls, executionTime }]) =>
+      const targetStr = typedToEntries(targetStats.methods, true).reduce(
+        (acc, [methodName, { calls, executionTime }]) =>
           calls > 0
-            ? `${acc}\n  - ${property.toString()} Calls:${formatNumber(
+            ? `${acc}\n  - ${methodName.toString()} Calls:${formatNumber(
                 calls
               )} Execution Time: ${formatNumber(
                 executionTime

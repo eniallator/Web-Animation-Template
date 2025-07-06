@@ -48,11 +48,11 @@ export type InitParserObject<O extends AnyStringRecord = AnyStringRecord> = {
   [K in keyof O]: InitParser<Parser<O[K]>>;
 };
 
-export type ValueParserTuple<O extends readonly unknown[]> = {
+export type ValueParsers<O extends readonly unknown[]> = {
   [K in keyof O]: ValueParser<O[K]>;
 };
 
-export type InitValueParserTuple<O extends readonly unknown[]> = {
+export type InitValueParsers<O extends readonly unknown[]> = {
   [K in keyof O]: InitParser<ValueParser<O[K]>>;
 };
 
@@ -71,4 +71,4 @@ export type State<R extends AnyStringRecord> = {
 
 export type ParamConfigOptions = {
   query?: string;
-} & ({ shortUrl?: false } | { shortUrl: true; hashKeyLength?: number });
+} & ({ shortUrl?: false } | { shortUrl: true; hashLength?: number });

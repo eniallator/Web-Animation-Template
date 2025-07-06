@@ -28,10 +28,10 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
           ])
         );
 
-        const el = dom.toHtml<HTMLInputElement | HTMLTextAreaElement>(
+        const el = dom.toHtml(
           cfg.area
             ? `<textarea ${attrs}>${initial}</textarea>`
-            : `<input type="text"${dom.toAttrs([["value", initial]])}${attrs} />`
+            : `<input type="text" value="${initial}" ${attrs} />`
         );
         el.onchange = () => {
           onChange(el.value);

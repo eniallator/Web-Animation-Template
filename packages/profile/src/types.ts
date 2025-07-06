@@ -1,7 +1,4 @@
-import type { AnyFunction } from "@web-art/core";
-
-export type Property = string | symbol;
-export type TimeableTarget = Record<Property, AnyFunction>;
+export type MethodName = string | symbol;
 
 export interface Stats {
   calls: number;
@@ -12,7 +9,7 @@ export interface RecordableStats extends Stats {
   minDebugLevel: number;
 }
 
-export type AllStats<S> = Map<
-  TimeableTarget,
-  { targetName: string; properties: Record<Property, S> }
+export type TargetMap<S> = Map<
+  NonNullable<unknown>,
+  { targetName: string; methods: Record<MethodName, S> }
 >;

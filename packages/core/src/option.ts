@@ -30,6 +30,12 @@ export class Option<
     return new Option(value);
   }
 
+  static someExact<const A extends NonNullable<unknown>>(
+    value: A
+  ): Option<A, "some"> {
+    return new Option(value);
+  }
+
   static from<A extends NonNullable<unknown>>(
     value: A | null | undefined
   ): Option<A> {
@@ -56,7 +62,7 @@ export class Option<
 
   map<B extends NonNullable<unknown>>(
     fn: (value: A) => B | null | undefined
-  ): Option<B, OptionType> {
+  ): Option<B> {
     return new Option(this.value != null ? fn(this.value) : null);
   }
 
@@ -103,8 +109,10 @@ export class Option<
     return (this.value ?? undefined) as FoldOptionType<T, A, undefined>;
   }
 
-  getOrThrow(err: Error = new Error("Option value is nullable")): A {
-    return this.value ?? raise(err);
+  getOrThrow(
+    err: Error = new Error("Option value is nullable")
+  ): FoldOptionType<T, A, never, A> {
+    return (this.value ?? raise(err)) as FoldOptionType<T, A, never, never>;
   }
 
   getOrElse<R>(orElse: () => R): FoldOptionType<T, A, R> {

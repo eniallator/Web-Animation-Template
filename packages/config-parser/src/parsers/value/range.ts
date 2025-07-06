@@ -32,9 +32,7 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
           ])
         );
 
-        const el = dom.toHtml<HTMLInputElement>(
-          `<input type="range"${attrs} />`
-        );
+        const el = dom.toHtml(`<input type="range" ${attrs} />`);
         el.onchange = () => {
           onChange(Number(el.value));
         };

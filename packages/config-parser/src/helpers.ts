@@ -1,4 +1,4 @@
-import { dom } from "@web-art/core";
+import { b64, dom } from "@web-art/core";
 
 export const configItem = (
   id: string,
@@ -18,7 +18,7 @@ export const configItem = (
 };
 
 // https://stackoverflow.com/a/7616484
-export const hashString = (str: string): number => {
+const hashString = (str: string): number => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = (hash << 5) - hash + str.charCodeAt(i);
@@ -27,14 +27,19 @@ export const hashString = (str: string): number => {
   return hash;
 };
 
+export const queryKey = (key: string, hashLength: number | null) =>
+  hashLength != null
+    ? b64.fromUint(Math.abs(hashString(key)), hashLength)
+    : encodeURIComponent(key);
+
 export const parseQuery = (
   query: string,
-  shortUrl: boolean,
-  hashKeyLength: number
+  hashLength: number | null
 ): Record<string, string> => {
-  const queryRegex = shortUrl
-    ? new RegExp(`[?&]?([^&]{${hashKeyLength}})([^&]*)`, "g")
-    : /[?&]?([^=&]+)=?([^&]*)/g;
+  const queryRegex =
+    hashLength != null
+      ? new RegExp(`[?&]?([^&]{${hashLength}})([^&]*)`, "g")
+      : /[?&]?([^=&]+)=?([^&]*)/g;
 
   const queryEntries: [string, string][] = [];
   let tokens;

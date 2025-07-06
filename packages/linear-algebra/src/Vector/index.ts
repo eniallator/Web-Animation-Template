@@ -58,7 +58,7 @@ export class Vector<N extends number | undefined = undefined> {
 
   /**
    * Robust Vector class which has many available operations
-   * @param {AnyComponents} components The components of the vector, can be any size.
+   * @param {AnyComponents} cmps The components of the vector, can be any size.
    */
   static create<A extends AnyComponents>(...cmps: A): Vector<A["length"]> {
     return isAnyComponents(cmps)
@@ -345,7 +345,7 @@ export class Vector<N extends number | undefined = undefined> {
 
   /**
    * Sets the "head" of the current vector to a given set of components or copies a given vector
-   * @param {...Components<N> | Vector<N>} xOrVec New components to use, or the vector to copy
+   * @param {...Components<N> | Vector<N>} params New components to use, or the vector to copy
    * @returns {this} this
    */
   setHead(...params: Components<N> | readonly [Vector<N>]): this {
@@ -400,7 +400,7 @@ export class Vector<N extends number | undefined = undefined> {
 
   /**
    * Sets the magnitude of this vector
-   * @param {number} mag New magnitude to set to
+   * @param {number} magnitude New magnitude to set to
    * @returns {this} this
    */
   setMagnitude(magnitude: number): this {

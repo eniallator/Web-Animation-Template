@@ -38,8 +38,8 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
           ])
         );
 
-        const el = dom.toHtml<HTMLSelectElement>(
-          `<select${attrs}>${cfg.options
+        const el = dom.toHtml(
+          `<select ${attrs}>${cfg.options
             .map(
               opt =>
                 `<option value="${opt}" ${opt === initial ? " selected" : ""}>

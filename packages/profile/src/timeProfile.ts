@@ -1,23 +1,22 @@
 import { AuditError } from "./error.ts";
-import { PropertyWatcher } from "./propertyWatcher.ts";
+import { MethodWatcher } from "./MethodWatcher.ts";
 import { TimeAudit } from "./timeAudit.ts";
 
-import type { AllStats, Property, Stats } from "./types.ts";
+import type { TargetMap, MethodName, Stats } from "./types.ts";
 
 export class TimeProfile {
-  private static readonly propertyWatcher: PropertyWatcher =
-    new PropertyWatcher();
+  private static readonly methodWatcher: MethodWatcher = new MethodWatcher();
 
   private readonly debugLevel: number;
-  private snapshot: AllStats<Stats> | null = null;
+  private snapshot: TargetMap<Stats> | null = null;
 
   /**
    * Registers a class for analyzing execution time
-   *  If called multiple times with the same property/properties, the lower of the two debug levels is taken.
+   *  If called multiple times with the same property/methodNames, the lower of the two debug levels is taken.
    * @param {unknown} target The class/object to analyze
-   * @param {string[]} properties The properties of the class/object to analyze. Defaults to all except the constructor.
-   * @param {number} [minDebugLevel] The minimum debug level of these properties, where the lower it is, the higher priority it is to be included. Defaults to 1
-   * @param {boolean} [addPrototype] Recursively call the prototype of the target. Defaults to true if the properties aren't given
+   * @param {string[]} methodNames The methodNames of the class/object to analyze. Defaults to all except the constructor.
+   * @param {number} [minDebugLevel] The minimum debug level of these methodNames, where the lower it is, the higher priority it is to be included. Defaults to 1
+   * @param {boolean} [addPrototype] Recursively call the prototype of the target. Defaults to true if the methodNames aren't given
    */
   static registerMethods(
     target: NonNullable<unknown>,
@@ -25,9 +24,9 @@ export class TimeProfile {
       targetName?: string;
       minDebugLevel?: number;
       includePrototype?: boolean;
-    } & ({ includeSymbols?: boolean } | { properties: Property[] }) = {}
-  ) {
-    this.propertyWatcher.registerMethods(target, params);
+    } & ({ includeSymbols?: boolean } | { methodNames: MethodName[] }) = {}
+  ): void {
+    this.methodWatcher.registerMethods(target, params);
   }
 
   /**
@@ -48,7 +47,7 @@ export class TimeProfile {
       );
     }
 
-    this.snapshot = TimeProfile.propertyWatcher.getStats(this.debugLevel);
+    this.snapshot = TimeProfile.methodWatcher.getStats(this.debugLevel);
   }
 
   /**
@@ -62,7 +61,7 @@ export class TimeProfile {
       );
     }
 
-    const stats = TimeProfile.propertyWatcher.getStats(
+    const stats = TimeProfile.methodWatcher.getStats(
       this.debugLevel,
       this.snapshot
     );

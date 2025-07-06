@@ -9,7 +9,7 @@ type MapFn<I, O extends NonNullable<unknown>> = (
   arr: readonly I[]
 ) => Option<O, OptionType> | O | null | undefined;
 
-const isOption: Guard<Option<NonNullable<unknown>, OptionType>> = value =>
+const isOption: Guard<Option<NonNullable<unknown>>> = value =>
   value instanceof Option;
 
 export const filterAndMap = <I, O extends NonNullable<unknown>>(

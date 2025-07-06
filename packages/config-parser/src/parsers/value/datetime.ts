@@ -33,9 +33,7 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
           ])
         );
 
-        const el = dom.toHtml<HTMLInputElement>(
-          `<input type="datetime-local"${attrs} />`
-        );
+        const el = dom.toHtml(`<input type="datetime-local" ${attrs} />`);
         el.onchange = () => {
           onChange(new Date(el.value));
         };
