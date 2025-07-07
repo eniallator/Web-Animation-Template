@@ -5,6 +5,7 @@ type Zippable = [
   readonly unknown[],
   ...(readonly unknown[])[],
 ];
+
 type ZippedItem<Z extends Zippable> = {
   [K in keyof Z]: Z[K] extends readonly (infer T)[] ? T : Z[K];
 };

@@ -46,6 +46,7 @@ type ExtractElement<S extends string> = StringExtract<
 type ToElement<S extends string> = S extends keyof HTMLElementTagNameMap
   ? HTMLElementTagNameMap[S]
   : HTMLElement;
+
 type InferElement<S extends string> = ToElement<Lowercase<ExtractElement<S>>>;
 
 const toHtml = <const S extends string>(str: S): InferElement<S> => {

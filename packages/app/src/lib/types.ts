@@ -45,3 +45,10 @@ export interface AppMethods<
     appContext: StatefulAppContext<O, S>
   ) => void;
 }
+
+export const appMethods = <
+  O extends InitParserObject,
+  const S extends object | null = null,
+>(
+  methods: AppMethods<O, S>
+): AppMethods<O, S> => methods;

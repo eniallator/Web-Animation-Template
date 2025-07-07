@@ -32,34 +32,44 @@ export type AlphabetLower =
 export type AlphabetUpper = Uppercase<AlphabetLower>;
 export type Alphabet = AlphabetLower | AlphabetUpper;
 
-interface BaseOperation<C extends string, L extends number | null> {
+interface BaseOperation<C extends string, N extends number | null> {
   charset: C;
-  length: L;
+  count: N;
 }
 
-export interface StringGet<C extends string, L extends number | null = null>
-  extends BaseOperation<C, L> {
+export interface StringGet<C extends string, N extends number | null = null>
+  extends BaseOperation<C, N> {
   type: "get";
 }
 
-export interface StringEat<C extends string, L extends number | null = null>
-  extends BaseOperation<C, L> {
+export interface StringEat<C extends string, N extends number | null = null>
+  extends BaseOperation<C, N> {
   type: "eat";
 }
 
-export type StringOperation<C extends string, L extends number | null> =
-  | StringGet<C, L>
-  | StringEat<C, L>;
+export type StringOperation<C extends string, N extends number | null> =
+  | StringGet<C, N>
+  | StringEat<C, N>;
 
 type OperationOutput<
   O extends StringOperation<string, number | null>,
   S extends string,
 > = O["type"] extends "get" ? S : "";
 
+interface OutputData<
+  O extends string,
+  R extends string,
+  N extends boolean = false,
+> {
+  out: O;
+  rest: R;
+  noMatch: N;
+}
+
 type CombineOperationOutput<
   O extends string,
-  R extends { out: string; rest: string },
-> = { out: `${O}${R["out"]}`; rest: R["rest"] };
+  R extends OutputData<string, string, boolean>,
+> = OutputData<`${O}${R["out"]}`, R["rest"], R["noMatch"]>;
 
 type Decrement<N extends number> =
   FillTuple<unknown, N> extends [unknown, ...infer R]
@@ -71,24 +81,26 @@ type Decrement<N extends number> =
 type ApplyStringOperation<
   S extends string,
   O extends StringOperation<string, number | null>,
-  L extends number | null = O["length"],
+  N extends number | null = O["count"],
 > = S extends `${infer C}${infer R}`
   ? C extends O["charset"]
     ? R extends string
-      ? L extends 0
-        ? { out: ""; rest: S }
+      ? N extends 0
+        ? OutputData<"", S>
         : CombineOperationOutput<
             OperationOutput<O, C>,
-            ApplyStringOperation<R, O, L extends number ? Decrement<L> : L>
+            ApplyStringOperation<R, O, N extends number ? Decrement<N> : N>
           >
       : never
-    : { out: ""; rest: S }
-  : { out: ""; rest: "" };
+    : OutputData<"", S, N extends null | 0 ? false : true>
+  : OutputData<"", "">;
 
 type RecurseExtract<
-  C extends { out: string; rest: string },
+  C extends OutputData<string, string, boolean>,
   R extends readonly StringOperation<string, number | null>[],
-> = `${C["out"]}${StringExtract<C["rest"], R>}`;
+> = C["noMatch"] extends true
+  ? ""
+  : `${C["out"]}${StringExtract<C["rest"], R>}`;
 
 export type StringExtract<
   S extends string,

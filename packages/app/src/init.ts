@@ -14,11 +14,11 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
     .toLocaleLowerCase()
     .replace(/\s+/, "-");
 
-  const anchor = document.createElement("a");
-  anchor.href = canvas.toDataURL();
-  anchor.download = `${
-    title != null && title.length > 0 ? title : "download"
-  }.png`;
+  const anchor = dom.toHtml(
+    `<a href="${canvas.toDataURL()}" download="${
+      title != null && title.length > 0 ? title : "download"
+    }.png"></a>`
+  );
 
   document.body.appendChild(anchor);
   anchor.click();
