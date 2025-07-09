@@ -33,9 +33,8 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
             : (externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Object.entries<string | null>(cfg.attrs ?? {}).concat([
-            ...(id != null ? [tuple("id", id)] : []),
-          ])
+          ...(id != null ? [tuple("id", id)] : []),
+          ...Object.entries(cfg.attrs ?? {})
         );
 
         const el = dom.toHtml(

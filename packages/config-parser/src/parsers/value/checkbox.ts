@@ -30,10 +30,9 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Object.entries<string | null>(cfg.attrs ?? {}).concat([
-            ...(initial ? [tuple("checked", null)] : []),
-            ...(id != null ? [tuple("id", id)] : []),
-          ])
+          ...(id != null ? [tuple("id", id)] : []),
+          ...(initial ? [tuple("checked")] : []),
+          ...Object.entries(cfg.attrs ?? {})
         );
 
         const el = dom.toHtml(`<input type="checkbox" ${attrs} />`);

@@ -27,10 +27,9 @@ export const datetimeParser = (cfg: ValueConfig<Date>) => {
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs(
-          Object.entries<string | null>(cfg.attrs ?? {}).concat([
-            ...(id != null ? [tuple("id", id)] : []),
-            tuple("value", formatDate(initial)),
-          ])
+          ...(id != null ? [tuple("id", id)] : []),
+          tuple("value", formatDate(initial)),
+          ...Object.entries(cfg.attrs ?? {})
         );
 
         const el = dom.toHtml(`<input type="datetime-local" ${attrs} />`);

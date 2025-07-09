@@ -9,11 +9,11 @@ export const buttonParser = (cfg: Config & { text?: string }) =>
     const { class: passedClass, ...rest } = cfg.attrs ?? {};
     const classValue =
       "primary wrap-text" + (passedClass != null ? " " + passedClass : "");
+
     const attrs = dom.toAttrs(
-      Object.entries<string | null>(rest).concat([
-        ...(id != null ? [tuple("id", id)] : []),
-        tuple("class", classValue),
-      ])
+      ...(id != null ? [tuple("id", id)] : []),
+      tuple("class", classValue),
+      ...Object.entries(rest)
     );
 
     const el = dom.toHtml(`<button${attrs}>${cfg.text ?? ""}</button>`);

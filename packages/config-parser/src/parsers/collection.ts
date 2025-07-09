@@ -46,11 +46,10 @@ const createNewRow =
     onChange,
     shortUrl,
   }: NewRowParams<F>) => {
-    const rowEl = dom.toHtml("<tr></tr>");
-
-    if (expandable) {
-      rowEl.innerHTML = '<td><input data-row-selector type="checkbox" /></td>';
-    }
+    const rowContents = expandable
+      ? '<td><input data-row-selector type="checkbox" /></td>'
+      : "";
+    const rowEl = dom.toHtml(`<tr>${rowContents}</tr>`);
 
     const parsers = initParsers.map(({ methods }, i) => {
       const parser = methods(
@@ -99,21 +98,22 @@ export const collectionParser = <const F extends FieldValues>(
     updateValue: (el, shortUrl) => {
       const container = dom.get("tbody", el);
       container.innerHTML = "";
-      const rows = getValue().map((row, i) =>
-        newRow({
-          initialItems: row,
-          itemDefaults: cfg.default[i],
-          getValue: () => getValue()[i] as F,
-          onChange: value => {
-            onChange(getValue().with(i, value));
-          },
-          shortUrl,
-        })
-      );
-      fieldParsers = rows.map(([rowEl, parsers]) => {
-        container.appendChild(rowEl);
-        return parsers;
-      });
+      fieldParsers = getValue()
+        .map((row, i) =>
+          newRow({
+            initialItems: row,
+            itemDefaults: cfg.default[i],
+            getValue: () => getValue()[i] as F,
+            onChange: value => {
+              onChange(getValue().with(i, value));
+            },
+            shortUrl,
+          })
+        )
+        .map(([rowEl, parsers]) => {
+          container.appendChild(rowEl);
+          return parsers;
+        });
     },
     html: (id, query, shortUrl) => {
       const ifExpandable = (html: string) => (expandable ? html : "");
@@ -128,11 +128,14 @@ export const collectionParser = <const F extends FieldValues>(
       ]
         .filter(isString)
         .join(" ");
+
       const attrs = dom.toAttrs(
-        Object.entries(rest).concat([["class", classValue]])
+        tuple("id", id),
+        tuple("class", classValue),
+        ...Object.entries(rest)
       );
 
-      const baseEl = dom.toHtml(`<div id="${id}" ${attrs}>
+      const baseEl = dom.toHtml(`<div ${attrs}>
         <a class="heading"${cfg.title != null ? ` ${cfg.title}` : ""}>
           <span class="collection-label">${cfg.label ?? "Collection"}</span>
           <span class="collection-caret"></span>
@@ -177,18 +180,18 @@ export const collectionParser = <const F extends FieldValues>(
       });
 
       const bodyEl = dom.get("tbody", baseEl);
-
       const flatQueryValues = (query?.split(",") ?? []).map(s =>
         s.length > 0 ? s : null
       );
+
       const numFields = cfg.fields.length;
       const numQueryValues = Math.floor(flatQueryValues.length / numFields);
       const queryValues = [...new Array<undefined>(numQueryValues)].map(
         (_, i) => flatQueryValues.slice(i * numFields, (i + 1) * numFields)
       );
-
       const fieldValues =
         expandable && queryValues.length > 0 ? queryValues : cfg.default;
+
       fieldParsers = fieldValues.map((_, i) => {
         const [el, parsers] = newRow({
           queryItems: queryValues[i],

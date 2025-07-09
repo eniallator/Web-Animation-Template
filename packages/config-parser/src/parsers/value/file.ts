@@ -22,10 +22,9 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
       },
       html: (id, query) => {
         const attrs = dom.toAttrs(
-          Object.entries<string | null>(cfg.attrs ?? {}).concat([
-            ...(id != null ? [tuple("id", id)] : []),
-            tuple("style", "display: none;"),
-          ])
+          ...(id != null ? [tuple("id", id)] : []),
+          ...Object.entries(cfg.attrs ?? {}),
+          tuple("style", "display: none;")
         );
 
         const el = dom.toHtml(`<div class="file">

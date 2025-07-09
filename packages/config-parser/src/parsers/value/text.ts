@@ -23,9 +23,8 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
           query ?? externalCfg?.initial ?? externalCfg?.default ?? defaultValue;
 
         const attrs = dom.toAttrs(
-          Object.entries<string | null>(cfg.attrs ?? {}).concat([
-            ...(id != null ? [tuple("id", id)] : []),
-          ])
+          ...(id != null ? [tuple("id", id)] : []),
+          ...Object.entries(cfg.attrs ?? {})
         );
 
         const el = dom.toHtml(
