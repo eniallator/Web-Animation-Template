@@ -63,14 +63,14 @@ input[type="color"]::-webkit-color-swatch {
 .when-fullscreen {
   display: none;
 }
-.fullscreen .when-fullscreen {
+main:fullscreen .when-fullscreen {
   display: initial;
 }
 
 .when-not-fullscreen {
   display: initial;
 }
-.fullscreen .when-not-fullscreen {
+main:fullscreen .when-not-fullscreen {
   display: none;
 }
 
@@ -421,7 +421,7 @@ h1 {
   flex-direction: column;
 }
 
-#cfg-outer > *:not(:first-child) {
+#cfg-outer > :not(:first-child) {
   margin-top: 1rem;
 }
 
