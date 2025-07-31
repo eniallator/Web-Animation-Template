@@ -1,6 +1,6 @@
 import type { FillTuple } from "./tuple.ts";
 
-export type Whitespace = " " | "\t" | "\n";
+export type Whitespace = " " | "\t" | "\n" | "\r";
 export type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 export type AlphabetLower =
   | "a"
@@ -97,17 +97,17 @@ type ApplyStringOperation<
 
 type RecurseExtract<
   C extends OutputData<string, string, boolean>,
-  R extends readonly StringOperation<string, number | null>[],
+  A extends StringOperation<string, number | null>[],
 > = C["noMatch"] extends true
   ? ""
-  : `${C["out"]}${StringExtract<C["rest"], R>}`;
+  : `${C["out"]}${StringExtract<C["rest"], A>}`;
 
 export type StringExtract<
   S extends string,
-  A extends readonly StringOperation<string, number | null>[],
+  A extends StringOperation<string, number | null>[],
 > = A extends [infer O, ...infer R]
   ? O extends StringOperation<string, number | null>
-    ? R extends readonly StringOperation<string, number | null>[]
+    ? R extends StringOperation<string, number | null>[]
       ? RecurseExtract<ApplyStringOperation<S, O>, R>
       : never
     : ""

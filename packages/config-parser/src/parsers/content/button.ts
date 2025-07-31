@@ -1,4 +1,4 @@
-import { dom, tuple } from "@web-art/core";
+import { dom } from "@web-art/core";
 
 import { contentParser } from "../../create.ts";
 
@@ -10,13 +10,13 @@ export const buttonParser = (cfg: Config & { text?: string }) =>
     const classValue =
       "primary wrap-text" + (passedClass != null ? " " + passedClass : "");
 
-    const attrs = dom.toAttrs(
-      ...(id != null ? [tuple("id", id)] : []),
-      tuple("class", classValue),
-      ...Object.entries(rest)
-    );
+    const attrs = dom.toAttrs({
+      ...(id != null ? { id } : {}),
+      class: classValue,
+      ...rest,
+    });
 
-    const el = dom.toHtml(`<button${attrs}>${cfg.text ?? ""}</button>`);
+    const el = dom.toHtml(`<button ${attrs}>${cfg.text ?? ""}</button>`);
     el.onclick = onChange;
     return el;
   });

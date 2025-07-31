@@ -38,11 +38,11 @@ export class TimeAudit {
    * @yields {string | symbol} Current methodName
    */
   *properties(target: NonNullable<unknown>): Generator<MethodName> {
-    const allMethods =
+    const methodNames =
       this.allStats.get(target) ??
       raise(new IndexError("Target does not exist"));
 
-    for (const methodName of typedKeys(allMethods, true)) yield methodName;
+    for (const methodName of typedKeys(methodNames, true)) yield methodName;
   }
 
   /**
@@ -75,7 +75,7 @@ export class TimeAudit {
     const formatNumber = (n: number): string =>
       digits != null || n < 1 ? n.toExponential(digits) : `${n}`;
 
-    return this.allStats.entries().reduce((fullStr, [_, targetStats]) => {
+    return this.allStats.entries().reduce((auditStr, [_, targetStats]) => {
       const targetStr = typedToEntries(targetStats.methods, true).reduce(
         (acc, [methodName, { calls, executionTime }]) =>
           calls > 0
@@ -91,10 +91,10 @@ export class TimeAudit {
       );
 
       return targetStr !== ""
-        ? `${fullStr}${fullStr !== "" ? "\n\n" : ""}===== ${
+        ? `${auditStr}${auditStr !== "" ? "\n\n" : ""}===== ${
             targetStats.targetName
           } =====${targetStr}`
-        : fullStr;
+        : auditStr;
     }, "");
   }
 }

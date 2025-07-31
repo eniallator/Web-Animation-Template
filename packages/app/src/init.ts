@@ -5,6 +5,7 @@ import { config, options } from "./config.ts";
 import { app } from "./index.ts";
 import { Mouse } from "./lib/index.ts";
 
+import type { Config } from "./config.ts";
 import type { AppContext, StatefulAppContext } from "./lib/index.ts";
 
 dom.addListener(dom.get("#download-btn"), "click", () => {
@@ -14,11 +15,11 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
     .toLocaleLowerCase()
     .replace(/\s+/, "-");
 
-  const anchor = dom.toHtml(
-    `<a href="${canvas.toDataURL()}" download="${
-      title != null && title.length > 0 ? title : "download"
-    }.png"></a>`
-  );
+  const attrs = dom.toAttrs({
+    href: canvas.toDataURL(),
+    download: `${title != null && title.length > 0 ? title : "download"}.png`,
+  });
+  const anchor = dom.toHtml(`<a ${attrs}></a>`);
 
   document.body.appendChild(anchor);
   anchor.click();
@@ -26,10 +27,9 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
 });
 
 dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
-  const fullscreen = document.fullscreenElement != null;
-  void (
-    fullscreen ? document.exitFullscreen() : dom.get("main").requestFullscreen()
-  ).then(() => document.body.classList.toggle("fullscreen", !fullscreen));
+  void (document.fullscreenElement != null
+    ? document.exitFullscreen()
+    : dom.get("main").requestFullscreen());
 });
 
 const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
@@ -54,10 +54,10 @@ dom.addListener(modal, "click", evt => {
   if (evt.target === modal) modal.close();
 });
 
+const now = Date.now() / 1000;
 const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"), options);
 paramConfig.addCopyToClipboardHandler("#share-btn");
-const now = Date.now() / 1000;
-const appCtx: AppContext<typeof config> = {
+const appCtx: AppContext<Config> = {
   time: { now, start: now, lastFrame: now, delta: 0 },
   mouse: new Mouse(canvas),
   paramConfig,
@@ -67,7 +67,7 @@ const appCtx: AppContext<typeof config> = {
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-confusing-void-expression
 let state = app.init(appCtx) ?? null;
-const statefulCtx: StatefulAppContext<typeof config, typeof state> = {
+const statefulCtx: StatefulAppContext<Config, typeof state> = {
   ...appCtx,
   getState: () => state,
   setState: newState => {

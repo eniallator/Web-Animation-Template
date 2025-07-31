@@ -1,7 +1,7 @@
 export interface Config {
   label?: string;
   title?: string;
-  attrs?: Record<string, string>;
+  attrs?: Record<string, string | null>;
 }
 
 export interface ValueConfig<T> extends Config {
@@ -55,9 +55,6 @@ export type ValueParsers<O extends readonly unknown[]> = {
 export type InitValueParsers<O extends readonly unknown[]> = {
   [K in keyof O]: InitParser<ValueParser<O[K]>>;
 };
-
-export type InitParserValues<R extends InitParserObject> =
-  R extends InitParserObject<infer T> ? T : never;
 
 export interface StateItem<T> {
   parser: Parser<T>;

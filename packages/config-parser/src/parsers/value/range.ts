@@ -1,4 +1,4 @@
-import { dom, tuple } from "@web-art/core";
+import { dom } from "@web-art/core";
 
 import { valueParser } from "../../create.ts";
 import { defaultNumber, numToStr } from "./number.ts";
@@ -25,11 +25,11 @@ export const rangeParser = (cfg: ValueConfig<number>) => {
             ? Number(query)
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
-        const attrs = dom.toAttrs(
-          ...(id != null ? [tuple("id", id)] : []),
-          tuple("value", `${initial}`),
-          ...Object.entries(cfg.attrs ?? {})
-        );
+        const attrs = dom.toAttrs({
+          ...(id != null ? { id } : {}),
+          value: `${initial}`,
+          ...cfg.attrs,
+        });
 
         const el = dom.toHtml(`<input type="range" ${attrs} />`);
         el.onchange = () => {

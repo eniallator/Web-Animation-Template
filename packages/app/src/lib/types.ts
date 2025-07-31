@@ -1,8 +1,4 @@
-import type {
-  InitParserObject,
-  InitParserValues,
-  ParamConfig,
-} from "@web-art/config-parser";
+import type { AnyStringRecord, ParamConfig } from "@web-art/config-parser";
 import type { Mouse } from "./mouse.ts";
 
 export interface Time {
@@ -12,8 +8,8 @@ export interface Time {
   now: number;
 }
 
-export interface AppContext<O extends InitParserObject> {
-  paramConfig: ParamConfig<InitParserValues<O>>;
+export interface AppContext<R extends AnyStringRecord> {
+  paramConfig: ParamConfig<R>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;
@@ -21,34 +17,34 @@ export interface AppContext<O extends InitParserObject> {
 }
 
 export interface StatefulAppContext<
-  O extends InitParserObject,
+  R extends AnyStringRecord,
   S extends object | null,
-> extends AppContext<O> {
+> extends AppContext<R> {
   getState: () => S;
   setState: (state: S) => void;
 }
 
 export interface AppMethods<
-  O extends InitParserObject,
+  R extends AnyStringRecord,
   S extends object | null,
 > {
   init: S extends null
-    ? (this: AppMethods<O, S>, appContext: AppContext<O>) => void
-    : (this: AppMethods<O, S>, appContext: AppContext<O>) => S;
+    ? (this: AppMethods<R, S>, appContext: AppContext<R>) => void
+    : (this: AppMethods<R, S>, appContext: AppContext<R>) => S;
   animationFrame?: (
-    this: AppMethods<O, S>,
-    appContext: StatefulAppContext<O, S>
+    this: AppMethods<R, S>,
+    appContext: StatefulAppContext<R, S>
   ) => void;
   onResize?: (
-    this: AppMethods<O, S>,
+    this: AppMethods<R, S>,
     evt: UIEvent,
-    appContext: StatefulAppContext<O, S>
+    appContext: StatefulAppContext<R, S>
   ) => void;
 }
 
 export const appMethods = <
-  O extends InitParserObject,
+  R extends AnyStringRecord,
   const S extends object | null = null,
 >(
-  methods: AppMethods<O, S>
-): AppMethods<O, S> => methods;
+  methods: AppMethods<R, S>
+): AppMethods<R, S> => methods;

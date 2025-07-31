@@ -3,6 +3,7 @@ import jslint from "@eslint/js";
 import tslint from "typescript-eslint";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import comments from "eslint-plugin-eslint-comments";
+import stylistic from "@stylistic/eslint-plugin";
 
 export default function config(extra = {}) {
   return tslint.config(
@@ -10,6 +11,12 @@ export default function config(extra = {}) {
     ...tslint.configs.recommended,
     ...tslint.configs.recommendedTypeChecked,
     ...tslint.configs.strictTypeChecked,
+    stylistic.configs.customize({
+      braceStyle: "1tbs",
+      commaDangle: "only-multiline",
+      indent: 2,
+      semi: true,
+    }),
     {
       languageOptions: {
         parser: typescriptParser,
@@ -21,6 +28,11 @@ export default function config(extra = {}) {
       rules: {
         "@typescript-eslint/consistent-type-imports": "error",
         "@typescript-eslint/no-unnecessary-condition": "error",
+        "@stylistic/arrow-parens": "off",
+        "@stylistic/indent": "off",
+        "@stylistic/generator-star-spacing": "off",
+        "@stylistic/quotes": "off",
+        "@stylistic/operator-linebreak": "off",
         // CORE
         // According to https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/indent.md
         // the default indentation rule can cause eslint to report erroneous style errors.

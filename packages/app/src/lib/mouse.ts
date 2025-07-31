@@ -80,9 +80,11 @@ export class Mouse {
   get down(): boolean {
     return this._down;
   }
+
   get pos(): Vector<2> {
     return this._pos;
   }
+
   get relativePos(): Vector<2> {
     return this._relativePos;
   }

@@ -12,7 +12,10 @@ import {
   textParser,
 } from "@web-art/config-parser";
 
-import type { ParamConfigOptions } from "@web-art/config-parser";
+import type {
+  InitParserObject,
+  ParamConfigOptions,
+} from "@web-art/config-parser";
 
 export const options: ParamConfigOptions = { shortUrl: false };
 export const config = createParsers({
@@ -50,7 +53,7 @@ export const config = createParsers({
   }),
   "example-datetime": datetimeParser({
     label: "Example Date Time",
-    default: new Date("2018-06-14T10:03"),
+    default: new Date("2018-06-14T10:03Z"),
   }),
   "example-select": selectParser({
     label: "Example Select",
@@ -82,3 +85,6 @@ export const config = createParsers({
     ],
   }),
 });
+
+export type Config =
+  typeof config extends InitParserObject<infer R> ? R : never;

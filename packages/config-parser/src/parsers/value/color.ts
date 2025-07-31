@@ -1,4 +1,4 @@
-import { b64, dom, tuple } from "@web-art/core";
+import { b64, dom } from "@web-art/core";
 
 import { valueParser } from "../../create.ts";
 
@@ -28,11 +28,11 @@ export const colorParser = (cfg: ValueConfig<string>) => {
               : query.toUpperCase()
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
-        const attrs = dom.toAttrs(
-          ...(id != null ? [tuple("id", id)] : []),
-          tuple("value", `#${initial}`),
-          ...Object.entries(cfg.attrs ?? {})
-        );
+        const attrs = dom.toAttrs({
+          ...(id != null ? { id } : {}),
+          value: `#${initial}`,
+          ...cfg.attrs,
+        });
 
         const el = dom.toHtml(`<input type="color" ${attrs} />`);
         el.oninput = () => {

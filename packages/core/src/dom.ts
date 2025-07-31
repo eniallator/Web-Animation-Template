@@ -30,8 +30,10 @@ const get = <E extends HTMLElement>(
   baseEl.querySelector<E>(selector) ??
   raise(new Error(`Could not find element with selector "${selector}"`));
 
-const toAttrs = (...attrs: ([string, string | null] | [string])[]): string =>
-  attrs.map(([key, val]) => (val != null ? `${key}="${val}"` : key)).join(" ");
+const toAttrs = (attrs: Record<string, string | null>): string =>
+  Object.entries(attrs)
+    .map(([key, val]) => (val != null ? `${key}="${val}"` : key))
+    .join(" ");
 
 type ExtractElement<S extends string> = StringExtract<
   S,

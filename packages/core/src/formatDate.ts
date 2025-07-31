@@ -1,6 +1,3 @@
-export const formatIsoDate = (date: Date) =>
-  date.toISOString().replace(/z.*$/i, "");
-
 export const formatDate = (date: Date) =>
   date
     .toLocaleString()

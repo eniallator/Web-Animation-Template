@@ -1,10 +1,6 @@
 import { raise } from "./utils.ts";
 
-type Zippable = [
-  readonly unknown[],
-  readonly unknown[],
-  ...(readonly unknown[])[],
-];
+type Zippable = readonly [unknown[], unknown[], ...unknown[][]];
 
 type ZippedItem<Z extends Zippable> = {
   [K in keyof Z]: Z[K] extends readonly (infer T)[] ? T : Z[K];

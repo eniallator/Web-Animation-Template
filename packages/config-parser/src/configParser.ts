@@ -19,13 +19,13 @@ import type {
 } from "./types.ts";
 
 export class ParamConfig<const R extends AnyStringRecord> {
+  private readonly hashLength: number | null;
+  private readonly extraValue: string | undefined;
   private readonly state: State<R>;
   private readonly listeners: {
     callback: (values: R, updatedId?: keyof R) => void;
     subscriptions: Set<keyof R>;
-  }[];
-  private readonly extraValue: string | undefined;
-  private readonly hashLength: number | null;
+  }[] = [];
 
   constructor(
     initParsers: InitParserObject<R>,
@@ -34,7 +34,6 @@ export class ParamConfig<const R extends AnyStringRecord> {
   ) {
     const { query = location.search } = options;
     this.hashLength = options.shortUrl ? (options.hashLength ?? 6) : null;
-    this.listeners = [];
 
     const initialValues = parseQuery(query, this.hashLength);
     this.extraValue = initialValues[queryKey("extra", this.hashLength)];
@@ -43,7 +42,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
       const { label, title, methods } = initParser;
       const parser = methods(
         value => {
-          if (value != null) this.state[id].value = value as R[keyof R];
+          if (value != null) this.state[id].value = value;
           this.tellListeners(id);
         },
         () => this.state[id].value
@@ -54,7 +53,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
       const el = parser.html(id as string, query, options.shortUrl ?? false);
       baseEl.appendChild(configItem(id as string, el, label, title));
       const value =
-        parser.type === "Value" ? parser.getValue(el) : (null as R[keyof R]);
+        parser.type === "Value" ? parser.getValue(el) : (null as R[typeof id]);
 
       return tuple(id, { parser, el, value });
     });

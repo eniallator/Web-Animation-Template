@@ -1,4 +1,4 @@
-import { dom, tuple } from "@web-art/core";
+import { dom } from "@web-art/core";
 import { isOneOf } from "deep-guards";
 
 import { valueParser } from "../../create.ts";
@@ -29,11 +29,11 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
             ? isOneOf("1", "true")(query)
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
-        const attrs = dom.toAttrs(
-          ...(id != null ? [tuple("id", id)] : []),
-          ...(initial ? [tuple("checked")] : []),
-          ...Object.entries(cfg.attrs ?? {})
-        );
+        const attrs = dom.toAttrs({
+          ...(id != null ? { id } : {}),
+          ...(initial ? { checked: null } : {}),
+          ...cfg.attrs,
+        });
 
         const el = dom.toHtml(`<input type="checkbox" ${attrs} />`);
         el.onchange = () => {

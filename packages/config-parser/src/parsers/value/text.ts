@@ -1,4 +1,4 @@
-import { dom, tuple } from "@web-art/core";
+import { dom } from "@web-art/core";
 
 import { valueParser } from "../../create.ts";
 
@@ -22,10 +22,10 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
         const initial =
           query ?? externalCfg?.initial ?? externalCfg?.default ?? defaultValue;
 
-        const attrs = dom.toAttrs(
-          ...(id != null ? [tuple("id", id)] : []),
-          ...Object.entries(cfg.attrs ?? {})
-        );
+        const attrs = dom.toAttrs({
+          ...(id != null ? { id } : {}),
+          ...cfg.attrs,
+        });
 
         const el = dom.toHtml(
           cfg.area

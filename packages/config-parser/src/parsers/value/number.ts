@@ -1,10 +1,10 @@
-import { dom, tuple } from "@web-art/core";
+import { dom } from "@web-art/core";
 
 import { valueParser } from "../../create.ts";
 
 import type { ValueConfig } from "../../types.ts";
 
-export const defaultNumber = (attrs?: Record<string, string>) => {
+export const defaultNumber = (attrs?: Record<string, string | null>) => {
   const min = Number(attrs?.["min"] ?? 0);
   const max = Number(attrs?.["max"] ?? 100);
   const step = Number(attrs?.["step"] ?? 1);
@@ -13,9 +13,9 @@ export const defaultNumber = (attrs?: Record<string, string>) => {
 };
 
 export const numToStr = (n: number) =>
-  [`${n}`, encodeURIComponent(n.toExponential())].reduce((a, b) =>
-    a.length < b.length ? a : b
-  );
+  [n, n.toExponential()]
+    .map(encodeURIComponent)
+    .reduce((a, b) => (a.length < b.length ? a : b));
 
 export const numberParser = (cfg: ValueConfig<number>) => {
   const defaultValue =
@@ -38,11 +38,11 @@ export const numberParser = (cfg: ValueConfig<number>) => {
             ? Number(query)
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
-        const attrs = dom.toAttrs(
-          ...(id != null ? [tuple("id", id)] : []),
-          tuple("value", `${initial}`),
-          ...Object.entries(cfg.attrs ?? {})
-        );
+        const attrs = dom.toAttrs({
+          ...(id != null ? { id } : {}),
+          value: `${initial}`,
+          ...cfg.attrs,
+        });
 
         const el = dom.toHtml(`<input type="number" ${attrs} />`);
         el.onchange = () => {

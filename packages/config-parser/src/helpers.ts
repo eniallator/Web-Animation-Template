@@ -4,14 +4,13 @@ export const configItem = (
   id: string,
   el: HTMLElement,
   label?: string,
-  title?: string
+  title: string | undefined = label
 ): HTMLElement => {
   const itemEl = dom.toHtml(`
-    <div class="config-item"${
-      (title ?? label) ? ` title="${title ?? label}"` : ""
-    }>${
-      label ? `<label for="${id}" class="wrap-text">${label}</label>` : ""
-    }</div>`);
+    <div class="config-item"${title ? ` title="${title}"` : ""}>
+      ${label ? `<label for="${id}" class="wrap-text">${label}</label>` : ""}
+    </div>
+  `);
 
   itemEl.appendChild(el);
   return itemEl;
@@ -42,7 +41,7 @@ export const parseQuery = (
       : /[?&]?([^=&]+)=?([^&]*)/g;
 
   const queryEntries: [string, string][] = [];
-  let tokens;
+  let tokens: ReturnType<RegExp["exec"]>;
   while ((tokens = queryRegex.exec(query)) != null) {
     const [_, key, value] = tokens;
     if (key != null && value != null) {

@@ -1,4 +1,4 @@
-import { dom, tuple } from "@web-art/core";
+import { dom } from "@web-art/core";
 import { isOneOf } from "deep-guards";
 
 import { valueParser } from "../../create.ts";
@@ -32,21 +32,19 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
             ? externalCfg.initial
             : (externalCfg?.default ?? defaultValue);
 
-        const attrs = dom.toAttrs(
-          ...(id != null ? [tuple("id", id)] : []),
-          ...Object.entries(cfg.attrs ?? {})
-        );
+        const attrs = dom.toAttrs({
+          ...(id != null ? { id } : {}),
+          ...cfg.attrs,
+        });
 
-        const el = dom.toHtml(
-          `<select ${attrs}>${cfg.options
-            .map(
-              opt =>
-                `<option value="${opt}" ${opt === initial ? " selected" : ""}>
-                  ${opt}
-                </option>`
-            )
-            .join("")}</select>`
+        const opts = cfg.options.map(
+          opt =>
+            `<option value="${opt}"${opt === initial ? " selected" : ""}>${
+              opt
+            }</option>`
         );
+        const el = dom.toHtml(`<select ${attrs}>${opts.join("")}</select>`);
+
         el.onchange = () => {
           onChange(el.value as SelectValue<A>);
         };

@@ -14,15 +14,16 @@
     "deep-guards": "^1.0.5"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^5.2.2",
     "@types/eslint": "^9.6.1",
-    "@typescript-eslint/eslint-plugin": "^8.30.1",
-    "@typescript-eslint/parser": "^8.30.1",
-    "eslint": "^9.24.0",
-    "eslint-config-prettier": "^10.1.2",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^5.2.6",
-    "prettier": "^3.5.3",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.3",
+    "prettier": "^3.6.2",
     "strip-ansi": "^7.1.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3"

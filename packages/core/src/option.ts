@@ -48,7 +48,7 @@ export class Option<
     return new Option(value);
   }
 
-  static tupled<const A extends Option<NonNullable<unknown>>[]>(
+  static tupled<const A extends readonly Option<NonNullable<unknown>>[]>(
     tup: A
   ): Option<UnpackTupledOptions<A>> {
     const values: unknown[] = [];
