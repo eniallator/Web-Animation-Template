@@ -7,7 +7,8 @@ import {
   isUnionOf,
 } from "deep-guards";
 
-import type { AnyFunction, UnionWithAllKeys } from "@web-art/core";
+import type { DiscriminatedParams } from "@web-art/core";
+import type { TypeFromGuard } from "deep-guards";
 import type { MethodName, RecordableStats, Stats, TargetMap } from "./types.ts";
 
 const emptyStats: Readonly<Stats> = { calls: 0, executionTime: 0 };
@@ -16,11 +17,20 @@ const hasPrototype = isUnionOf(
   isObjectOf({ prototype: isAnyRecord })
 );
 
+export type RegisterMethodsParams = DiscriminatedParams<
+  {
+    targetName?: string;
+    minDebugLevel?: number;
+    includePrototype?: boolean;
+  },
+  { includeSymbols?: boolean } | { methodNames: MethodName[] }
+>;
+
 export class MethodWatcher {
   private readonly allStats: TargetMap<RecordableStats> = new Map();
 
   private registerMethod<M extends MethodName>(
-    target: { [I in M]: AnyFunction },
+    target: { [I in M]: TypeFromGuard<typeof isFunction> },
     targetName: string,
     methodName: M,
     minDebugLevel: number
@@ -32,10 +42,7 @@ export class MethodWatcher {
       const stats: RecordableStats = { ...emptyStats, minDebugLevel };
       this.allStats.set(target, {
         targetName,
-        methods: {
-          ...(existing ?? {}),
-          [methodName]: stats,
-        },
+        methods: { ...(existing ?? {}), [methodName]: stats },
       });
 
       const origMethod = target[methodName] as (...args: unknown[]) => unknown;
@@ -52,13 +59,7 @@ export class MethodWatcher {
 
   registerMethods(
     target: NonNullable<unknown>,
-    params: {
-      targetName?: string;
-      minDebugLevel?: number;
-      includePrototype?: boolean;
-    } & UnionWithAllKeys<
-      [{ includeSymbols?: boolean }, { methodNames: MethodName[] }]
-    > = {}
+    params: RegisterMethodsParams["internal"] = {}
   ): void {
     const {
       targetName = "name" in target && isString(target.name)

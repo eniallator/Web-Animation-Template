@@ -84,14 +84,6 @@ export class Option<
     );
   }
 
-  isSome(): this is Option<A, "some"> {
-    return this.value != null;
-  }
-
-  isNone(): this is Option<A, "none"> {
-    return this.value == null;
-  }
-
   tap(fn: (value: A) => void): this {
     if (this.value != null) fn(this.value);
     return this;

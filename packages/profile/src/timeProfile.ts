@@ -2,7 +2,8 @@ import { AuditError } from "./error.ts";
 import { MethodWatcher } from "./MethodWatcher.ts";
 import { TimeAudit } from "./timeAudit.ts";
 
-import type { TargetMap, MethodName, Stats } from "./types.ts";
+import type { RegisterMethodsParams } from "./MethodWatcher.ts";
+import type { Stats, TargetMap } from "./types.ts";
 
 export class TimeProfile {
   private static readonly methodWatcher: MethodWatcher = new MethodWatcher();
@@ -20,11 +21,7 @@ export class TimeProfile {
    */
   static registerMethods(
     target: NonNullable<unknown>,
-    params: {
-      targetName?: string;
-      minDebugLevel?: number;
-      includePrototype?: boolean;
-    } & ({ includeSymbols?: boolean } | { methodNames: MethodName[] }) = {}
+    params: RegisterMethodsParams["external"] = {}
   ): void {
     this.methodWatcher.registerMethods(target, params);
   }
