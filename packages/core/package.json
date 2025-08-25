@@ -22,16 +22,19 @@
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
+    "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
     "strip-ansi": "^7.1.0",
     "ts-loader": "^9.5.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ./src/**/*.ts",
+    "test": "vitest run --passWithNoTests --environment jsdom",
     "findissues": "yarn typecheck && yarn lint",
-    "prepublish": "yarn build && yarn typecheck && yarn lint"
+    "prepublish": "yarn typecheck && yarn lint && yarn test && yarn build"
   }
 }

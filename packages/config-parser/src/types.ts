@@ -65,7 +65,3 @@ export interface StateItem<T> {
 export type State<R extends AnyStringRecord> = {
   [K in keyof R]: StateItem<R[K]>;
 };
-
-export type ParamConfigOptions = {
-  query?: string;
-} & ({ shortUrl?: false } | { shortUrl: true; hashLength?: number });

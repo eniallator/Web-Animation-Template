@@ -1,7 +1,7 @@
 export const formatDate = (date: Date) =>
   date
-    .toLocaleString()
+    .toLocaleString("en-GB")
     .replace(
-      /(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+)[^\d]*(?<t>[:\d]+).*/,
+      /^(?<d>\d+)\/(?<m>\d+)\/(?<y>\d+), (?<t>[:\d]+)$/,
       "$<y>-$<m>-$<d>T$<t>"
     );

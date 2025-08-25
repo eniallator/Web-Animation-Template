@@ -657,7 +657,7 @@ export class Vector<N extends number | undefined = undefined> {
    * @param {number} size the size to narrow to
    * @returns {boolean} true if the size of the parsed vector is the given size, false otherwise
    */
-  isSize<const S extends number>(this: Vector, size: S): this is Vector<S> {
+  isSize(size: number): boolean {
     return toAnyComponents(this.cmps).length === size;
   }
 
@@ -666,9 +666,8 @@ export class Vector<N extends number | undefined = undefined> {
    * @param {...[Vector] | AnyComponents} other Vector or components given as arguments
    * @returns {boolean} If they are equal
    */
-  equals(
-    ...other: readonly [Vector<undefined | number>] | AnyComponents
-  ): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  equals(...other: readonly [Vector<any>] | AnyComponents): boolean {
     const cmps = toAnyComponents(this.cmps);
     const otherCmps = isNumber(other[0])
       ? other

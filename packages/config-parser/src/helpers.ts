@@ -5,7 +5,7 @@ export const configItem = (
   el: HTMLElement,
   label?: string,
   title: string | undefined = label
-): HTMLElement => {
+): HTMLDivElement => {
   const itemEl = dom.toHtml(`
     <div class="config-item"${title ? ` title="${title}"` : ""}>
       ${label ? `<label for="${id}" class="wrap-text">${label}</label>` : ""}
@@ -26,7 +26,7 @@ const hashString = (str: string): number => {
   return hash;
 };
 
-export const queryKey = (key: string, hashLength: number | null) =>
+export const queryKey = (key: string, hashLength: number | null): string =>
   hashLength != null
     ? b64.fromUint(Math.abs(hashString(key)), hashLength)
     : encodeURIComponent(key);

@@ -133,7 +133,7 @@ export const collectionParser = <const F extends FieldValues>(
 
       const baseEl = dom.toHtml(`
         <div ${attrs}>
-          <a class="heading"${cfg.title != null ? ` ${cfg.title}` : ""}>
+          <a class="heading" href="javascript:return false"${cfg.title != null ? ` title="${cfg.title}"` : ""}>
             <span class="collection-label">${cfg.label ?? "Collection"}</span>
             <span class="collection-caret"></span>
           </a>

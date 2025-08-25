@@ -19,13 +19,13 @@ export const colorParser = (cfg: ValueConfig<string>) => {
       updateValue: el => {
         (el as HTMLInputElement).value = `#${getValue()}`;
       },
-      getValue: el => (el as HTMLInputElement).value.slice(1).toUpperCase(),
+      getValue: el => (el as HTMLInputElement).value.slice(1).toLowerCase(),
       html: (id, query, shortUrl) => {
         const initial =
           query != null
             ? shortUrl
               ? b64.toUint(query).toString(16)
-              : query.toUpperCase()
+              : query.toLowerCase()
             : (externalCfg?.initial ?? externalCfg?.default ?? defaultValue);
 
         const attrs = dom.toAttrs({
@@ -36,7 +36,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
 
         const el = dom.toHtml(`<input type="color" ${attrs} />`);
         el.oninput = () => {
-          onChange(el.value.slice(1).toUpperCase());
+          onChange(el.value.slice(1).toLowerCase());
         };
         return el;
       },

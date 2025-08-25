@@ -26,13 +26,15 @@
     "prettier": "^3.6.2",
     "strip-ansi": "^7.1.0",
     "ts-loader": "^9.5.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ./src/**/*.ts",
+    "test": "vitest run --passWithNoTests",
     "findissues": "yarn typecheck && yarn lint",
-    "prepublish": "yarn build && yarn typecheck && yarn lint"
+    "prepublish": "yarn typecheck && yarn lint && yarn test && yarn build"
   }
 }

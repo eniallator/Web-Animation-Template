@@ -20,7 +20,10 @@ export default function config(extra = {}) {
     {
       languageOptions: {
         parser: typescriptParser,
-        parserOptions: { project: "./tsconfig.json" },
+        parserOptions: {
+          project: ["./tsconfig.json", "./tsconfig.test.json"],
+          tsconfigRootDir: ".",
+        },
       },
 
       plugins: { comments, tsPlugin },
@@ -32,6 +35,7 @@ export default function config(extra = {}) {
         "@stylistic/indent": "off",
         "@stylistic/generator-star-spacing": "off",
         "@stylistic/quotes": "off",
+        "@stylistic/quote-props": "off",
         "@stylistic/operator-linebreak": "off",
         // CORE
         // According to https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/indent.md

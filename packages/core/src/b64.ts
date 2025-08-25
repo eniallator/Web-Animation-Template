@@ -1,7 +1,10 @@
+import { raise } from "./utils.ts";
+
 const BASE_64_CHARS =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 const fromUint = (n: number, length?: number): string => {
+  if (Number.isNaN(n) || n < 0) raise(new Error(`Expected uint but got ${n}`));
   let base64 = "";
   while (n && (length == null || base64.length < length)) {
     base64 = (BASE_64_CHARS[n % 64] ?? "") + base64;

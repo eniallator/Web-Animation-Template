@@ -36,7 +36,7 @@ export const config = createParsers({
   }),
   "example-colour": colorParser({
     label: "Example Colour",
-    default: "FF5A5F",
+    default: "ff5a5f",
   }),
   "example-button": buttonParser({
     text: "Example Button",

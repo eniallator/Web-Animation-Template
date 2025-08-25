@@ -1,4 +1,5 @@
 export * from "./b64.ts";
+export * from "./discriminatedParams.ts";
 export * from "./dom.ts";
 export * from "./entries.ts";
 export * from "./formatDate.ts";

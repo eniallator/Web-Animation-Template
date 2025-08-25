@@ -14,11 +14,9 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
     ?.innerText.trim()
     .toLocaleLowerCase()
     .replace(/\s+/, "-");
+  const download = `${title != null && title.length > 0 ? title : "download"}.png`;
 
-  const attrs = dom.toAttrs({
-    href: canvas.toDataURL(),
-    download: `${title != null && title.length > 0 ? title : "download"}.png`,
-  });
+  const attrs = dom.toAttrs({ href: canvas.toDataURL(), download });
   const anchor = dom.toHtml(`<a ${attrs}></a>`);
 
   document.body.appendChild(anchor);

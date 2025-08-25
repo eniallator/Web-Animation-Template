@@ -9,14 +9,20 @@ import {
 
 import { configItem, parseQuery, queryKey } from "./helpers.ts";
 
-import type { Entry } from "@web-art/core";
+import type { DiscriminatedParams, Entry } from "@web-art/core";
 import type {
   AnyStringRecord,
   InitParserObject,
-  ParamConfigOptions,
   State,
   ValueParser,
 } from "./types.ts";
+
+type ParamConfigParams = DiscriminatedParams<
+  { query?: string },
+  { shortUrl?: false } | { shortUrl: true; hashLength?: number }
+>;
+
+export type ParamConfigOptions = ParamConfigParams["external"];
 
 export class ParamConfig<const R extends AnyStringRecord> {
   private readonly hashLength: number | null;
@@ -30,10 +36,10 @@ export class ParamConfig<const R extends AnyStringRecord> {
   constructor(
     initParsers: InitParserObject<R>,
     baseEl: HTMLElement,
-    options: ParamConfigOptions = {}
+    options: ParamConfigParams["internal"] = {}
   ) {
-    const { query = location.search } = options;
-    this.hashLength = options.shortUrl ? (options.hashLength ?? 6) : null;
+    const { query = location.search, shortUrl, hashLength } = options;
+    this.hashLength = shortUrl ? (hashLength ?? 6) : null;
 
     const initialValues = parseQuery(query, this.hashLength);
     this.extraValue = initialValues[queryKey("extra", this.hashLength)];
@@ -50,7 +56,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
 
       const key = queryKey(id as string, this.hashLength);
       const query = initialValues[key] ?? null;
-      const el = parser.html(id as string, query, options.shortUrl ?? false);
+      const el = parser.html(id as string, query, shortUrl ?? false);
       baseEl.appendChild(configItem(id as string, el, label, title));
       const value =
         parser.type === "Value" ? parser.getValue(el) : (null as R[typeof id]);
@@ -70,9 +76,9 @@ export class ParamConfig<const R extends AnyStringRecord> {
   }
 
   setValue<I extends keyof R>(id: I, value: R[I]): void {
-    this.state[id].value = value;
     const { parser, el } = this.state[id];
     if (parser.type === "Value") {
+      this.state[id].value = value;
       parser.updateValue(el, this.hashLength != null);
     }
   }
