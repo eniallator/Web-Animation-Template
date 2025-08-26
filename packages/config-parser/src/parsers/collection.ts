@@ -190,7 +190,10 @@ export const collectionParser = <const F extends FieldValues>(
         (_, i) => flatQueryValues.slice(i * numFields, (i + 1) * numFields)
       );
       const fieldValues =
-        expandable && queryValues.length > 0 ? queryValues : cfg.default;
+        numQueryValues === cfg.default.length ||
+        (expandable && queryValues.length > 0)
+          ? queryValues
+          : cfg.default;
 
       fieldParsers = fieldValues.map((_, i) => {
         const [el, parsers] = newRow({

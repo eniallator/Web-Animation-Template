@@ -4,7 +4,7 @@ import { formatDate } from "./formatDate";
 
 describe("formatDate", () => {
   it("formats single-digit months and days correctly", () => {
-    const date = new Date(2023, 2, 7, 8, 9, 10);
+    const date = new Date("2023-03-07T08:09:10");
     const result = formatDate(date);
     expect(result).toBe("2023-03-07T08:09:10");
   });

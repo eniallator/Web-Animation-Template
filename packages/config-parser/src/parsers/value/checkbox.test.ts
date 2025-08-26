@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { checkboxParser } from "./checkbox.ts";
 
 describe("checkboxParser", () => {
-  it("creates a checkbox input with given attributes and default checked state", () => {
+  it("creates the input with given attributes and default checked state", () => {
     const parser = checkboxParser({
       default: true,
       attrs: { "data-hello": "world!" },
