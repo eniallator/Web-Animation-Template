@@ -44,11 +44,8 @@ describe("collectionParser", () => {
     expect(
       getCollectionValue(
         collectionParser({ fields, default: [valueB] })
-          .methods(vi.fn(), vi.fn(), {
-            initial: [valueB],
-            default: [valueB],
-          })
-          .html(null, valueASerialised, false)
+          .methods(vi.fn(), vi.fn())
+          .html("id", valueASerialised, false)
       )
     ).toStrictEqual([valueA]);
 
@@ -56,9 +53,60 @@ describe("collectionParser", () => {
       getCollectionValue(
         collectionParser({ fields, default: [valueA] })
           .methods(vi.fn(), vi.fn())
-          .html(null, null, false)
+          .html("id", null, false)
       )
     ).toStrictEqual([valueA]);
+
+    expect(
+      collectionParser({ fields, default: [valueA] })
+        .methods(vi.fn(), vi.fn())
+        .html("id", null, false)
+        .querySelector(".collection-actions")
+    ).toBeNull();
+
+    expect(
+      getCollectionValue(
+        collectionParser({ fields, default: [], expandable: true })
+          .methods(vi.fn(), vi.fn())
+          .html("id", valueASerialised, false)
+      )
+    ).toStrictEqual([valueA]);
+
+    expect(
+      collectionParser({ fields, default: [], expandable: true })
+        .methods(vi.fn(), vi.fn())
+        .html("id", null, false)
+        .querySelector(".collection-actions")
+    ).not.toBeNull();
+  });
+
+  it("expandable collections let you add rows", () => {
+    const el = collectionParser({ fields, default: [valueA], expandable: true })
+      .methods(vi.fn(), vi.fn())
+      .html("id", null, false);
+
+    (el.querySelector("button[data-action=add]") as HTMLButtonElement).click();
+
+    expect(getCollectionValue(el)).toStrictEqual([valueA, [false, 0, ""]]);
+  });
+
+  it("expandable collections let you delete rows", () => {
+    const el = collectionParser({ fields, default: [valueA], expandable: true })
+      .methods(
+        vi.fn(),
+        vi.fn(() => [valueA])
+      )
+      .html("id", null, false);
+
+    (
+      el.querySelector("tbody input[data-row-selector]") as HTMLInputElement
+    ).checked = true;
+
+    (
+      el.querySelector("button[data-action=delete]") as HTMLButtonElement
+    ).click();
+
+    expect(getCollectionValue(el)).toStrictEqual([]);
   });
 
   it("serialise returns correct value for shortUrl", () => {
@@ -67,7 +115,7 @@ describe("collectionParser", () => {
       vi.fn(() => [valueA])
     );
 
-    parser.html(null, null, false);
+    parser.html("id", null, false);
 
     expect(parser.serialise(true)).toBe(valueAShort);
     expect(parser.serialise(false)).toBe(valueASerialised);
@@ -80,10 +128,10 @@ describe("collectionParser", () => {
     );
 
     expect(
-      getCollectionValue(parser.html(null, valueAShort, true))
+      getCollectionValue(parser.html("id", valueAShort, true))
     ).toStrictEqual([valueA]);
     expect(
-      getCollectionValue(parser.html(null, valueASerialised, false))
+      getCollectionValue(parser.html("id", valueASerialised, false))
     ).toStrictEqual([valueA]);
   });
 
@@ -101,7 +149,7 @@ describe("collectionParser", () => {
       vi.fn(),
       vi.fn(() => [valueA])
     );
-    const el = parser.html(null, null, false);
+    const el = parser.html("id", null, false);
 
     parser.updateValue(el, false);
     expect(getCollectionValue(el)).toStrictEqual([valueA]);
