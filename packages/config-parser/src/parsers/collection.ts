@@ -79,6 +79,35 @@ interface CollectionConfig<F extends FieldValues> extends Config {
   default: NoInfer<F>[];
 }
 
+const formatField = (value: string | null): string =>
+  value?.replace(/[,\\]/g, "\\$&") ?? "";
+
+const splitQueryValues = (query: string): (string | null)[] => {
+  const out: (string | null)[] = [];
+
+  let value: string = "";
+  let escaped = false;
+  for (const char of query) {
+    if (escaped) {
+      value += char;
+      escaped = false;
+    } else if (char === "\\") {
+      escaped = true;
+    } else if (char === ",") {
+      out.push(value.length > 0 ? value : null);
+      value = "";
+    } else {
+      value += char;
+    }
+  }
+
+  if (query.length > 0) {
+    out.push(value.length > 0 ? value : null);
+  }
+
+  return out;
+};
+
 export const collectionParser = <const F extends FieldValues>(
   cfg: CollectionConfig<F>
 ) => {
@@ -92,7 +121,11 @@ export const collectionParser = <const F extends FieldValues>(
       isDefault(getValue())
         ? null
         : fieldParsers
-            .map(row => row.map(parser => parser.serialise(shortUrl)).join(","))
+            .map(row =>
+              row
+                .map(parser => formatField(parser.serialise(shortUrl)))
+                .join(",")
+            )
             .join(","),
     getValue: el => getRowValues(el, fieldParsers, expandable),
     updateValue: (el, shortUrl) => {
@@ -180,9 +213,7 @@ export const collectionParser = <const F extends FieldValues>(
       });
 
       const bodyEl = dom.get("tbody", baseEl);
-      const flatQueryValues = (query?.split(",") ?? []).map(s =>
-        s.length > 0 ? s : null
-      );
+      const flatQueryValues = query != null ? splitQueryValues(query) : [];
 
       const numFields = cfg.fields.length;
       const numQueryValues = Math.floor(flatQueryValues.length / numFields);

@@ -7,23 +7,23 @@ import { collectionParser } from "./collection.ts";
 describe("collectionParser", () => {
   const fields = tuple(
     checkboxParser({ attrs: { field: null } }),
-    numberParser({}),
-    textParser({})
+    textParser({}),
+    numberParser({})
   );
   const getCollectionValue = (collectionEl: HTMLElement) =>
     [...collectionEl.querySelectorAll("tbody tr").values()].map(row => [
       (row.querySelector('input[type="checkbox"][field]') as HTMLInputElement)
         .checked,
+      (row.querySelector('input[type="text"]') as HTMLInputElement).value,
       Number(
         (row.querySelector('input[type="number"]') as HTMLInputElement).value
       ),
-      (row.querySelector('input[type="text"]') as HTMLInputElement).value,
     ]);
 
-  const valueA: [boolean, number, string] = [true, 10, "Foo Bar"];
-  const valueASerialised = "true,10,Foo Bar";
-  const valueAShort = "1,10,Foo Bar";
-  const valueB: [boolean, number, string] = [false, 20, "Test"];
+  const valueA: [boolean, string, number] = [true, "Foo, Bar, Baz\\", 10];
+  const valueASerialised = "true,Foo\\, Bar\\, Baz\\\\,10";
+  const valueAShort = "1,Foo\\, Bar\\, Baz\\\\,10";
+  const valueB: [boolean, string, number] = [false, "Test", 20];
 
   it("creates the input with given attributes and default value", () => {
     const parser = collectionParser({
@@ -87,7 +87,7 @@ describe("collectionParser", () => {
 
     (el.querySelector("button[data-action=add]") as HTMLButtonElement).click();
 
-    expect(getCollectionValue(el)).toStrictEqual([valueA, [false, 0, ""]]);
+    expect(getCollectionValue(el)).toStrictEqual([valueA, [false, "", 0]]);
   });
 
   it("expandable collections let you delete rows", () => {
