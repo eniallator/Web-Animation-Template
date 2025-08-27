@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  filterObject,
+  mapObject,
+  omit,
+  pick,
+  typedFromEntries,
   typedKeys,
   typedToEntries,
-  typedFromEntries,
-  mapObject,
-  filterObject,
-  pick,
-  omit,
 } from "./entries";
 
 describe("typedKeys", () => {

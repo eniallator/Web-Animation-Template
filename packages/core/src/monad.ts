@@ -65,10 +65,8 @@ export class Monad<A> {
     return this.value;
   }
 
-  toOption<B extends NonNullable<unknown>>(this: {
-    value: B | null | undefined;
-  }): Option<B> {
-    return Option.from(this.value);
+  toOption(): Option<NonNullable<A>> {
+    return Option.from<NonNullable<A>>(this.value as NonNullable<A>);
   }
 
   toArray(): A[] {

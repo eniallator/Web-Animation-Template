@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { Option } from "./option";
+
 import { filterAndMap, findAndMap } from "./map";
+import { Option } from "./option";
 
 describe("filterAndMap", () => {
   it("maps and filters out null/undefined", () => {

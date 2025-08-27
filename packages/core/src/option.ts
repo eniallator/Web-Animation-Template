@@ -48,9 +48,9 @@ export class Option<
     return new Option(value);
   }
 
-  static tupled<const A extends readonly Option<NonNullable<unknown>>[]>(
-    tup: A
-  ): Option<UnpackTupledOptions<A>> {
+  static tupled<
+    const A extends readonly Option<NonNullable<unknown>, OptionType>[],
+  >(tup: A): Option<UnpackTupledOptions<A>> {
     const values: unknown[] = [];
     for (const opt of tup) {
       const value = opt.getOrNull();
@@ -67,7 +67,7 @@ export class Option<
   }
 
   flatMap<B extends NonNullable<unknown>>(
-    fn: (value: A) => Option<B>
+    fn: (value: A) => Option<B, OptionType>
   ): Option<B> {
     return this.value != null ? fn(this.value) : new Option<B>(null);
   }
