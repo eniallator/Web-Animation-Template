@@ -1,3 +1,3 @@
 import config from "../../eslint.common.js";
 
-export default config();
+export default config(import.meta.dirname);

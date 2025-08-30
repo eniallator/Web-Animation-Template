@@ -5,7 +5,7 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import comments from "eslint-plugin-eslint-comments";
 import stylistic from "@stylistic/eslint-plugin";
 
-export default function config(extra = {}) {
+export default function config(rootDir, extra = {}) {
   return tslint.config(
     jslint.configs.recommended,
     ...tslint.configs.recommended,
@@ -22,7 +22,7 @@ export default function config(extra = {}) {
         parser: typescriptParser,
         parserOptions: {
           project: ["./tsconfig.json", "./tsconfig.test.json"],
-          tsconfigRootDir: ".",
+          tsconfigRootDir: rootDir,
         },
       },
 
