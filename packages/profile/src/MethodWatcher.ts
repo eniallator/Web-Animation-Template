@@ -65,7 +65,7 @@ export class MethodWatcher {
       targetName = "name" in target && isString(target.name)
         ? target.name
         : "Unknown",
-      minDebugLevel = 1,
+      minDebugLevel = 0,
       includePrototype = params.methodNames == null,
       methodNames = typedKeys(target, params.includeSymbols).filter(
         name => name !== "constructor" && isFunction(target[name])
@@ -87,7 +87,10 @@ export class MethodWatcher {
     }
   }
 
-  getStats(debugLevel: number, snapshot?: TargetMap<Stats>): TargetMap<Stats> {
+  getStats(
+    debugLevel: number = 1,
+    snapshot?: TargetMap<Stats>
+  ): TargetMap<Stats> {
     return new Map(
       this.allStats.entries().map(([target, { targetName, methods }]) => {
         const entries = filterAndMap(typedKeys(methods, true), methodName => {

@@ -39,7 +39,7 @@ export class TimeAudit {
    */
   *properties(target: NonNullable<unknown>): Generator<MethodName> {
     const methodNames =
-      this.allStats.get(target) ??
+      this.allStats.get(target)?.methods ??
       raise(new IndexError("Target does not exist"));
 
     for (const methodName of typedKeys(methodNames, true)) yield methodName;
@@ -73,7 +73,11 @@ export class TimeAudit {
    */
   toString(digits?: number): string {
     const formatNumber = (n: number): string =>
-      digits != null || n < 1 ? n.toExponential(digits) : `${n}`;
+      digits != null
+        ? n.toExponential(digits)
+        : [`${n}`, n.toExponential()].reduce((a, b) =>
+            a.length < b.length ? a : b
+          );
 
     return this.allStats.entries().reduce((auditStr, [_, targetStats]) => {
       const targetStr = typedToEntries(targetStats.methods, true).reduce(
