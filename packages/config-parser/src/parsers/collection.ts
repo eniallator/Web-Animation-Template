@@ -184,7 +184,7 @@ export const collectionParser = <const F extends FieldValues>(
             </div>
             ${ifExpandable(`
               <div class="collection-actions">
-                <button type="button" class="secondary" data-action="delete">
+                <button type="button" data-action="delete">
                   <span class="width-large">Delete Selected</span>
                   <span class="width-narrow icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
@@ -193,7 +193,7 @@ export const collectionParser = <const F extends FieldValues>(
                     </svg>
                   </span>
                 </button>
-                <button type="button" class="primary" data-action="add">
+                <button type="button" data-action="add">
                   <span class="width-large">Add Row</span>
                   <span class="width-narrow icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">

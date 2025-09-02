@@ -39,7 +39,7 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
         const el = dom.toHtml(`
           <div class="file">
             <input type="file" ${attrs} />
-            <button class="secondary wrap-text">${cfg.text ?? ""}</button>
+            <button>${cfg.text ?? ""}</button>
           </div>
         `);
 
