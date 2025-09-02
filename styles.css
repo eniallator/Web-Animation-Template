@@ -196,6 +196,33 @@ canvas {
 
 .config-item .file button {
   width: 100%;
+
+  max-width: 100%;
+  white-space: wrap;
+  word-wrap: break-word;
+  word-break: break-all;
+
+  cursor: pointer;
+  font-size: inherit;
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  fill: var(--text-primary);
+  padding: 0.5rem 0.6rem;
+  font-weight: 400;
+  border-radius: 0.6rem;
+  border-width: 0;
+
+  background-color: #6c757d;
+}
+.config-item .file button:focus {
+  border-width: 0;
+  box-shadow: 0;
+
+  outline: #5a6268 solid 2px;
+}
+.config-item .file button:hover {
+  background-color: #5a6268;
 }
 
 .config-item table {
@@ -284,6 +311,54 @@ canvas {
   justify-content: space-between;
   margin-top: 0.5rem;
   gap: 0.5rem;
+}
+
+.collection-actions button[data-action="delete"] {
+  cursor: pointer;
+  font-size: inherit;
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  fill: var(--text-primary);
+  padding: 0.5rem 0.6rem;
+  font-weight: 400;
+  border-radius: 0.6rem;
+  border-width: 0;
+
+  background-color: #6c757d;
+}
+.collection-actions button[data-action="delete"]:focus {
+  border-width: 0;
+  box-shadow: 0;
+
+  outline: #5a6268 solid 2px;
+}
+.collection-actions button[data-action="delete"]:hover {
+  background-color: #5a6268;
+}
+
+.collection-actions button[data-action="add"] {
+  cursor: pointer;
+  font-size: inherit;
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  fill: var(--text-primary);
+  padding: 0.5rem 0.6rem;
+  font-weight: 400;
+  border-radius: 0.6rem;
+  border-width: 0;
+
+  background-color: #17a2b8;
+}
+.collection-actions button[data-action="add"]:focus {
+  border-width: 0;
+  box-shadow: 0;
+
+  outline: #117a8b solid 2px;
+}
+.collection-actions button[data-action="add"]:hover {
+  background-color: #138496;
 }
 
 .collection table {
