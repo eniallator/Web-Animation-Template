@@ -1,9 +1,12 @@
 {
   "author": "eniallator",
   "description": "Web art packages",
+  "engines": {
+    "node": ">=24.8.0"
+  },
   "license": "MIT",
   "name": "@web-art/root",
-  "packageManager": "yarn@3.8.2",
+  "packageManager": "yarn@4.9.4",
   "private": true,
   "type": "module",
   "version": "1.0.0",
@@ -12,18 +15,18 @@
   ],
   "devDependencies": {
     "@eslint/compat": "^1.3.2",
-    "@eslint/js": "^9.33.0",
-    "@stylistic/eslint-plugin": "^5.2.3",
+    "@eslint/js": "^9.35.0",
+    "@stylistic/eslint-plugin": "^5.3.1",
     "@types/eslint__js": "^9.14.0",
-    "@typescript-eslint/eslint-plugin": "^8.39.1",
-    "@typescript-eslint/parser": "^8.39.1",
-    "eslint": "^9.33.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@typescript-eslint/parser": "^8.44.0",
+    "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.39.1"
+    "typescript-eslint": "^8.44.0"
   },
   "scripts": {
     "app": "yarn workspace @web-art/app",
@@ -31,11 +34,11 @@
     "prof": "yarn workspace @web-art/profile",
     "conf": "yarn workspace @web-art/config-parser",
     "linalg": "yarn workspace @web-art/linear-algebra",
-    "build": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run build",
-    "typecheck": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run typecheck",
-    "lint": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run lint",
-    "test": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run test",
-    "findissues": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run findissues",
-    "prepublish": "yarn workspaces foreach --verbose --parallel --topological --exclude @web-art/root run prepublish"
+    "build": "yarn workspaces foreach -Avpt --exclude @web-art/root run build",
+    "typecheck": "yarn workspaces foreach -Avpt --exclude @web-art/root run typecheck",
+    "lint": "yarn workspaces foreach -Avpt --exclude @web-art/root run lint",
+    "test": "yarn workspaces foreach -Avpt --exclude @web-art/root run test",
+    "findissues": "yarn workspaces foreach -Avpt --exclude @web-art/root run findissues",
+    "prepublish": "yarn workspaces foreach -Avpt --exclude @web-art/root run prepublish"
   }
 }
