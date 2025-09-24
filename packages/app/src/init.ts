@@ -8,6 +8,15 @@ import { Mouse } from "./lib/index.ts";
 import type { Config } from "./config.ts";
 import type { AppContext, StatefulAppContext } from "./lib/index.ts";
 
+const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
+  const { width, height } = canvas.getBoundingClientRect();
+  canvas.width = width;
+  canvas.height = height;
+};
+
+const canvas = dom.get<HTMLCanvasElement>("canvas");
+updateCanvasBounds(canvas);
+
 dom.addListener(dom.get("#download-btn"), "click", () => {
   const title = document
     .getElementsByTagName("title")[0]
@@ -29,15 +38,6 @@ dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
     ? document.exitFullscreen()
     : dom.get("main").requestFullscreen());
 });
-
-const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
-  const { width, height } = canvas.getBoundingClientRect();
-  canvas.width = width;
-  canvas.height = height;
-};
-
-const canvas = dom.get<HTMLCanvasElement>("canvas");
-updateCanvasBounds(canvas);
 
 const noCtxError = new Error(
   `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`

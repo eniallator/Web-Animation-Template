@@ -4,7 +4,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "name": "@web-art/linear-algebra",
-  "packageManager": "yarn@3.8.2",
+  "packageManager": "yarn@4.10.3",
   "private": true,
   "type": "module",
   "types": "dist/index.d.ts",

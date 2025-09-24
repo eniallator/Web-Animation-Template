@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
-  "packageManager": "yarn@3.8.2",
+  "packageManager": "yarn@4.10.3",
   "author": "eniallator",
   "license": "MIT",
   "dependencies": {
