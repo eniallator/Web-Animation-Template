@@ -14,27 +14,27 @@
     "deep-guards": "^1.1.0"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^5.3.1",
+    "@stylistic/eslint-plugin": "^5.5.0",
     "@types/eslint": "^9.6.1",
-    "@typescript-eslint/eslint-plugin": "^8.44.0",
-    "@typescript-eslint/parser": "^8.44.0",
-    "eslint": "^9.35.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
-    "jsdom": "^27.0.0",
+    "jsdom": "^27.2.0",
     "prettier": "^3.6.2",
     "strip-ansi": "^7.1.2",
     "ts-loader": "^9.5.4",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.9"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ./src/**/*.ts",
-    "test": "vitest run --passWithNoTests --environment jsdom",
+    "test": "vitest run --passWithNoTests --max-workers 1 --reporter verbose --environment jsdom",
     "findissues": "yarn typecheck && yarn lint",
     "prepublish": "yarn typecheck && yarn lint && yarn test && yarn build"
   }
