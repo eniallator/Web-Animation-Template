@@ -30,7 +30,7 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
 
   document.body.appendChild(anchor);
   anchor.click();
-  document.body.removeChild(anchor);
+  anchor.remove();
 });
 
 dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
