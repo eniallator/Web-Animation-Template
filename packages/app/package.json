@@ -40,7 +40,6 @@
     "terser-webpack-plugin": "^5.3.14",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.9",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-middleware": "^7.4.5"
@@ -50,7 +49,6 @@
     "watch": "webpack --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ./src/**/*.ts",
-    "test": "vitest run --passWithNoTests --max-workers 1 --reporter verbose",
     "findissues": "yarn typecheck && yarn lint",
     "prepublish": "yarn build && yarn typecheck && yarn lint",
     "deploy": "gh-pages -d public"
