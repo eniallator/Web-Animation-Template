@@ -15,12 +15,8 @@ jobs:
           NODE_ENV: production
         run: yarn build
       - name: Finding Issues
-        env:
-          NODE_ENV: production
         run: yarn findissues
       - name: Testing
-        env:
-          NODE_ENV: production
         run: yarn test
       - name: Deploy
         run: |
