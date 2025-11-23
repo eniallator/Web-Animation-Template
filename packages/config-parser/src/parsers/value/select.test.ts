@@ -20,7 +20,7 @@ describe("selectParser", () => {
     expect(el.tagName).toBe("SELECT");
     expect(el.value).toBe(valueA);
     expect(el.getAttribute("id")).toBe("id");
-    expect(el.getAttribute("data-hello")).toBe("world!");
+    expect(el.dataset.hello).toBe("world!");
   });
 
   it("initial state is expected", () => {
