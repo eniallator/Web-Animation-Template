@@ -18,11 +18,12 @@ jobs:
         run: yarn typecheck
       - name: Lint
         run: yarn lint
-      # - name: Test
-      #   run: yarn test
+      - name: Test
+        run: yarn test
       - name: Deploy
+        env:
+          NODE_DEBUG: gh-pages
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           yarn app deploy -u "github-actions-bot <support+actions@github.com>"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
