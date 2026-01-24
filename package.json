@@ -2,7 +2,7 @@
   "author": "eniallator",
   "description": "Web art packages",
   "engines": {
-    "node": ">=24.8.0"
+    "node": ">=25.4.0"
   },
   "license": "MIT",
   "name": "@web-art/root",
@@ -26,6 +26,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
     "jsdom": "^27.4.0",
+    "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1",
     "vitest": "4.0.18"
