@@ -28,8 +28,10 @@ describe("Vector", () => {
   });
 
   it("parseString() should parse valid strings and return undefined for invalid", () => {
-    expect(Vector.parseString("Vector3D[1,2,3]")?.toArray()).toEqual([1, 2, 3]);
-    expect(Vector.parseString("Vector2D[4,5]")?.toArray()).toEqual([4, 5]);
+    expect(Vector.parseString("Vector<3>[1,2,3]")?.toArray()).toEqual([
+      1, 2, 3,
+    ]);
+    expect(Vector.parseString("Vector<2>[4,5]")?.toArray()).toEqual([4, 5]);
     expect(Vector.parseString("bad string")).toBeUndefined();
   });
 
@@ -143,7 +145,7 @@ describe("Vector", () => {
     expect(v.valueOf(2)).toBe(3);
   });
 
-  it("forEach(), map(), reduce(), every(), some() should work", () => {
+  it("forEach(), map(), reduce(), every(), some(), includes() should work", () => {
     const v = Vector.create(1, 2, 3);
     const arr: number[] = [];
     v.forEach(x => arr.push(x * 2));
@@ -152,6 +154,7 @@ describe("Vector", () => {
     expect(v.reduce((a, b) => a + b, 0)).toBe(6);
     expect(v.every(x => x > 0)).toBe(true);
     expect(v.some(x => x === 2)).toBe(true);
+    expect(v.includes(3)).toBe(true);
   });
 
   it("toArray() and with() should work", () => {

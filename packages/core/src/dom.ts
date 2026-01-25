@@ -55,7 +55,7 @@ const toHtml = <const S extends string>(str: S): InferElement<S> => {
   const el = document.createElement("template");
   el.innerHTML = str;
   return (el.content.children.item(0) ??
-    raise(Error("No nodes found"))) as InferElement<S>;
+    raise(new Error("No nodes found"))) as InferElement<S>;
 };
 
 export const dom = { addListener, get, toHtml, toAttrs };

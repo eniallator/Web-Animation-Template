@@ -32,6 +32,7 @@ export const textParser = (cfg: ValueConfig<string> & { area?: boolean }) => {
             ? `<textarea ${attrs}>${initial}</textarea>`
             : `<input type="text" value="${initial}" ${attrs} />`
         );
+
         el.onchange = () => {
           onChange(el.value);
         };

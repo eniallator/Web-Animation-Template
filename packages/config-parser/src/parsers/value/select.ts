@@ -43,11 +43,13 @@ export const selectParser = <const A extends readonly [string, ...string[]]>(
               opt
             }</option>`
         );
+
         const el = dom.toHtml(`<select ${attrs}>${opts.join("")}</select>`);
 
         el.onchange = () => {
           onChange(el.value as SelectValue<A>);
         };
+
         return el;
       },
     }),

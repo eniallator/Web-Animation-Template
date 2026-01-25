@@ -1,18 +1,8 @@
 import { dom } from "@web-art/core";
-import { isString } from "deep-guards";
 
 import { valueParser } from "../../create.ts";
 
 import type { ValueConfig } from "../../types.ts";
-
-const readFile = (file: File): Promise<string | null> =>
-  new Promise(res => {
-    const reader = new FileReader();
-    reader.onload = evt => {
-      res(isString(evt.target?.result) ? evt.target.result : null);
-    };
-    reader.readAsText(file);
-  });
 
 export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
   const defaultValue = cfg.default ?? "";
@@ -45,10 +35,11 @@ export const fileParser = (cfg: ValueConfig<string> & { text?: string }) => {
 
         currentValue =
           query ?? externalCfg?.initial ?? externalCfg?.default ?? defaultValue;
+
         const inp = dom.get<HTMLInputElement>("input", el);
+
         inp.onchange = async () => {
-          const contents =
-            inp.files?.[0] != null ? await readFile(inp.files[0]) : null;
+          const contents = (await inp.files?.[0]?.text()) ?? null;
           if (contents != null) onChange((currentValue = contents));
         };
 

@@ -21,8 +21,8 @@ describe("collectionParser", () => {
     ]);
 
   const valueA: [boolean, string, number] = [true, "Foo, Bar, Baz\\", 10];
-  const valueASerialised = "true,Foo\\, Bar\\, Baz\\\\,10";
-  const valueAShort = "1,Foo\\, Bar\\, Baz\\\\,10";
+  const valueASerialised = String.raw`true,Foo\, Bar\, Baz\\,10`;
+  const valueAShort = String.raw`1,Foo\, Bar\, Baz\\,10`;
   const valueB: [boolean, string, number] = [false, "Test", 20];
 
   it("creates the input with given attributes and default value", () => {
@@ -37,7 +37,7 @@ describe("collectionParser", () => {
     expect(el.tagName).toBe("DIV");
     expect(getCollectionValue(el)).toStrictEqual([valueA]);
     expect(el.getAttribute("id")).toBe("id");
-    expect(el.getAttribute("data-hello")).toBe("world!");
+    expect(el.dataset.hello).toBe("world!");
   });
 
   it("initial state is expected", () => {

@@ -42,7 +42,7 @@ export class MethodWatcher {
       const stats: RecordableStats = { ...emptyStats, minDebugLevel };
       this.allStats.set(target, {
         targetName,
-        methods: { ...(existing ?? {}), [methodName]: stats },
+        methods: { ...existing, [methodName]: stats },
       });
 
       const origMethod = target[methodName] as (...args: unknown[]) => unknown;

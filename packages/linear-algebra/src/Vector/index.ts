@@ -139,11 +139,11 @@ export class Vector<N extends number | undefined = undefined> {
 
   /**
    * Parses a string and tries to make a vector out of it
-   * @param {string} str Vector string in the format of "VectorND[component1, component2, ...]"
+   * @param {string} str Vector string in the format of "Vector<N>[component1, component2, ...]"
    * @returns {(Vector | undefined)} The parsed vector if it's valid, otherwise undefined.
    */
   static parseString(str: string): Vector | undefined {
-    const match = /^Vector\d+D\[(?<cmps>[^\]]+)\]$/.exec(str);
+    const match = /^Vector<\d+>\[(?<cmps>[^\]]+)\]$/.exec(str);
     const cmps = match?.groups?.cmps?.split(",").map(Number);
     if (isAnyComponents(cmps)) {
       return new Vector(cmps);
@@ -167,15 +167,6 @@ export class Vector<N extends number | undefined = undefined> {
       ""
     );
     return `Vector<${cmps.length}>[${cmpsStr}]`;
-  }
-
-  /**
-   * Raises the current components to given power(s)
-   * @param  {...VectorArg<N>} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
-   * @returns {this} this
-   */
-  pow(...args: VectorArg<N>[]): this {
-    return this._applyOperation((cmp, arg) => cmp ** arg, args);
   }
 
   /**
@@ -212,6 +203,15 @@ export class Vector<N extends number | undefined = undefined> {
    */
   divide(...args: VectorArg<N>[]): this {
     return this._applyOperation((cmp, arg) => cmp / arg, args);
+  }
+
+  /**
+   * Raises the current components to given power(s)
+   * @param  {...VectorArg<N>} args If given a number, all components are raised to this. If given a Vector, the power operation is component-wise
+   * @returns {this} this
+   */
+  pow(...args: VectorArg<N>[]): this {
+    return this._applyOperation((cmp, arg) => cmp ** arg, args);
   }
 
   /**
@@ -471,8 +471,8 @@ export class Vector<N extends number | undefined = undefined> {
         const [x, y] = this.cmps;
         const [px, py] = pivot.cmps;
 
-        const [dMag, dAngle] = cartesianToPolar(x - px, y - py);
-        const [ox, oy] = polarToCartesian(dMag, dAngle + angle);
+        const [magDiff, angleDiff] = cartesianToPolar(x - px, y - py);
+        const [ox, oy] = polarToCartesian(magDiff, angleDiff + angle);
 
         this.cmps = [ox + px, oy + py];
 
@@ -631,6 +631,15 @@ export class Vector<N extends number | undefined = undefined> {
   some(predicate: VectorCallback<boolean, Components<N>>): boolean {
     const fn = predicate as VectorCallback<boolean>;
     return toAnyComponents(this.cmps).some(fn);
+  }
+
+  /**
+   * Tests if a given number is is in this vector
+   * @param {number} cmp the number to check
+   * @returns {boolean} true if the cmp is inside the vector, false otherwise
+   */
+  includes(cmp: number): boolean {
+    return toAnyComponents(this.cmps).includes(cmp);
   }
 
   /**

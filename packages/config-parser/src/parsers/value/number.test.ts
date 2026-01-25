@@ -17,17 +17,14 @@ describe("numberParser", () => {
     expect(el.tagName).toBe("INPUT");
     expect(el.getAttribute("value")).toBe(`${valueA}`);
     expect(el.getAttribute("id")).toBe("id");
-    expect(el.getAttribute("data-hello")).toBe("world!");
+    expect(el.dataset.hello).toBe("world!");
   });
 
   it("initial state is expected", () => {
     expect(
       (
         numberParser({ default: valueB })
-          .methods(vi.fn(), vi.fn(), {
-            initial: valueB,
-            default: valueB,
-          })
+          .methods(vi.fn(), vi.fn(), { initial: valueB, default: valueB })
           .html(null, `${valueA}`, false) as HTMLInputElement
       ).value
     ).toBe(`${valueA}`);
@@ -35,10 +32,7 @@ describe("numberParser", () => {
     expect(
       (
         numberParser({ default: valueB })
-          .methods(vi.fn(), vi.fn(), {
-            initial: valueA,
-            default: valueB,
-          })
+          .methods(vi.fn(), vi.fn(), { initial: valueA, default: valueB })
           .html(null, null, false) as HTMLInputElement
       ).value
     ).toBe(`${valueA}`);
@@ -46,10 +40,7 @@ describe("numberParser", () => {
     expect(
       (
         numberParser({ default: valueB })
-          .methods(vi.fn(), vi.fn(), {
-            initial: null,
-            default: valueA,
-          })
+          .methods(vi.fn(), vi.fn(), { initial: null, default: valueA })
           .html(null, null, false) as HTMLInputElement
       ).value
     ).toBe(`${valueA}`);

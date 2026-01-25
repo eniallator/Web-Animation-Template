@@ -36,9 +36,11 @@ export const checkboxParser = (cfg: ValueConfig<boolean>) => {
         });
 
         const el = dom.toHtml(`<input type="checkbox" ${attrs} />`);
+
         el.onchange = () => {
           onChange(el.checked);
         };
+
         return el;
       },
     }),

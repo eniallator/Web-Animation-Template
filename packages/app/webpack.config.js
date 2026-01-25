@@ -1,7 +1,7 @@
 import BrowserSyncPlugin from "browser-sync-webpack-plugin";
-import { exec } from "child_process";
+import { exec } from "node:child_process";
+import url, { URL } from "node:url";
 import TerserPlugin from "terser-webpack-plugin";
-import url, { URL } from "url";
 
 const path = url.fileURLToPath(new URL(".", import.meta.url));
 

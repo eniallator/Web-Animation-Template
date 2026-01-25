@@ -80,7 +80,7 @@ interface CollectionConfig<F extends FieldValues> extends Config {
 }
 
 const formatField = (value: string | null): string =>
-  value?.replace(/[,\\]/g, "\\$&") ?? "";
+  value?.replaceAll(/[,\\]/g, String.raw`\$&`) ?? "";
 
 const splitQueryValues = (query: string): (string | null)[] => {
   const out: (string | null)[] = [];

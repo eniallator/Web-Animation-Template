@@ -14,7 +14,7 @@ describe("buttonParser", () => {
     expect(el.textContent).toBe("Click me");
     expect(el.getAttribute("class")).toBe("primary wrap-text my-btn");
     expect(el.getAttribute("id")).toBe("btn-id");
-    expect(el.getAttribute("data-hello")).toBe("world!");
+    expect(el.dataset.hello).toBe("world!");
   });
 
   it("calls onChange when clicked", () => {

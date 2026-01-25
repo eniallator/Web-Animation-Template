@@ -14,7 +14,7 @@ export const colorParser = (cfg: ValueConfig<string>) => {
         (externalCfg != null ? externalCfg.default : defaultValue)
           ? null
           : shortUrl
-            ? b64.fromUint(Math.abs(parseInt(getValue(), 16)))
+            ? b64.fromUint(Math.abs(Number.parseInt(getValue(), 16)))
             : getValue(),
       updateValue: el => {
         (el as HTMLInputElement).value = `#${getValue()}`;

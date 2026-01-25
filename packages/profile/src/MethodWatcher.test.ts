@@ -5,13 +5,13 @@ import { MethodWatcher } from "./MethodWatcher";
 import type { RecordableStats } from "./types";
 
 // Helper to get stats from watcher
-function getMethodStats(
+const getMethodStats = (
   watcher: MethodWatcher,
   target: object,
   method: string
-): RecordableStats | undefined {
+): RecordableStats | undefined => {
   return watcher["allStats"].get(target)?.methods[method];
-}
+};
 
 describe("MethodWatcher", () => {
   let watcher: MethodWatcher;

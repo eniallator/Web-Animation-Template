@@ -14,7 +14,7 @@ export const incompatibleOperation = (
   isMin: boolean = false
 ): IncompatibleOperation =>
   new IncompatibleOperation(
-    `Requires ${isMin ? "atleast " : ""}a ${size}D vector`
+    `Requires ${isMin ? "at least " : ""}a ${size}D vector`
   );
 
 export class OutOfBounds extends Error {

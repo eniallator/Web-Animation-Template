@@ -24,10 +24,7 @@ describe("textParser", () => {
     expect(
       (
         textParser({ default: valueB })
-          .methods(vi.fn(), vi.fn(), {
-            initial: valueB,
-            default: valueB,
-          })
+          .methods(vi.fn(), vi.fn(), { initial: valueB, default: valueB })
           .html(null, valueA, false) as HTMLInputElement
       ).value
     ).toBe(valueA);
@@ -35,10 +32,7 @@ describe("textParser", () => {
     expect(
       (
         textParser({ default: valueB })
-          .methods(vi.fn(), vi.fn(), {
-            initial: valueA,
-            default: valueB,
-          })
+          .methods(vi.fn(), vi.fn(), { initial: valueA, default: valueB })
           .html(null, null, false) as HTMLInputElement
       ).value
     ).toBe(valueA);
@@ -46,10 +40,7 @@ describe("textParser", () => {
     expect(
       (
         textParser({ default: valueB })
-          .methods(vi.fn(), vi.fn(), {
-            initial: null,
-            default: valueA,
-          })
+          .methods(vi.fn(), vi.fn(), { initial: null, default: valueA })
           .html(null, null, false) as HTMLInputElement
       ).value
     ).toBe(valueA);

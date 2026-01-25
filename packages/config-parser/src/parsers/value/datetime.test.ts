@@ -18,7 +18,7 @@ describe("datetimeParser", () => {
     expect(el.tagName).toBe("INPUT");
     expect(el.getAttribute("value")).toBe(valueA);
     expect(el.getAttribute("id")).toBe("id");
-    expect(el.getAttribute("data-hello")).toBe("world!");
+    expect(el.dataset.hello).toBe("world!");
   });
 
   it("initial state is expected", () => {

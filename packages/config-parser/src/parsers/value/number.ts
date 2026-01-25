@@ -45,9 +45,11 @@ export const numberParser = (cfg: ValueConfig<number>) => {
         });
 
         const el = dom.toHtml(`<input type="number" ${attrs} />`);
+
         el.onchange = () => {
           onChange(Number(el.value));
         };
+
         return el;
       },
     }),
