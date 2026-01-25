@@ -10,6 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 25.4.0
+          cache: yarn
       - name: Install dependencies
         run: yarn
       - name: Build
