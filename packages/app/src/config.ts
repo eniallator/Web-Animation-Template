@@ -17,7 +17,7 @@ import type {
   ParamConfigOptions,
 } from "@web-art/config-parser";
 
-export const options: ParamConfigOptions = { shortUrl: false };
+export const options: ParamConfigOptions = { query: location.search };
 export const config = createParsers({
   "example-checkbox": checkboxParser({
     label: "Example Checkbox",

@@ -18,7 +18,7 @@ import type {
 } from "./types.ts";
 
 type ParamConfigParams = DiscriminatedParams<
-  { query?: string },
+  { query: string },
   { shortUrl?: false } | { shortUrl: true; hashLength?: number }
 >;
 
@@ -36,9 +36,9 @@ export class ParamConfig<const R extends AnyStringRecord> {
   constructor(
     initParsers: InitParserObject<R>,
     baseEl: HTMLElement,
-    options: ParamConfigParams["internal"] = {}
+    options: ParamConfigParams["internal"]
   ) {
-    const { query = location.search, shortUrl, hashLength } = options;
+    const { query, shortUrl, hashLength } = options;
     this.hashLength = shortUrl ? (hashLength ?? 6) : null;
 
     const initialValues = parseQuery(query, this.hashLength);

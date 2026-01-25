@@ -33,7 +33,9 @@ describe("ParamConfig", () => {
 
   beforeEach(() => {
     baseEl = document.createElement("div");
-    paramConfig = new ParamConfig(makeParsers(), baseEl);
+    paramConfig = new ParamConfig(makeParsers(), baseEl, {
+      query: location.search,
+    });
   });
 
   // --- getAllValues ---

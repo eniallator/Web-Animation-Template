@@ -40,6 +40,11 @@ describe("Vector", () => {
     expect(v.toString(2)).toBe("Vector<2>[1.23, 2.35]");
   });
 
+  it("toString() to parseString() should produce the same result", () => {
+    const v = Vector.create(4, 5, 6.7);
+    expect(Vector.parseString(v.toString())?.equals(v)).toBeTruthy();
+  });
+
   it("pow(), add(), sub(), multiply(), divide(), mod(), positiveMod() should operate correctly", () => {
     expect(Vector.create(2, 3).pow(2).toArray()).toEqual([4, 9]);
     expect(Vector.create(1, 2).add(3).toArray()).toEqual([4, 5]);
