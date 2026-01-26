@@ -1,4 +1,4 @@
-import type { FillTuple } from "@web-art/core";
+import type { Add, FillTuple } from "@web-art/core";
 import type { Vector } from "./index.ts";
 
 export type AnyComponents = [number, ...number[]];
@@ -24,3 +24,8 @@ export type VectorReduceCallback<R, A extends number[] = number[]> = (
   index: number,
   array: A
 ) => R;
+
+export type AddOpts<
+  A extends number | undefined,
+  B extends number | undefined,
+> = A extends number ? (B extends number ? Add<A, B> : undefined) : undefined;

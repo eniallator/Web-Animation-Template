@@ -19,6 +19,7 @@ import {
 } from "./helpers.ts";
 
 import type {
+  AddOpts,
   AnyComponents,
   Components,
   MinSize,
@@ -611,6 +612,18 @@ export class Vector<N extends number | undefined = undefined> {
     return initialValue != null
       ? toAnyComponents(this.cmps).reduce(fn, initialValue)
       : toAnyComponents(this.cmps).reduce(fn);
+  }
+
+  /**
+   * Concatenates this vectors components with another vector's components
+   * @param {Vector<O>} other The other vector
+   * @returns A new vector containing this vector's components followed by the other vector's components
+   */
+  concat<O extends number | undefined>(
+    other: Vector<O>
+  ): Vector<AddOpts<N, O>> {
+    const cmps = toAnyComponents(this.cmps).concat(toAnyComponents(other.cmps));
+    return new Vector(cmps as Components<AddOpts<N, O>>);
   }
 
   /**
