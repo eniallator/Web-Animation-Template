@@ -1,6 +1,6 @@
 import {
   dom,
-  filterAndMap,
+  mapFilter,
   mapObject,
   Option,
   tuple,
@@ -108,7 +108,7 @@ export class ParamConfig<const R extends AnyStringRecord> {
         this.hashLength != null ? "" : "="
       );
 
-    return filterAndMap(typedToEntries(this.state), ([id, { parser }]) =>
+    return mapFilter(typedToEntries(this.state), ([id, { parser }]) =>
       Option.some(parser)
         .guard((p): p is ValueParser<R[keyof R]> => p.type === "Value")
         .map(p => p.serialise(this.hashLength != null))

@@ -1,4 +1,4 @@
-import { dom, filterAndMap, tuple, zip } from "@web-art/core";
+import { dom, mapFilter, tuple, zip } from "@web-art/core";
 import { isExact, isString } from "deep-guards";
 
 import { valueParser } from "../create.ts";
@@ -244,7 +244,7 @@ export const collectionParser = <const F extends FieldValues>(
 
       if (expandable) {
         dom.get("button[data-action=delete]", baseEl).onclick = () => {
-          const newValue = filterAndMap([...bodyEl.children], (el, i) => {
+          const newValue = mapFilter([...bodyEl.children], (el, i) => {
             const values = getValue()[i] as F;
             if (dom.get<HTMLInputElement>("[data-row-selector]", el).checked) {
               el.remove();

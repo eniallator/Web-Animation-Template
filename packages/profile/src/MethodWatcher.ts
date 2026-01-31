@@ -1,4 +1,4 @@
-import { filterAndMap, tuple, typedKeys } from "@web-art/core";
+import { mapFilter, tuple, typedKeys } from "@web-art/core";
 import {
   isAnyRecord,
   isFunction,
@@ -93,7 +93,7 @@ export class MethodWatcher {
   ): TargetMap<Stats> {
     return new Map(
       this.allStats.entries().map(([target, { targetName, methods }]) => {
-        const entries = filterAndMap(typedKeys(methods, true), methodName => {
+        const entries = mapFilter(typedKeys(methods, true), methodName => {
           const methodStats = methods[methodName] as RecordableStats;
           const snapStats =
             snapshot?.get(target)?.methods[methodName] ?? emptyStats;

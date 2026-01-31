@@ -25,7 +25,9 @@ describe("b64.fromUint", () => {
   });
 
   it("returns empty string for NaN", () => {
-    expect(() => b64.fromUint(NaN)).toThrowError("Expected uint but got NaN");
+    expect(() => b64.fromUint(Number.NaN)).toThrowError(
+      "Expected uint but got NaN"
+    );
   });
 });
 

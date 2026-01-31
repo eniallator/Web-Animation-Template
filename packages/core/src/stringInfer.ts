@@ -37,13 +37,17 @@ interface BaseOperation<C extends string, N extends number | null> {
   count: N;
 }
 
-export interface StringGet<C extends string, N extends number | null = null>
-  extends BaseOperation<C, N> {
+export interface StringGet<
+  C extends string,
+  N extends number | null = null,
+> extends BaseOperation<C, N> {
   type: "get";
 }
 
-export interface StringEat<C extends string, N extends number | null = null>
-  extends BaseOperation<C, N> {
+export interface StringEat<
+  C extends string,
+  N extends number | null = null,
+> extends BaseOperation<C, N> {
   type: "eat";
 }
 

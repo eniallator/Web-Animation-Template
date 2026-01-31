@@ -12,7 +12,7 @@ type MapFn<I, O extends NonNullable<unknown>> = (
 const isOption: Guard<Option<NonNullable<unknown>>> = value =>
   value instanceof Option;
 
-export const filterAndMap = <I, O extends NonNullable<unknown>>(
+export const mapFilter = <I, O extends NonNullable<unknown>>(
   arr: readonly I[],
   callback: MapFn<I, O>
 ): O[] =>
@@ -22,7 +22,7 @@ export const filterAndMap = <I, O extends NonNullable<unknown>>(
     return out != null ? [...acc, out] : acc;
   }, []);
 
-export const findAndMap = <I, O extends NonNullable<unknown>>(
+export const mapFind = <I, O extends NonNullable<unknown>>(
   arr: readonly I[],
   callback: MapFn<I, O>
 ): O | null => {
