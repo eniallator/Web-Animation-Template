@@ -17,8 +17,8 @@
     "deep-guards": "^1.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.6",
-    "@babel/preset-env": "^7.28.6",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
     "@babel/preset-typescript": "^7.28.5",
     "@stylistic/eslint-plugin": "^5.7.1",
     "@types/eslint": "^9.6.1",
@@ -40,7 +40,7 @@
     "terser-webpack-plugin": "^5.3.16",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
-    "webpack": "^5.104.1",
+    "webpack": "^5.105.0",
     "webpack-cli": "^6.0.1",
     "webpack-dev-middleware": "^7.4.5"
   },
