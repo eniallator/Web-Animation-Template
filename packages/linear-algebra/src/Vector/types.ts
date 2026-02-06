@@ -5,7 +5,7 @@ export type AnyComponents = [number, ...number[]];
 
 export type Components<N extends number | undefined> = undefined extends N
   ? AnyComponents
-  : FillTuple<number, NonNullable<N>>;
+  : FillTuple<number, NonNullable<N>, [number]>;
 
 export type MinSize<S extends number, N extends number | undefined> =
   Components<N> extends [...Components<S>, ...number[]] ? N : never;

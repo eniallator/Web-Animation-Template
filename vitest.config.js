@@ -10,7 +10,6 @@ export default defineConfig({
           isolate: true,
           passWithNoTests: true,
           environment: "jsdom",
-          fileParallelism: false,
           reporters: "verbose",
         }
       : {

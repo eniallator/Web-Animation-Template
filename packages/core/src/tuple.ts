@@ -1,11 +1,11 @@
-export const tuple = <const T extends unknown[]>(...tuple: T) => tuple;
+import type { RecursionLimit } from "./maths.ts";
 
-type RecursionLimit = 1001;
+export const tuple = <const T extends unknown[]>(...tuple: T) => tuple;
 
 export type FillTuple<
   T,
   N extends number,
-  A extends T[] = [T],
+  A extends T[] = [],
 > = A["length"] extends RecursionLimit
   ? [T, ...T[]]
   : A["length"] extends N

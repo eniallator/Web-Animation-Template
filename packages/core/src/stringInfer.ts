@@ -1,4 +1,4 @@
-import type { FillTuple } from "./tuple.ts";
+import type { Decrement } from "./maths.ts";
 
 export type Whitespace = " " | "\t" | "\n" | "\r";
 export type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
@@ -74,13 +74,6 @@ type CombineOperationOutput<
   O extends string,
   R extends OutputData<string, string, boolean>,
 > = OutputData<`${O}${R["out"]}`, R["rest"], R["noMatch"]>;
-
-type Decrement<N extends number> =
-  FillTuple<unknown, N> extends [unknown, ...infer R]
-    ? R extends unknown[]
-      ? R["length"]
-      : never
-    : 0;
 
 type ApplyStringOperation<
   S extends string,

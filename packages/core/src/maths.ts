@@ -10,7 +10,37 @@ export const polarToCartesian = (magnitude: number, angle: number) =>
 
 export const positiveMod = (a: number, b: number) => ((a % b) + b) % b;
 
+export type RecursionLimit = 1001;
+
+export type Decrement<N extends number> =
+  FillTuple<unknown, N> extends [unknown, ...infer R]
+    ? R extends unknown[]
+      ? R["length"]
+      : never
+    : 0;
+
+export type Increment<N extends number> = [
+  ...FillTuple<unknown, N>,
+  unknown,
+]["length"] extends infer O
+  ? O extends number
+    ? O
+    : never
+  : never;
+
 export type Add<A extends number, B extends number> = [
   ...FillTuple<unknown, A>,
   ...FillTuple<unknown, B>,
 ]["length"];
+
+export type Subtract<
+  A extends number,
+  B extends number,
+  I extends number = 0,
+> = I extends RecursionLimit
+  ? number
+  : I extends B
+    ? A
+    : A extends 0
+      ? number
+      : Subtract<Decrement<A>, B, Increment<I>>;
