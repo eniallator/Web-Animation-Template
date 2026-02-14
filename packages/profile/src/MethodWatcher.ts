@@ -18,11 +18,7 @@ const hasPrototype = isUnionOf(
 );
 
 export type RegisterMethodsParams = DiscriminatedParams<
-  {
-    targetName?: string;
-    minDebugLevel?: number;
-    includePrototype?: boolean;
-  },
+  { targetName?: string; minDebugLevel?: number; includePrototype?: boolean },
   { includeSymbols?: boolean } | { methodNames: MethodName[] }
 >;
 
