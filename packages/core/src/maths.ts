@@ -13,20 +13,12 @@ export const positiveMod = (a: number, b: number) => ((a % b) + b) % b;
 export type RecursionLimit = 1001;
 
 export type Decrement<N extends number> =
-  FillTuple<unknown, N> extends [unknown, ...infer R]
-    ? R extends unknown[]
-      ? R["length"]
-      : never
-    : 0;
+  FillTuple<unknown, N> extends [unknown, ...infer R] ? R["length"] : 0;
 
-export type Increment<N extends number> = [
-  ...FillTuple<unknown, N>,
-  unknown,
-]["length"] extends infer O
-  ? O extends number
-    ? O
-    : never
-  : never;
+export type Increment<N extends number> = Extract<
+  [...FillTuple<unknown, N>, unknown]["length"],
+  number
+>;
 
 export type Add<A extends number, B extends number> = [
   ...FillTuple<unknown, A>,

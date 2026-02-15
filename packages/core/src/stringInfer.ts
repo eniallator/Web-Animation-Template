@@ -55,11 +55,6 @@ export type StringOperation<C extends string, N extends number | null> =
   | StringGet<C, N>
   | StringEat<C, N>;
 
-type OperationOutput<
-  O extends StringOperation<string, number | null>,
-  S extends string,
-> = O["type"] extends "get" ? S : "";
-
 interface OutputData<
   O extends string,
   R extends string,
@@ -81,14 +76,12 @@ type ApplyStringOperation<
   N extends number | null = O["count"],
 > = S extends `${infer C}${infer R}`
   ? C extends O["charset"]
-    ? R extends string
-      ? N extends 0
-        ? OutputData<"", S>
-        : CombineOperationOutput<
-            OperationOutput<O, C>,
-            ApplyStringOperation<R, O, N extends number ? Decrement<N> : N>
-          >
-      : never
+    ? N extends 0
+      ? OutputData<"", S>
+      : CombineOperationOutput<
+          O["type"] extends "get" ? C : "",
+          ApplyStringOperation<R, O, N extends number ? Decrement<N> : N>
+        >
     : OutputData<"", S, N extends null | 0 ? false : true>
   : OutputData<"", "">;
 
@@ -104,8 +97,9 @@ export type StringExtract<
   A extends StringOperation<string, number | null>[],
 > = A extends [infer O, ...infer R]
   ? O extends StringOperation<string, number | null>
-    ? R extends StringOperation<string, number | null>[]
-      ? RecurseExtract<ApplyStringOperation<S, O>, R>
-      : never
+    ? RecurseExtract<
+        ApplyStringOperation<S, O>,
+        Extract<R, StringOperation<string, number | null>[]>
+      >
     : ""
   : "";
