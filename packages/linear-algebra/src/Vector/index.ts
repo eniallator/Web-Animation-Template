@@ -3,7 +3,7 @@ import {
   polarToCartesian,
   positiveMod,
   raise,
-} from "@web-art/core";
+} from "niall-utils";
 import { isArrayOf, isNumber } from "deep-guards";
 
 import {

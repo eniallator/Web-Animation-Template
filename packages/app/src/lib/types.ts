@@ -1,4 +1,4 @@
-import type { AnyStringRecord, ParamConfig } from "@web-art/config-parser";
+import type { AnyStringRecord, SerialisableForm } from "seriform";
 import type { Mouse } from "./mouse.ts";
 
 export interface Time {
@@ -9,7 +9,7 @@ export interface Time {
 }
 
 export interface AppContext<R extends AnyStringRecord> {
-  paramConfig: ParamConfig<R>;
+  seriform: SerialisableForm<R>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;

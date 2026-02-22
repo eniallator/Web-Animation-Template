@@ -1,4 +1,4 @@
-import { raise, typedKeys, typedToEntries } from "@web-art/core";
+import { raise, typedKeys, typedToEntries } from "niall-utils";
 
 import { IndexError } from "./error.ts";
 

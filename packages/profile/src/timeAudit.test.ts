@@ -1,4 +1,4 @@
-import { tuple } from "@web-art/core";
+import { tuple } from "niall-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { IndexError } from "./error";

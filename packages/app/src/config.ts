@@ -10,14 +10,11 @@ import {
   rangeParser,
   selectParser,
   textParser,
-} from "@web-art/config-parser";
+} from "seriform";
 
-import type {
-  InitParserObject,
-  ParamConfigOptions,
-} from "@web-art/config-parser";
+import type { InitParserObject, SerialisableFormOptions } from "seriform";
 
-export const options: ParamConfigOptions = { query: location.search };
+export const options: SerialisableFormOptions = { query: location.search };
 export const config = createParsers({
   "example-checkbox": checkboxParser({
     label: "Example Checkbox",

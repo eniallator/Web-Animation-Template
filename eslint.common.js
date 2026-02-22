@@ -33,6 +33,7 @@ export default function config(rootDir, extra = {}) {
         "@typescript-eslint/no-unnecessary-condition": "error",
         "@stylistic/arrow-parens": "off",
         "@stylistic/indent": "off",
+        "@stylistic/indent-binary-ops": "off",
         "@stylistic/generator-star-spacing": "off",
         "@stylistic/quotes": "off",
         "@stylistic/quote-props": "off",
@@ -68,6 +69,6 @@ export default function config(rootDir, extra = {}) {
         ],
       },
     },
-    extra
+    extra,
   );
 }

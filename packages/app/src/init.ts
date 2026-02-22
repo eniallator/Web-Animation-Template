@@ -1,5 +1,5 @@
-import { ParamConfig } from "@web-art/config-parser";
-import { dom, raise } from "@web-art/core";
+import { SerialisableForm } from "seriform";
+import { dom, raise } from "niall-utils";
 
 import { config, options } from "./config.ts";
 import { app } from "./index.ts";
@@ -39,10 +39,13 @@ dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
     : dom.get("main").requestFullscreen());
 });
 
-const noCtxError = new Error(
-  `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
-);
-const ctx = canvas.getContext("2d") ?? raise(noCtxError);
+const ctx =
+  canvas.getContext("2d") ??
+  raise(
+    new Error(
+      `Could not get a 2D rendering context for element ${JSON.stringify(canvas)}`
+    )
+  );
 
 const modal = dom.get<HTMLDialogElement>("#config-modal");
 dom.addListener(dom.get("#config-dropdown-btn"), "click", () => {
@@ -53,12 +56,12 @@ dom.addListener(modal, "click", evt => {
 });
 
 const now = Date.now() / 1000;
-const paramConfig = new ParamConfig(config, dom.get("#cfg-outer"), options);
-paramConfig.addCopyToClipboardHandler("#share-btn");
+const seriform = new SerialisableForm(config, dom.get("#cfg-outer"), options);
+seriform.addCopyToClipboardHandler("#share-btn");
 const appCtx: AppContext<Config> = {
   time: { now, start: now, lastFrame: now, delta: 0 },
   mouse: new Mouse(canvas),
-  paramConfig,
+  seriform,
   canvas,
   ctx,
 };

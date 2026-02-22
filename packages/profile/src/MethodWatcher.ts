@@ -1,4 +1,4 @@
-import { mapFilter, tuple, typedKeys } from "@web-art/core";
+import { mapFilter, tuple, typedKeys } from "niall-utils";
 import {
   isAnyRecord,
   isFunction,
@@ -7,7 +7,7 @@ import {
   isUnionOf,
 } from "deep-guards";
 
-import type { DiscriminatedParams } from "@web-art/core";
+import type { DiscriminatedOptions } from "niall-utils";
 import type { TypeFromGuard } from "deep-guards";
 import type { MethodName, RecordableStats, Stats, TargetMap } from "./types.ts";
 
@@ -17,7 +17,7 @@ const hasPrototype = isUnionOf(
   isObjectOf({ prototype: isAnyRecord })
 );
 
-export type RegisterMethodsParams = DiscriminatedParams<
+export type RegisterMethodsOptions = DiscriminatedOptions<
   { targetName?: string; minDebugLevel?: number; includePrototype?: boolean },
   { includeSymbols?: boolean } | { methodNames: MethodName[] }
 >;
@@ -55,7 +55,7 @@ export class MethodWatcher {
 
   registerMethods(
     target: NonNullable<unknown>,
-    params: RegisterMethodsParams["internal"] = {}
+    params: RegisterMethodsOptions["internal"] = {}
   ): void {
     const {
       targetName = "name" in target && isString(target.name)

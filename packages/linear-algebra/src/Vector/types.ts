@@ -1,4 +1,4 @@
-import type { Add, FillTuple } from "@web-art/core";
+import type { Add, FillTuple } from "niall-utils";
 import type { Vector } from "./index.ts";
 
 export type AnyComponents = [number, ...number[]];
