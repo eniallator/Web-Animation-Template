@@ -1,19 +1,11 @@
-# Linear Algebra — Vector utilities
+# Linear Algebra - Vector Utilities
 
-Lightweight, TypeScript-first vector utilities used across the repo. The package provides a robust `Vector` class with common linear-algebra operations, helpers, and strict runtime guards for safe usage.
-
-## Markdown style (applies to this README)
-
-- **Headers:** Use clear, Title Case headings and only add hierarchy where it helps the flow.
-- **Bullets:** Start with `- **Keyword**:` followed by a short description. If mentioning code/identifiers, wrap them in inline code (`` `...` ``).
-- **Examples:** Use fenced code blocks with the language marker (`typescript` or `html`).
-- **Links & files:** Refer to files or code paths using inline code where needed.
-- **Keep it DRY:** Remove duplicate examples and consolidate API descriptions.
+Lightweight, TypeScript-first vector utilities oriented for web art. The package provides a robust `Vector` class with common vector operations, helpers, and strict runtime guards for safe usage.
 
 ## Overview
 
 - **Purpose:** Provide a small, well-tested `Vector` abstraction with arithmetic, geometric, and utility operations for N-dimensional vectors.
-- **Key features:** Creation helpers, element-wise arithmetic, magnitude/normalisation, dot/cross products, rotation (2D), conversion to/from strings, and useful static presets (`RIGHT`, `LEFT`, `UP`, `DOWN`).
+- **Key features:** Creation helpers, element-wise arithmetic, magnitude/normalization, dot/cross products, rotation (2D), conversion to/from strings, and useful static presets (`RIGHT`, `LEFT`, `UP`, `DOWN`).
 
 ## Quick example
 
@@ -27,50 +19,63 @@ const norm = v.getNorm(); // returns a normalized vector
 console.log(v.toString(2)); // Vector<2>[...]
 ```
 
-## API Summary
+## API
 
 - **Creation & presets**
   - `Vector.create(...components)` — create a vector of any size.
-  - `Vector.fill(size, value)`, `Vector.zero(size)`, `Vector.one(size)`, `Vector.randomNormalised(size)` — convenience factories.
-  - `Vector.RIGHT|LEFT|UP|DOWN` — common 2D unit vectors.
+  - `Vector.fill(size, value)`, `Vector.zero(size)`, `Vector.one(size)`, `Vector.randomNormalised(size)` — convenience methods.
+  - `Vector.(RIGHT|LEFT|UP|DOWN)` — common 2D unit vectors.
+  - `Vector.parseString(str)` — parse a `Vector<N>[...]` formatted string.
 
-- **Arithmetic (mutating)**
-  - `add(...)`, `sub(...)`, `multiply(...)`, `divide(...)`, `pow(...)`, `mod(...)`, `positiveMod(...)` — support numbers or another `Vector` for component-wise ops.
+- **Arithmetic & component-wise ops (mutating)**
+  - `add(...)`, `sub(...)`, `multiply(...)`, `divide(...)`, `pow(...)`, `mod(...)`, `positiveMod(...)` — accept a number or another `Vector` for component-wise operations.
+  - `min(arg)`, `max(arg)` — component-wise min/max with a number or `Vector`.
+
+- **Interpolation & sums**
+  - `lerp(t, arg)` — linear interpolation towards a number or `Vector`.
+  - `sum()` — sum of all components.
+
+- **Rounding & sign helpers (mutating)**
+  - `abs()`, `floor()`, `ceil()`, `round(digits?)` — per-component numeric helpers.
+  - `getSign()` — returns a new vector of component signs.
+
+- **Component min/max**
+  - `getMin()`, `getMax()` — scalar min/max across components.
 
 - **Geometry & metrics**
-  - `getMagnitude()`, `getSquaredMagnitude()`, `getNorm()`, `normalise()`, `dot(arg)`, `crossProduct(other)` (3D), `distTo(arg)`, `sqrDistTo(arg)`.
+  - `getSquaredMagnitude()`, `getMagnitude()` — squared and Euclidean magnitude.
+  - `getNorm()`, `normalise()` — return a normalised vector or normalise in-place.
+  - `setMagnitude(magnitude)` — scale vector to a specific magnitude.
+  - `dot(arg)` — dot product with a number or `Vector`.
+  - `sqrDistTo(arg)`, `distTo(arg)` — squared distance and Euclidean distance to another vector/number.
 
-- **Access & utilities**
-  - `x(), y(), z(), w(), valueOf(i)`, `size()`, `toArray()`, `toString(digits?)`.
-  - `map`, `reduce`, `forEach`, `every`, `some`, `includes` for functional-style access.
-  - `concat(other)`, `with(index, value)` (returns new vector with value replaced).
+- **2D-specific operations**
+  - `getAngle()` — returns angle in radians for 2D vectors.
+  - `setAngle(angle)` — set vector angle (keeps magnitude).
+  - `rotate(pivot, angle)` — rotate this 2D vector about `pivot` by `angle`.
 
-## Type safety
+- **3D-specific operations**
+  - `crossProduct(other)` — cross product for 3D vectors.
 
-- The class is TypeScript-first. `Vector.create` infers the vector size in the type system (e.g., `Vector<2>`), and many instance helpers narrow sizes where applicable (e.g., `getAngle`, `rotate` require 2D vectors; `crossProduct` requires 3D).
+- **Copying & mutation helpers**
+  - `copy()` — duplicate this vector.
+  - `setHead(...components | [vector])` — overwrite all components from an array or another `Vector` (size must match).
+  - `with(index, value)` — return a new vector with the value at `index` replaced.
+  - `concat(other)` — concatenate components with another `Vector`.
 
-Example:
+- **Accessors & indexing**
+  - `size()` — number of components.
+  - `x(), y(), z(), w()` — positional accessors (throw if the vector is too small).
+  - `valueOf(i)` — indexed access with bounds guard.
+  - `toArray()` — return components as an array.
+  - `toString(digits?)` — formatted `Vector<N>[...]` string.
 
-```typescript
-const p = Vector.create(3, 4); // Vector<2>
-type P = typeof p; // preserves dimensional info in TypeScript
-```
+- **Functional & iteration**
+  - `forEach(fn)`, `map(fn)`, `reduce(fn, initial?)` — array-style helpers; `map` returns a new `Vector`.
+  - `every(fn)`, `some(fn)`, `includes(value)` — predicates and membership.
+  - `Symbol.iterator`, `Symbol.isConcatSpreadable`, and `Symbol.toStringTag` — native iteration and concat behaviour.
 
-## Error handling & guards
-
-- The implementation uses runtime guards (`deep-guards`) and throws descriptive errors for incompatible operations (mismatched sizes, out-of-bounds access, or operations requiring a specific dimensionality).
-
-## Files of interest
-
-- `src/Vector/index.ts` — primary implementation of `Vector` and exported helpers.
-- `src/Vector/helpers.ts` — internal helpers and size checks.
-- `src/Vector/error.ts` — factory helpers for thrown errors.
-- `src/Vector/types.ts` — TypeScript types used by the vector implementation.
-
-## Tests
-
-- Unit tests live in `src/Vector/index.test.ts` and exercise arithmetic, guards, and edge cases. Run the package tests with the workspace test script (see the repo root `package.json`).
-
-## License
-
-- See repository `LICENSE`.
+- **Guards, comparisons & bounds**
+  - `isSize(size)` — runtime size guard.
+  - `equals(other | components...)` — deep equality by size and component values.
+  - `inBounds(dimensions, positions = 0)` — inclusive start / exclusive end bounds check.

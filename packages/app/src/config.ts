@@ -37,6 +37,7 @@ export const config = createParsers({
   }),
   "example-button": buttonParser({
     text: "Example Button",
+    attrs: { class: "primary wrap-text" },
   }),
   "example-file": fileParser({
     text: "Example File",
