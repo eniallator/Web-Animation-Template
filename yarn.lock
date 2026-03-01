@@ -2529,7 +2529,7 @@ __metadata:
     gh-pages: "npm:^6.3.0"
     niall-utils: "npm:^1.0.0"
     prettier: "npm:^3.8.1"
-    seriform: "npm:^1.1.0"
+    seriform: "npm:^1.2.0"
     strip-ansi: "npm:^7.2.0"
     terser-webpack-plugin: "npm:^5.3.16"
     ts-loader: "npm:^9.5.4"
@@ -6852,13 +6852,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"seriform@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "seriform@npm:1.1.0"
+"seriform@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "seriform@npm:1.2.0"
   dependencies:
     deep-guards: "npm:^1.3.1"
     niall-utils: "npm:^1.0.0"
-  checksum: 10/028bfec45ec675a13281289d1f977847f5a00474ba2e55fbb3f83832ac418dd7211871c948c63d70fd835c54d315b72ec7acf5163bc461ac8a550561fd9395fc
+  checksum: 10/8c4eec506f89a7947961aec906e6496ea8884833c88b1c347a312436ea2d4ec35df9a3322699d8ea34e0068a10c3aef280c592ab45cd7adaa9224ed6198940cf
   languageName: node
   linkType: hard
 
