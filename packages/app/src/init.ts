@@ -1,4 +1,4 @@
-import { SerialisableForm } from "seriform";
+import { SeriForm } from "seriform";
 import { dom, raise } from "niall-utils";
 
 import { config, options } from "./config.ts";
@@ -56,7 +56,7 @@ dom.addListener(modal, "click", evt => {
 });
 
 const now = Date.now() / 1000;
-const seriform = new SerialisableForm(config, dom.get("#cfg-outer"), options);
+const seriform = new SeriForm(config, dom.get("#cfg-outer"), options);
 seriform.addCopyToClipboardHandler("#share-btn");
 const appCtx: AppContext<Config> = {
   time: { now, start: now, lastFrame: now, delta: 0 },

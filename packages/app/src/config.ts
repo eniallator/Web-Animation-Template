@@ -1,7 +1,7 @@
 import {
   buttonParser,
   checkboxParser,
-  collectionParser,
+  tableParser,
   colorParser,
   createParsers,
   datetimeParser,
@@ -10,11 +10,12 @@ import {
   rangeParser,
   selectParser,
   textParser,
+  listParser,
 } from "seriform";
 
-import type { InitParserObject, SerialisableFormOptions } from "seriform";
+import type { InitParserObject, SeriFormOptions } from "seriform";
 
-export const options: SerialisableFormOptions = { query: location.search };
+export const options: SeriFormOptions = { query: location.search };
 export const config = createParsers({
   "example-checkbox": checkboxParser({
     label: "Example Checkbox",
@@ -58,8 +59,8 @@ export const config = createParsers({
     default: "bar",
     options: ["foo", "bar", "baz", "another option"],
   }),
-  "example-collection": collectionParser({
-    label: "Example Collection",
+  "example-table": tableParser({
+    label: "Example Table",
     expandable: true,
     fields: [
       rangeParser({
@@ -81,6 +82,12 @@ export const config = createParsers({
       [4, true, "Yes"],
       [1, false, "No"],
     ],
+  }),
+  "example-list": listParser({
+    label: "Example List",
+    expandable: true,
+    field: colorParser({ default: "ff0000" }),
+    default: ["ff0000", "00ff00", "0000ff"],
   }),
 });
 

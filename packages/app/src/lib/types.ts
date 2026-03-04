@@ -1,4 +1,4 @@
-import type { SerialisableForm } from "seriform";
+import type { SeriForm } from "seriform";
 import type { Mouse } from "./mouse.ts";
 
 export interface Time {
@@ -9,7 +9,7 @@ export interface Time {
 }
 
 export interface AppContext<R extends Record<string, unknown>> {
-  seriform: SerialisableForm<R>;
+  seriform: SeriForm<R>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   mouse: Mouse;
