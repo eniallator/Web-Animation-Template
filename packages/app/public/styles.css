@@ -80,33 +80,16 @@ input[type="color"] {
 
 #credit {
   position: relative;
-  bottom: 6px;
-  left: 0;
-  right: 0;
 
   a {
     border-top-left-radius: 0.5rem;
-    padding: 0.125rem 0.375rem;
-    font-weight: 600;
-    color: #7a7a7a;
-    fill: #7a7a7a;
+    padding: 0.3rem;
     z-index: 1;
-    text-decoration: none;
+    background-color: oklch(0.985 0 0);
+    opacity: 0.9;
     position: absolute;
-    display: inline-block;
-    background-color: #ffffff;
-    opacity: 0.7;
     right: 0;
     bottom: 0;
-  }
-
-  span {
-    border-bottom: 2px solid #7a7a7a;
-  }
-
-  svg {
-    margin-left: 0.15rem;
-    height: 0.8rem;
   }
 }
 
