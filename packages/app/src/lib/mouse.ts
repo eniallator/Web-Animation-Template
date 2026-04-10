@@ -1,4 +1,4 @@
-import { Vector } from "@web-art/linear-algebra";
+import { Vector } from "vectyped";
 
 type MouseCallback = (this: Mouse, evt: MouseEvent | TouchEvent) => void;
 

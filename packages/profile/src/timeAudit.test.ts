@@ -96,7 +96,7 @@ describe("TimeAudit", () => {
     const emptyAudit = new TimeAudit(new Map());
     const cb = vi.fn();
     emptyAudit.forEach(cb);
-    expect(cb).not.toBeCalled();
+    expect(cb).not.toHaveBeenCalled();
   });
 
   // --- toString ---

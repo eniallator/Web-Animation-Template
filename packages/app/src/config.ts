@@ -1,16 +1,16 @@
 import {
   buttonParser,
   checkboxParser,
-  tableParser,
   colorParser,
   createParsers,
   datetimeParser,
   fileParser,
+  listParser,
   numberParser,
   rangeParser,
   selectParser,
+  tableParser,
   textParser,
-  listParser,
 } from "seriform";
 
 import type { InitParserObject, SeriFormOptions } from "seriform";
