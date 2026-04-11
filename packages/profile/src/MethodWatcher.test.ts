@@ -71,22 +71,6 @@ describe("MethodWatcher", () => {
     expect(stats?.minDebugLevel).toBe(5);
   });
 
-  it("registers prototype methods if includePrototype is true", () => {
-    function C() {
-      // Do things
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    C.prototype.bar = function () {
-      return 42;
-    };
-
-    watcher.registerMethods(C, { includePrototype: true });
-    const stats = watcher.getStats();
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    expect(stats.get(C.prototype)?.methods.bar).toBeDefined();
-  });
-
   // --- getStats ---
   it("getStats returns correct stats for debugLevel", () => {
     const obj = {

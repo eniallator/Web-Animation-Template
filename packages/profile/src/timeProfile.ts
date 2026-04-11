@@ -2,7 +2,7 @@ import { AuditError } from "./error.ts";
 import { MethodWatcher } from "./MethodWatcher.ts";
 import { TimeAudit } from "./timeAudit.ts";
 
-import type { RegisterMethodsOptions } from "./MethodWatcher.ts";
+import type { RegisterParams } from "./MethodWatcher.ts";
 import type { Stats, TargetMap } from "./types.ts";
 
 export class TimeProfile {
@@ -15,13 +15,11 @@ export class TimeProfile {
    * Registers a class for analyzing execution time
    *  If called multiple times with the same property/methodNames, the lower of the two debug levels is taken.
    * @param {unknown} target The class/object to analyze
-   * @param {string[]} methodNames The methodNames of the class/object to analyze. Defaults to all except the constructor.
-   * @param {number} [minDebugLevel] The minimum debug level of these methodNames, where the lower it is, the higher priority it is to be included. Defaults to 1
-   * @param {boolean} [addPrototype] Recursively call the prototype of the target. Defaults to true if the methodNames aren't given
+   * @param {RegisterParams} params All registering parameters
    */
   static registerMethods(
     target: NonNullable<unknown>,
-    params: RegisterMethodsOptions["external"] = {}
+    params: RegisterParams = {}
   ): void {
     this.methodWatcher.registerMethods(target, params);
   }

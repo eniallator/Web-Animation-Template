@@ -1,32 +1,24 @@
+import { isFunction, isString } from "deep-guards";
 import { mapFilter, tuple, typedKeys } from "niall-utils";
-import {
-  isAnyRecord,
-  isFunction,
-  isObjectOf,
-  isString,
-  isUnionOf,
-} from "deep-guards";
 
-import type { DiscriminatedOptions } from "niall-utils";
 import type { TypeFromGuard } from "deep-guards";
 import type { MethodName, RecordableStats, Stats, TargetMap } from "./types.ts";
 
 const emptyStats: Readonly<Stats> = { calls: 0, executionTime: 0 };
-const hasPrototype = isUnionOf(
-  isFunction,
-  isObjectOf({ prototype: isAnyRecord })
-);
 
-export type RegisterMethodsOptions = DiscriminatedOptions<
-  { targetName?: string; minDebugLevel?: number; includePrototype?: boolean },
-  { includeSymbols?: boolean } | { methodNames: MethodName[] }
->;
+const METHOD_NAME_DENY_SET = new Set(["constructor"]);
+
+export type RegisterParams = {
+  // The human readable name to show in audits
+  targetName?: string;
+  minDebugLevel?: number;
+} & ({ includeSymbols?: boolean } | { methodNames: MethodName[] });
 
 export class MethodWatcher {
   private readonly allStats: TargetMap<RecordableStats> = new Map();
 
   private registerMethod<M extends MethodName>(
-    target: { [I in M]: TypeFromGuard<typeof isFunction> },
+    target: Record<M, TypeFromGuard<typeof isFunction>>,
     targetName: string,
     methodName: M,
     minDebugLevel: number
@@ -41,7 +33,7 @@ export class MethodWatcher {
         methods: { ...existing, [methodName]: stats },
       });
 
-      const origMethod = target[methodName] as (...args: unknown[]) => unknown;
+      const origMethod = target[methodName];
 
       target[methodName] = function (...args: unknown[]): unknown {
         const startTime = performance.now();
@@ -55,31 +47,26 @@ export class MethodWatcher {
 
   registerMethods(
     target: NonNullable<unknown>,
-    params: RegisterMethodsOptions["internal"] = {}
+    params: RegisterParams = {}
   ): void {
     const {
       targetName = "name" in target && isString(target.name)
         ? target.name
         : "Unknown",
       minDebugLevel = 0,
-      includePrototype = params.methodNames == null,
-      methodNames = typedKeys(target, params.includeSymbols).filter(
-        name => name !== "constructor" && isFunction(target[name])
-      ),
     } = params;
 
-    methodNames.forEach(methodName => {
-      if (isFunction((target as Record<MethodName, unknown>)[methodName])) {
-        this.registerMethod(target, targetName, methodName, minDebugLevel);
-      }
-    });
+    const methodNames =
+      "methodNames" in params
+        ? params.methodNames
+        : typedKeys(target, params.includeSymbols).filter(
+            name => !METHOD_NAME_DENY_SET.has(name) && isFunction(target[name])
+          );
 
-    if (includePrototype && hasPrototype(target)) {
-      this.registerMethods(target.prototype as NonNullable<unknown>, {
-        ...params,
-        targetName: `${targetName}.prototype`,
-        includePrototype: false,
-      });
+    for (const name of methodNames) {
+      if (isFunction((target as Record<MethodName, unknown>)[name])) {
+        this.registerMethod(target, targetName, name, minDebugLevel);
+      }
     }
   }
 

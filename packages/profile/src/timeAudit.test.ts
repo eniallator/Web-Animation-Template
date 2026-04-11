@@ -12,12 +12,12 @@ const makeStats = (calls: number, executionTime: number): Stats => ({
   executionTime,
 });
 
-interface Target {
+interface TestTarget {
   name: string;
   methods: Record<string, Stats>;
 }
 
-const makeTargetMap = (targets: Target[]): TargetMap<Stats> =>
+const makeTargetMap = (targets: TestTarget[]): TargetMap<Stats> =>
   new Map(
     targets.map(target =>
       tuple(target, { targetName: target.name, methods: target.methods })
@@ -25,8 +25,8 @@ const makeTargetMap = (targets: Target[]): TargetMap<Stats> =>
   );
 
 describe("TimeAudit", () => {
-  let targetA: Target,
-    targetB: Target,
+  let targetA: TestTarget,
+    targetB: TestTarget,
     statsMap: TargetMap<Stats>,
     audit: TimeAudit;
 
@@ -42,14 +42,8 @@ describe("TimeAudit", () => {
 
   // --- getStats ---
   it("getStats returns stats for valid target and method", () => {
-    expect(audit.getStats(targetA, "foo")).toEqual({
-      calls: 2,
-      executionTime: 10,
-    });
-    expect(audit.getStats(targetB, "baz")).toEqual({
-      calls: 3,
-      executionTime: 30,
-    });
+    expect(audit.getStats(targetA, "foo")).toEqual(makeStats(2, 10));
+    expect(audit.getStats(targetB, "baz")).toEqual(makeStats(3, 30));
   });
 
   it("getStats throws if method does not exist", () => {
@@ -86,9 +80,9 @@ describe("TimeAudit", () => {
     audit.forEach((...args) => calls.push(args));
 
     expect(calls).toStrictEqual([
-      [{ calls: 2, executionTime: 10 }, targetA, "foo"],
-      [{ calls: 0, executionTime: 0 }, targetA, "bar"],
-      [{ calls: 3, executionTime: 30 }, targetB, "baz"],
+      [makeStats(2, 10), targetA, "foo"],
+      [makeStats(0, 0), targetA, "bar"],
+      [makeStats(3, 30), targetB, "baz"],
     ]);
   });
 
