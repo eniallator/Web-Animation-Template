@@ -22,15 +22,6 @@ export type RegisterParams<M extends PropertyKey> = {
 export class MethodWatcher {
   private readonly allStats: TargetMap<RecordableStats> = new Map();
 
-  /**
-   * Registers a method to time. It will return the new monitored method.
-   * @param {AnyFunction} method The method to register
-   * @param {Target} target The original object
-   * @param {string} targetName Human-readable target name
-   * @param {PropertyKey} methodName Human-readable method name.
-   * @param {number} minDebugLevel A debugging level filter. Included if the monitored debug level is greater than this.
-   * @returns {AnyFunction} the patched method.
-   */
   registerMethod<F extends AnyFunction>(
     method: F,
     target: Target,

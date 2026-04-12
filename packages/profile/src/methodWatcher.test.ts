@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { MethodWatcher } from "./MethodWatcher";
+import { MethodWatcher } from "./methodWatcher";
 
 import type { RecordableStats } from "./types";
 

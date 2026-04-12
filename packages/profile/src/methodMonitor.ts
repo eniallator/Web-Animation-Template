@@ -1,11 +1,11 @@
 import { AuditError } from "./error.ts";
-import { MethodWatcher } from "./MethodWatcher.ts";
-import { TimeAudit } from "./timeAudit.ts";
+import { MethodWatcher } from "./methodWatcher.ts";
+import { Audit } from "./audit.ts";
 
-import type { RegisterParams } from "./MethodWatcher.ts";
+import type { RegisterParams } from "./methodWatcher.ts";
 import type { AnyFunction, FunctionKeys, Stats, TargetMap } from "./types.ts";
 
-export class TimeProfile {
+export class MethodMonitor {
   private static readonly methodWatcher: MethodWatcher = new MethodWatcher();
 
   private readonly debugLevel: number;
@@ -45,7 +45,7 @@ export class TimeProfile {
   }
 
   /**
-   * TimeAnalysis class constructor
+   * MethodMonitor class constructor
    * @param {number} debugLevel Debug level to analyze at. Defaults to Infinity
    */
   constructor(debugLevel: number = Infinity) {
@@ -62,36 +62,36 @@ export class TimeProfile {
       );
     }
 
-    this.snapshot = TimeProfile.methodWatcher.getStats(this.debugLevel);
+    this.snapshot = MethodMonitor.methodWatcher.getStats(this.debugLevel);
   }
 
   /**
    * Ends auditing, which was started with startAudit.
-   * @returns {TimeAudit} Stats generated between the startAudit and endAudit calls
+   * @returns {Audit} Stats generated between the startAudit and endAudit calls
    */
-  endAudit(): TimeAudit {
+  endAudit(): Audit {
     if (this.snapshot == null) {
       throw new AuditError(
         "You must call startAudit before endAudit is called."
       );
     }
 
-    const stats = TimeProfile.methodWatcher.getStats(
+    const stats = MethodMonitor.methodWatcher.getStats(
       this.debugLevel,
       this.snapshot
     );
     this.snapshot = null;
 
-    return new TimeAudit(stats);
+    return new Audit(stats);
   }
 
   /**
    * Performs an audit on a given function
    * @param {function(): Promise<void>} func Runs the function and then gets the stats for the function
-   * @returns {TimeAudit} Result of the audit
+   * @returns {Audit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */
-  async auditAsync(func: () => Promise<void>): Promise<TimeAudit> {
+  async auditAsync(func: () => Promise<void>): Promise<Audit> {
     this.startAudit();
     await func();
     return this.endAudit();
@@ -100,10 +100,10 @@ export class TimeProfile {
   /**
    * Performs an audit on a given function
    * @param {function(): void} func Runs the function and then gets the stats for the function
-   * @returns {TimeAudit} Result of the audit
+   * @returns {Audit} Result of the audit
    * @throws {AuditError} If there is an audit already going on
    */
-  auditSync(func: () => void): TimeAudit {
+  auditSync(func: () => void): Audit {
     this.startAudit();
     func();
     return this.endAudit();

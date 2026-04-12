@@ -1,6 +1,6 @@
 {
   "author": "eniallator",
-  "description": "Time profiling module for my web art",
+  "description": "Utilities for lightweight runtime profiling of object methods and standalone functions",
   "license": "MIT",
   "main": "dist/index.js",
   "name": "@web-art/profile",

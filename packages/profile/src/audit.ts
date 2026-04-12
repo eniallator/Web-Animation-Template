@@ -4,7 +4,7 @@ import { IndexError } from "./error.ts";
 
 import type { TargetMap, Stats, Target } from "./types.ts";
 
-export class TimeAudit {
+export class Audit {
   private readonly allStats: TargetMap<Stats>;
 
   constructor(stats: TargetMap<Stats>) {
@@ -51,7 +51,7 @@ export class TimeAudit {
    */
   forEach(
     callbackFn: (
-      this: TimeAudit,
+      this: Audit,
       stats: Stats,
       target: Target,
       methodName: PropertyKey
@@ -67,7 +67,7 @@ export class TimeAudit {
   }
 
   /**
-   * Prettifies the time audit so you can log it out
+   * Prettifies the audit so you can log it out
    * @param {number | undefined} digits Number length in digits
    * @returns {string}
    */

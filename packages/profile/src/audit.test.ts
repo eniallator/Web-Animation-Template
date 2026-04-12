@@ -1,8 +1,8 @@
 import { tuple } from "niall-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { IndexError } from "./error";
-import { TimeAudit } from "./timeAudit";
+import { IndexError } from "./error.ts";
+import { Audit } from "./audit";
 
 import type { Stats, Target, TargetMap } from "./types.ts";
 
@@ -24,11 +24,11 @@ const makeTargetMap = (targets: TestTarget[]): TargetMap<Stats> =>
     )
   );
 
-describe("TimeAudit", () => {
+describe("Audit", () => {
   let targetA: TestTarget,
     targetB: TestTarget,
     statsMap: TargetMap<Stats>,
-    audit: TimeAudit;
+    audit: Audit;
 
   beforeEach(() => {
     targetA = {
@@ -37,7 +37,7 @@ describe("TimeAudit", () => {
     };
     targetB = { name: "B", methods: { baz: makeStats(3, 30) } };
     statsMap = makeTargetMap([targetA, targetB]);
-    audit = new TimeAudit(statsMap);
+    audit = new Audit(statsMap);
   });
 
   // --- getStats ---
@@ -87,7 +87,7 @@ describe("TimeAudit", () => {
   });
 
   it("forEach does nothing if no targets", () => {
-    const emptyAudit = new TimeAudit(new Map());
+    const emptyAudit = new Audit(new Map());
     const cb = vi.fn();
     emptyAudit.forEach(cb);
     expect(cb).not.toHaveBeenCalled();
@@ -118,7 +118,7 @@ describe("TimeAudit", () => {
     const emptyStatsMap = makeTargetMap([
       { name: "C", methods: { x: makeStats(0, 0) } },
     ]);
-    const emptyAudit = new TimeAudit(emptyStatsMap);
+    const emptyAudit = new Audit(emptyStatsMap);
     expect(emptyAudit.toString()).toBe("");
   });
 });
