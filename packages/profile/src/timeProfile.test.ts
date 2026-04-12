@@ -4,35 +4,64 @@ import { AuditError } from "./error";
 import { TimeAudit } from "./timeAudit";
 import { TimeProfile } from "./timeProfile";
 
-// Dummy class for method registration and auditing
-class Dummy {
-  calls = 0;
-
+const createDummy = () => ({
+  calls: 0,
   foo(x: number) {
     this.calls++;
     return x + 1;
-  }
-
+  },
   bar() {
     this.calls++;
     return 42;
-  }
-}
+  },
+});
 
 describe("TimeProfile", () => {
-  // --- registerMethods ---
-  it("registerMethods registers methods for analysis", () => {
-    const obj = new Dummy();
+  // --- patchObject ---
+  it("patchObject registers methods for analysis", () => {
+    const obj = createDummy();
     expect(() => {
-      TimeProfile.registerMethods(obj, { methodNames: ["foo", "bar"] });
+      TimeProfile.patchObject(obj);
     }).not.toThrow();
     // No direct observable effect, but should not throw
   });
 
+  it("registerMethod wraps a standalone function and records stats", () => {
+    const addOne = (x: number) => x + 1;
+    const wrapped = TimeProfile.registerMethod(addOne, 2);
+
+    expect(wrapped).not.toBe(addOne);
+    expect(wrapped(4)).toBe(5);
+
+    const profile = new TimeProfile(3);
+    const audit = profile.auditSync(() => {
+      wrapped(4);
+    });
+
+    const stats = audit.getStats(null, "addOne");
+    expect(stats.calls).toBe(1);
+  });
+
+  it("registerMethod returns the original function when re-registering the same name", () => {
+    const addOne = (x: number) => x + 1;
+    const first = TimeProfile.registerMethod(addOne, 1);
+    const second = TimeProfile.registerMethod(addOne, 10);
+
+    expect(second).toBe(addOne);
+    expect(first(2)).toBe(3);
+
+    const profile = new TimeProfile(5);
+    const audit = profile.auditSync(() => {
+      first(2);
+    });
+
+    expect(() => audit.getStats(null, "addOne")).toThrow();
+  });
+
   // --- startAudit / endAudit ---
   it("startAudit and endAudit record stats between calls", () => {
-    const obj = new Dummy();
-    TimeProfile.registerMethods(obj, { methodNames: ["foo"] });
+    const obj = createDummy();
+    TimeProfile.patchObject(obj, { methodNames: ["foo"] });
 
     const profile = new TimeProfile(1);
     profile.startAudit();
@@ -57,8 +86,8 @@ describe("TimeProfile", () => {
 
   // --- auditSync ---
   it("auditSync audits a synchronous function", () => {
-    const obj = new Dummy();
-    TimeProfile.registerMethods(obj, { methodNames: ["foo"] });
+    const obj = createDummy();
+    TimeProfile.patchObject(obj, { methodNames: ["foo"] });
     const profile = new TimeProfile();
     const audit = profile.auditSync(() => {
       obj.foo(1);
@@ -81,8 +110,8 @@ describe("TimeProfile", () => {
 
   // --- auditAsync ---
   it("auditAsync audits an async function", async () => {
-    const obj = new Dummy();
-    TimeProfile.registerMethods(obj, { methodNames: ["bar"] });
+    const obj = createDummy();
+    TimeProfile.patchObject(obj, { methodNames: ["bar"] });
     const profile = new TimeProfile();
     const audit = await profile.auditAsync(async () => {
       obj.bar();

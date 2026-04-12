@@ -3,98 +3,71 @@ import { mapFilter, tuple, typedKeys } from "niall-utils";
 
 import type {
   AnyFunction,
-  MethodName,
+  FunctionKeys,
   RecordableStats,
   Stats,
+  Target,
   TargetMap,
 } from "./types.ts";
 
 const emptyStats: Readonly<Stats> = { calls: 0, executionTime: 0 };
 
-const METHOD_NAME_DENY_SET = new Set(["constructor"]);
+const METHOD_NAME_DENY_SET = new Set<PropertyKey>(["constructor"]);
 
-export type RegisterParams = {
-  // The human readable name to show in audits
+export type RegisterParams<M extends PropertyKey> = {
   targetName?: string;
-  // A debugging level filter
   minDebugLevel?: number;
-} & (
-  | {
-      // Should methods with symbol keys be included?
-      includeSymbols?: boolean;
-    }
-  | {
-      // A subset of the target's methods
-      methodNames: MethodName[];
-    }
-);
+} & ({ includeSymbols?: boolean } | { methodNames: M[] });
 
 export class MethodWatcher {
   private readonly allStats: TargetMap<RecordableStats> = new Map();
 
-  private patchMethod<M extends MethodName>(
-    target: Record<M, AnyFunction>,
-    targetName: string,
-    methodName: M,
-    minDebugLevel: number
-  ): void {
-    const existing = this.allStats.get(target)?.methods;
-    if (existing?.[methodName] != null) {
-      existing[methodName].minDebugLevel = minDebugLevel;
-    } else {
-      const stats: RecordableStats = { ...emptyStats, minDebugLevel };
-      this.allStats.set(target, {
-        targetName,
-        methods: { ...existing, [methodName]: stats },
-      });
-
-      const origMethod = target[methodName];
-
-      target[methodName] = function (...args: unknown[]): unknown {
-        const startTime = performance.now();
-        const ret = origMethod.call(this, ...args);
-        stats.executionTime += performance.now() - startTime;
-        stats.calls++;
-        return ret;
-      };
-    }
-  }
-
+  /**
+   * Registers a method to time. It will return the new monitored method.
+   * @param {AnyFunction} method The method to register
+   * @param {Target} target The original object
+   * @param {string} targetName Human-readable target name
+   * @param {PropertyKey} methodName Human-readable method name.
+   * @param {number} minDebugLevel A debugging level filter. Included if the monitored debug level is greater than this.
+   * @returns {AnyFunction} the patched method.
+   */
   registerMethod<F extends AnyFunction>(
     method: F,
-    minDebugLevel: number = 0
+    target: Target,
+    targetName: string,
+    methodName: PropertyKey,
+    minDebugLevel: number
   ): F {
-    const { methods: orphanedMethods } = this.allStats.getOrInsert(null, {
-      methods: {},
-    });
+    let methods = this.allStats.get(target)?.methods;
+    if (methods == null) {
+      methods = {};
+      this.allStats.set(target, { targetName, methods });
+    }
 
-    const orphanedStats = orphanedMethods[method.name];
+    const orphanedStats = methods[methodName];
 
     if (orphanedStats != null) {
       orphanedStats.minDebugLevel = minDebugLevel;
       return method;
     } else {
-      const stats = (orphanedMethods[method.name] = {
+      const stats = (methods[methodName] = {
         ...emptyStats,
         minDebugLevel,
       });
 
-      return function (
-        this: ThisParameterType<F>,
-        ...args: Parameters<F>
-      ): unknown {
+      return function (...args: Parameters<F>): unknown {
         const startTime = performance.now();
-        const ret = method.call(this, ...args);
+        const output = method.call(this, ...args);
         stats.executionTime += performance.now() - startTime;
         stats.calls++;
-        return ret;
+        return output;
       } as F;
     }
   }
 
-  registerMethods(
-    target: NonNullable<unknown>,
-    params: RegisterParams = {}
+  patchObject<T extends NonNullable<unknown>>(
+    target: T,
+    params: RegisterParams<FunctionKeys<T>> = {}
   ): void {
     const {
       targetName = "name" in target && isString(target.name)
@@ -111,9 +84,13 @@ export class MethodWatcher {
           );
 
     for (const name of methodNames) {
-      if (isFunction((target as Record<MethodName, unknown>)[name])) {
-        this.patchMethod(target, targetName, name, minDebugLevel);
-      }
+      target[name] = this.registerMethod(
+        target[name] as AnyFunction,
+        target,
+        targetName,
+        name,
+        minDebugLevel
+      ) as T[keyof T];
     }
   }
 

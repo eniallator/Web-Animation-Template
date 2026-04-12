@@ -2,7 +2,7 @@ import { raise, typedKeys, typedToEntries } from "niall-utils";
 
 import { IndexError } from "./error.ts";
 
-import type { TargetMap, MethodName, Stats } from "./types.ts";
+import type { TargetMap, Stats, Target } from "./types.ts";
 
 export class TimeAudit {
   private readonly allStats: TargetMap<Stats>;
@@ -13,11 +13,11 @@ export class TimeAudit {
 
   /**
    * Get the stats of a given target/methodName pair
-   * @param {string} target
-   * @param {string | Symbol} methodName
+   * @param {Target} target
+   * @param {PropertyKey} methodName
    * @returns {Stats}
    */
-  getStats(target: NonNullable<unknown>, methodName: MethodName): Stats {
+  getStats(target: Target, methodName: PropertyKey): Stats {
     return (
       this.allStats.get(target)?.methods[methodName] ??
       raise(new IndexError("Method name does not exist on target"))
@@ -26,18 +26,18 @@ export class TimeAudit {
 
   /**
    * Generator which iterates over all the targets inside the stats
-   * @yields {string} Current target
+   * @yields {Target} Current target
    */
-  *targets(): Generator<NonNullable<unknown> | null> {
+  *targets(): Generator<Target> {
     for (const target of this.allStats.keys()) yield target;
   }
 
   /**
    * Generator which iterates over the target's methodNames
-   * @param {string} target
-   * @yields {string | symbol} Current methodName
+   * @param {Target} target
+   * @yields {PropertyKey} Current methodName
    */
-  *properties(target: NonNullable<unknown>): Generator<MethodName> {
+  *properties(target: Target): Generator<PropertyKey> {
     const methodNames =
       this.allStats.get(target)?.methods ??
       raise(new IndexError("Target does not exist"));
@@ -47,14 +47,14 @@ export class TimeAudit {
 
   /**
    * Iterates over the audited stats
-   * @param {function({calls: number, executionTime: number, minDebugLevel: number}, NonNullable<unknown>, string | symbol): void} callbackFn
+   * @param {function({calls: number, executionTime: number, minDebugLevel: number}, Target, PropertyKey): void} callbackFn
    */
   forEach(
     callbackFn: (
       this: TimeAudit,
       stats: Stats,
-      target: NonNullable<unknown> | null,
-      methodName: MethodName
+      target: Target,
+      methodName: PropertyKey
     ) => void
   ): void {
     this.allStats.entries().forEach(([target, methodStats]) => {
@@ -96,7 +96,7 @@ export class TimeAudit {
 
       return targetStr !== ""
         ? `${auditStr}${auditStr !== "" ? "\n\n" : ""}===== ${
-            targetStats.targetName ?? "Orphaned Methods"
+            targetStats.targetName
           } =====${targetStr}`
         : auditStr;
     }, "");

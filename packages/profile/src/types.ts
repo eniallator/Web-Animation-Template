@@ -1,4 +1,4 @@
-export type MethodName = string | symbol;
+export type Target = NonNullable<unknown> | null;
 
 export interface Stats {
   calls: number;
@@ -10,9 +10,13 @@ export interface RecordableStats extends Stats {
 }
 
 export type TargetMap<S extends Stats> = Map<
-  NonNullable<unknown> | null,
-  { targetName?: string; methods: Record<MethodName, S> }
+  Target,
+  { targetName: string; methods: Record<PropertyKey, S> }
 >;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AnyFunction = (...args: any[]) => unknown;
+export type AnyFunction = (this: any, ...args: any[]) => unknown;
+
+export type FunctionKeys<T> = {
+  [K in keyof T]: T[K] extends AnyFunction ? K : never;
+}[keyof T];

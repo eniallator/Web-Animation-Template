@@ -20,7 +20,7 @@ describe("MethodWatcher", () => {
     watcher = new MethodWatcher();
   });
 
-  // --- registerMethods & registerMethod ---
+  // --- patchObject & registerMethod ---
   it("registers and wraps a method, tracks calls and execution time", () => {
     const obj = {
       foo() {
@@ -29,7 +29,7 @@ describe("MethodWatcher", () => {
         }
       },
     };
-    watcher.registerMethods(obj);
+    watcher.patchObject(obj);
     const before = getMethodStats(watcher, obj, "foo");
     expect(before?.calls).toBe(0);
     expect(before?.executionTime).toBe(0);
@@ -39,6 +39,47 @@ describe("MethodWatcher", () => {
     const after = getMethodStats(watcher, obj, "foo");
     expect(after?.calls).toBe(1);
     expect(after?.executionTime).toBeGreaterThan(0);
+  });
+
+  it("registerMethod wraps a plain function and records stats", () => {
+    const obj = { addOne: (x: number) => x + 1 };
+    const wrapped = watcher.registerMethod(
+      obj.addOne,
+      obj,
+      "DummyTarget",
+      "addOne",
+      2
+    );
+
+    expect(wrapped).not.toBe(obj.addOne);
+    expect(wrapped(3)).toBe(4);
+
+    const stats = getMethodStats(watcher, obj, "addOne");
+    expect(stats?.calls).toBe(1);
+    expect(stats?.executionTime).toBeGreaterThan(0);
+    expect(stats?.minDebugLevel).toBe(2);
+  });
+
+  it("registerMethod returns the original method when re-registering the same name and updates minDebugLevel", () => {
+    const obj = { foo: () => 5 };
+    const wrapped = watcher.registerMethod(
+      obj.foo,
+      obj,
+      "DummyTarget",
+      "foo",
+      1
+    );
+    const original = watcher.registerMethod(
+      obj.foo,
+      obj,
+      "DummyTarget",
+      "foo",
+      10
+    );
+
+    expect(original).toBe(obj.foo);
+    expect(getMethodStats(watcher, obj, "foo")?.minDebugLevel).toBe(10);
+    expect(wrapped()).toBe(5);
   });
 
   it("registers only specified method names", () => {
@@ -51,7 +92,7 @@ describe("MethodWatcher", () => {
       },
     };
 
-    watcher.registerMethods(obj, { methodNames: ["bar"] });
+    watcher.patchObject(obj, { methodNames: ["bar"] });
 
     expect(getMethodStats(watcher, obj, "foo")).toBeUndefined();
     expect(getMethodStats(watcher, obj, "bar")).toBeDefined();
@@ -63,8 +104,8 @@ describe("MethodWatcher", () => {
         // Do things
       },
     };
-    watcher.registerMethods(obj, { methodNames: ["foo"], minDebugLevel: 2 });
-    watcher.registerMethods(obj, { methodNames: ["foo"], minDebugLevel: 5 });
+    watcher.patchObject(obj, { methodNames: ["foo"], minDebugLevel: 2 });
+    watcher.patchObject(obj, { methodNames: ["foo"], minDebugLevel: 5 });
 
     const stats = getMethodStats(watcher, obj, "foo");
 
@@ -81,8 +122,8 @@ describe("MethodWatcher", () => {
         // Do things
       },
     };
-    watcher.registerMethods(obj, { minDebugLevel: 2, methodNames: ["foo"] });
-    watcher.registerMethods(obj, { minDebugLevel: 4, methodNames: ["bar"] });
+    watcher.patchObject(obj, { minDebugLevel: 2, methodNames: ["foo"] });
+    watcher.patchObject(obj, { minDebugLevel: 4, methodNames: ["bar"] });
 
     obj.foo();
     obj.bar();
@@ -101,7 +142,7 @@ describe("MethodWatcher", () => {
         // Do things
       },
     };
-    watcher.registerMethods(obj);
+    watcher.patchObject(obj);
 
     obj.foo();
     const snap = watcher.getStats();
@@ -119,7 +160,7 @@ describe("MethodWatcher", () => {
         // Do things
       },
     };
-    watcher.registerMethods(obj);
+    watcher.patchObject(obj);
 
     obj.bar();
 
@@ -135,7 +176,7 @@ describe("MethodWatcher", () => {
         // Do things
       },
     };
-    watcher.registerMethods(obj, { minDebugLevel: 10 });
+    watcher.patchObject(obj, { minDebugLevel: 10 });
     obj.foo();
     const stats = watcher.getStats(1);
     expect(stats.get(obj)?.methods).toEqual({});

@@ -3,7 +3,7 @@ import { MethodWatcher } from "./MethodWatcher.ts";
 import { TimeAudit } from "./timeAudit.ts";
 
 import type { RegisterParams } from "./MethodWatcher.ts";
-import type { AnyFunction, Stats, TargetMap } from "./types.ts";
+import type { AnyFunction, FunctionKeys, Stats, TargetMap } from "./types.ts";
 
 export class TimeProfile {
   private static readonly methodWatcher: MethodWatcher = new MethodWatcher();
@@ -12,29 +12,36 @@ export class TimeProfile {
   private snapshot: TargetMap<Stats> | null = null;
 
   /**
-   * Registers a whole object for analyzing execution time
+   * Patch an object for analyzing execution time
    *  If called multiple times with the same property/methodNames, the lower of the two debug levels is taken.
    * @param {NonNullable<unknown>} target The class/object to analyze
    * @param {RegisterParams} params All registering parameters
    */
-  static registerMethods(
-    target: NonNullable<unknown>,
-    params: RegisterParams = {}
+  static patchObject<T extends NonNullable<unknown>>(
+    target: T,
+    params: RegisterParams<FunctionKeys<T>> = {}
   ): void {
-    this.methodWatcher.registerMethods(target, params);
+    this.methodWatcher.patchObject(target, params);
   }
 
   /**
    * Registers a function for analyzing the execution time
+   *  If called multiple times with the same methodName, the lower of the two debug levels is applied.
    * @param {AnyFunction} method The method to analyze
-   * @param {RegisterParams} minDebugLevel A debugging level filter
+   * @param {number} minDebugLevel A debugging level filter. Included if the monitored debug level is greater than this. Defaults to 0
    * @returns {AnyFunction} The patched method
    */
   static registerMethod<F extends AnyFunction>(
     method: F,
-    minDebugLevel?: number
+    minDebugLevel: number = 0
   ): F {
-    return this.methodWatcher.registerMethod(method, minDebugLevel);
+    return this.methodWatcher.registerMethod(
+      method,
+      null,
+      "Orphaned Methods",
+      method.name,
+      minDebugLevel
+    );
   }
 
   /**

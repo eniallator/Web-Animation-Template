@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { IndexError } from "./error";
 import { TimeAudit } from "./timeAudit";
 
-import type { MethodName, Stats, TargetMap } from "./types.ts";
+import type { Stats, Target, TargetMap } from "./types.ts";
 
 // Mock helpers
 const makeStats = (calls: number, executionTime: number): Stats => ({
@@ -76,7 +76,7 @@ describe("TimeAudit", () => {
 
   // --- forEach ---
   it("forEach calls callback for each method with calls > 0", () => {
-    const calls: [Stats, NonNullable<unknown>, MethodName][] = [];
+    const calls: [Stats, Target, PropertyKey][] = [];
     audit.forEach((...args) => calls.push(args));
 
     expect(calls).toStrictEqual([
