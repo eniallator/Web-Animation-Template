@@ -1,8 +1,13 @@
 import { isFunction, isString } from "deep-guards";
 import { mapFilter, tuple, typedKeys } from "niall-utils";
 
-import type { TypeFromGuard } from "deep-guards";
-import type { MethodName, RecordableStats, Stats, TargetMap } from "./types.ts";
+import type {
+  AnyFunction,
+  MethodName,
+  RecordableStats,
+  Stats,
+  TargetMap,
+} from "./types.ts";
 
 const emptyStats: Readonly<Stats> = { calls: 0, executionTime: 0 };
 
@@ -11,14 +16,24 @@ const METHOD_NAME_DENY_SET = new Set(["constructor"]);
 export type RegisterParams = {
   // The human readable name to show in audits
   targetName?: string;
+  // A debugging level filter
   minDebugLevel?: number;
-} & ({ includeSymbols?: boolean } | { methodNames: MethodName[] });
+} & (
+  | {
+      // Should methods with symbol keys be included?
+      includeSymbols?: boolean;
+    }
+  | {
+      // A subset of the target's methods
+      methodNames: MethodName[];
+    }
+);
 
 export class MethodWatcher {
   private readonly allStats: TargetMap<RecordableStats> = new Map();
 
-  private registerMethod<M extends MethodName>(
-    target: Record<M, TypeFromGuard<typeof isFunction>>,
+  private patchMethod<M extends MethodName>(
+    target: Record<M, AnyFunction>,
     targetName: string,
     methodName: M,
     minDebugLevel: number
@@ -45,6 +60,38 @@ export class MethodWatcher {
     }
   }
 
+  registerMethod<F extends AnyFunction>(
+    method: F,
+    minDebugLevel: number = 0
+  ): F {
+    const { methods: orphanedMethods } = this.allStats.getOrInsert(null, {
+      methods: {},
+    });
+
+    const orphanedStats = orphanedMethods[method.name];
+
+    if (orphanedStats != null) {
+      orphanedStats.minDebugLevel = minDebugLevel;
+      return method;
+    } else {
+      const stats = (orphanedMethods[method.name] = {
+        ...emptyStats,
+        minDebugLevel,
+      });
+
+      return function (
+        this: ThisParameterType<F>,
+        ...args: Parameters<F>
+      ): unknown {
+        const startTime = performance.now();
+        const ret = method.call(this, ...args);
+        stats.executionTime += performance.now() - startTime;
+        stats.calls++;
+        return ret;
+      } as F;
+    }
+  }
+
   registerMethods(
     target: NonNullable<unknown>,
     params: RegisterParams = {}
@@ -65,7 +112,7 @@ export class MethodWatcher {
 
     for (const name of methodNames) {
       if (isFunction((target as Record<MethodName, unknown>)[name])) {
-        this.registerMethod(target, targetName, name, minDebugLevel);
+        this.patchMethod(target, targetName, name, minDebugLevel);
       }
     }
   }

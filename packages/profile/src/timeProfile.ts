@@ -3,7 +3,7 @@ import { MethodWatcher } from "./MethodWatcher.ts";
 import { TimeAudit } from "./timeAudit.ts";
 
 import type { RegisterParams } from "./MethodWatcher.ts";
-import type { Stats, TargetMap } from "./types.ts";
+import type { AnyFunction, Stats, TargetMap } from "./types.ts";
 
 export class TimeProfile {
   private static readonly methodWatcher: MethodWatcher = new MethodWatcher();
@@ -12,9 +12,9 @@ export class TimeProfile {
   private snapshot: TargetMap<Stats> | null = null;
 
   /**
-   * Registers a class for analyzing execution time
+   * Registers a whole object for analyzing execution time
    *  If called multiple times with the same property/methodNames, the lower of the two debug levels is taken.
-   * @param {unknown} target The class/object to analyze
+   * @param {NonNullable<unknown>} target The class/object to analyze
    * @param {RegisterParams} params All registering parameters
    */
   static registerMethods(
@@ -22,6 +22,19 @@ export class TimeProfile {
     params: RegisterParams = {}
   ): void {
     this.methodWatcher.registerMethods(target, params);
+  }
+
+  /**
+   * Registers a function for analyzing the execution time
+   * @param {AnyFunction} method The method to analyze
+   * @param {RegisterParams} minDebugLevel A debugging level filter
+   * @returns {AnyFunction} The patched method
+   */
+  static registerMethod<F extends AnyFunction>(
+    method: F,
+    minDebugLevel?: number
+  ): F {
+    return this.methodWatcher.registerMethod(method, minDebugLevel);
   }
 
   /**

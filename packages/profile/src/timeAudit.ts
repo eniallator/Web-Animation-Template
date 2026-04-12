@@ -28,7 +28,7 @@ export class TimeAudit {
    * Generator which iterates over all the targets inside the stats
    * @yields {string} Current target
    */
-  *targets(): Generator<NonNullable<unknown>> {
+  *targets(): Generator<NonNullable<unknown> | null> {
     for (const target of this.allStats.keys()) yield target;
   }
 
@@ -53,7 +53,7 @@ export class TimeAudit {
     callbackFn: (
       this: TimeAudit,
       stats: Stats,
-      target: NonNullable<unknown>,
+      target: NonNullable<unknown> | null,
       methodName: MethodName
     ) => void
   ): void {
@@ -96,7 +96,7 @@ export class TimeAudit {
 
       return targetStr !== ""
         ? `${auditStr}${auditStr !== "" ? "\n\n" : ""}===== ${
-            targetStats.targetName
+            targetStats.targetName ?? "Orphaned Methods"
           } =====${targetStr}`
         : auditStr;
     }, "");
