@@ -2093,7 +2093,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=10.0.0, @types/node@npm:^25.3.3, @types/node@npm:^25.6.0":
+"@types/node@npm:*, @types/node@npm:>=10.0.0, @types/node@npm:^25.6.0":
   version: 25.6.0
   resolution: "@types/node@npm:25.6.0"
   dependencies:
@@ -2327,92 +2327,6 @@ __metadata:
   checksum: 10/f599ae744f0ff45edda90d0c52eea9809b7367adca39fc985f85880322236d089dfdf6625f04913f03a25a160eccbbc0b16dd3201ccc0ae48087992b1ea755d5
   languageName: node
   linkType: hard
-
-"@web-art/app@workspace:packages/app":
-  version: 0.0.0-use.local
-  resolution: "@web-art/app@workspace:packages/app"
-  dependencies:
-    "@babel/core": "npm:^7.29.0"
-    "@babel/preset-env": "npm:^7.29.2"
-    "@babel/preset-typescript": "npm:^7.28.5"
-    "@stylistic/eslint-plugin": "npm:^5.10.0"
-    "@types/eslint": "npm:^9.6.1"
-    "@types/gh-pages": "npm:^6.1.0"
-    "@types/node": "npm:^25.6.0"
-    "@typescript-eslint/eslint-plugin": "npm:^8.58.1"
-    "@typescript-eslint/parser": "npm:^8.58.1"
-    "@web-art/profile": "^workspace:"
-    babel-loader: "npm:^10.1.1"
-    browser-sync: "npm:^3.0.4"
-    browser-sync-webpack-plugin: "npm:^2.4.0"
-    bs-fullscreen-message: "npm:^1.1.0"
-    deep-guards: "npm:^1.3.1"
-    eslint: "npm:^9.39.4"
-    eslint-config-prettier: "npm:^10.1.8"
-    eslint-plugin-eslint-comments: "npm:^3.2.0"
-    eslint-plugin-import: "npm:^2.32.0"
-    eslint-plugin-prettier: "npm:^5.5.5"
-    gh-pages: "npm:^6.3.0"
-    niall-utils: "npm:^1.0.0"
-    prettier: "npm:^3.8.2"
-    seriform: "npm:^1.3.1"
-    strip-ansi: "npm:^7.2.0"
-    terser-webpack-plugin: "npm:^5.4.0"
-    ts-loader: "npm:^9.5.7"
-    typescript: "npm:^6.0.2"
-    vectyped: "npm:^1.0.0"
-    webpack: "npm:^5.106.1"
-    webpack-cli: "npm:^7.0.2"
-    webpack-dev-middleware: "npm:^8.0.3"
-  languageName: unknown
-  linkType: soft
-
-"@web-art/profile@^workspace:, @web-art/profile@workspace:packages/profile":
-  version: 0.0.0-use.local
-  resolution: "@web-art/profile@workspace:packages/profile"
-  dependencies:
-    "@stylistic/eslint-plugin": "npm:^5.10.0"
-    "@types/eslint": "npm:^9.6.1"
-    "@types/node": "npm:^25.3.3"
-    "@typescript-eslint/eslint-plugin": "npm:^8.58.1"
-    "@typescript-eslint/parser": "npm:^8.58.1"
-    deep-guards: "npm:^1.3.1"
-    eslint: "npm:^9.39.3"
-    eslint-config-prettier: "npm:^10.1.8"
-    eslint-plugin-eslint-comments: "npm:^3.2.0"
-    eslint-plugin-import: "npm:^2.32.0"
-    eslint-plugin-prettier: "npm:^5.5.5"
-    niall-utils: "npm:^1.0.0"
-    prettier: "npm:^3.8.2"
-    strip-ansi: "npm:^7.2.0"
-    typescript: "npm:^6.0.2"
-    vitest: "npm:^4.1.4"
-  languageName: unknown
-  linkType: soft
-
-"@web-art/root@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@web-art/root@workspace:."
-  dependencies:
-    "@eslint/compat": "npm:^2.0.5"
-    "@eslint/js": "npm:^9.39.4"
-    "@stylistic/eslint-plugin": "npm:^5.10.0"
-    "@types/eslint__js": "npm:^9.14.0"
-    "@types/node": "npm:^25.6.0"
-    "@typescript-eslint/eslint-plugin": "npm:^8.58.1"
-    "@typescript-eslint/parser": "npm:^8.58.1"
-    eslint: "npm:^9.39.4"
-    eslint-config-prettier: "npm:^10.1.8"
-    eslint-plugin-eslint-comments: "npm:^3.2.0"
-    eslint-plugin-import: "npm:^2.32.0"
-    eslint-plugin-prettier: "npm:^5.5.5"
-    jsdom: "npm:^29.0.2"
-    prettier: "npm:^3.8.2"
-    typescript: "npm:^6.0.2"
-    typescript-eslint: "npm:^8.58.1"
-    vitest: "npm:^4.1.4"
-  languageName: unknown
-  linkType: soft
 
 "@webassemblyjs/ast@npm:1.14.1, @webassemblyjs/ast@npm:^1.14.1":
   version: 1.14.1
@@ -3974,7 +3888,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.39.3, eslint@npm:^9.39.4":
+"eslint@npm:^9.39.4":
   version: 9.39.4
   resolution: "eslint@npm:9.39.4"
   dependencies:
@@ -5583,6 +5497,16 @@ __metadata:
   version: 1.4.1
   resolution: "merge2@npm:1.4.1"
   checksum: 10/7268db63ed5169466540b6fb947aec313200bcf6d40c5ab722c22e242f651994619bcd85601602972d3c85bd2cc45a358a4c61937e9f11a061919a1da569b0c2
+  languageName: node
+  linkType: hard
+
+"method-monitor@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "method-monitor@npm:1.0.0"
+  dependencies:
+    deep-guards: "npm:^1.3.1"
+    niall-utils: "npm:^1.0.0"
+  checksum: 10/d01219ac9e72a2b59e401c8638cfb3ef9ecc61b3fc09b31aa2bb0048d2a2629fa08a21826fd5331e79fd245609d668cebda5638fb1da1187e4fb5bdeb4e3950d
   languageName: node
   linkType: hard
 
@@ -7695,6 +7619,51 @@ __metadata:
   checksum: 10/9c9cdd4a9f9ae146b10d15387f383f52589e4cc27b324da6be8e7e3e755255b062a69dd7f00eef2ce67b2c01e546aae353456e74f8c1350bba00462cc6375549
   languageName: node
   linkType: hard
+
+"web-animation-template@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "web-animation-template@workspace:."
+  dependencies:
+    "@babel/core": "npm:^7.29.0"
+    "@babel/preset-env": "npm:^7.29.2"
+    "@babel/preset-typescript": "npm:^7.28.5"
+    "@eslint/compat": "npm:^2.0.5"
+    "@eslint/js": "npm:^9.39.4"
+    "@stylistic/eslint-plugin": "npm:^5.10.0"
+    "@types/eslint": "npm:^9.6.1"
+    "@types/eslint__js": "npm:^9.14.0"
+    "@types/gh-pages": "npm:^6.1.0"
+    "@types/node": "npm:^25.6.0"
+    "@typescript-eslint/eslint-plugin": "npm:^8.58.1"
+    "@typescript-eslint/parser": "npm:^8.58.1"
+    babel-loader: "npm:^10.1.1"
+    browser-sync: "npm:^3.0.4"
+    browser-sync-webpack-plugin: "npm:^2.4.0"
+    bs-fullscreen-message: "npm:^1.1.0"
+    deep-guards: "npm:^1.3.1"
+    eslint: "npm:^9.39.4"
+    eslint-config-prettier: "npm:^10.1.8"
+    eslint-plugin-eslint-comments: "npm:^3.2.0"
+    eslint-plugin-import: "npm:^2.32.0"
+    eslint-plugin-prettier: "npm:^5.5.5"
+    gh-pages: "npm:^6.3.0"
+    jsdom: "npm:^29.0.2"
+    method-monitor: "npm:^1.0.0"
+    niall-utils: "npm:^1.0.0"
+    prettier: "npm:^3.8.2"
+    seriform: "npm:^1.3.1"
+    strip-ansi: "npm:^7.2.0"
+    terser-webpack-plugin: "npm:^5.4.0"
+    ts-loader: "npm:^9.5.7"
+    typescript: "npm:^6.0.2"
+    typescript-eslint: "npm:^8.58.1"
+    vectyped: "npm:^1.0.0"
+    vitest: "npm:^4.1.4"
+    webpack: "npm:^5.106.1"
+    webpack-cli: "npm:^7.0.2"
+    webpack-dev-middleware: "npm:^8.0.3"
+  languageName: unknown
+  linkType: soft
 
 "webidl-conversions@npm:^8.0.1":
   version: 8.0.1

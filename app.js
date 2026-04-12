@@ -33,7 +33,6 @@ bundler.plugin("done", function (stats) {
  * Run Browsersync and use middleware for Hot Module Replacement
  */
 browserSync.init({
-  server: "app",
   open: false,
   logFileChanges: false,
   middleware: [
@@ -43,5 +42,5 @@ browserSync.init({
     }),
   ],
   plugins: ["bs-fullscreen-message"],
-  files: ["app/**/*.css", "app/**/*.html"],
+  files: ["public/**/*"],
 });

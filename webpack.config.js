@@ -1,5 +1,4 @@
 import BrowserSyncPlugin from "browser-sync-webpack-plugin";
-import { exec } from "node:child_process";
 import url, { URL } from "node:url";
 import TerserPlugin from "terser-webpack-plugin";
 
@@ -50,26 +49,7 @@ export default {
       host: "localhost",
       port: 3000,
       server: { baseDir: "public" },
-      files: [
-        "**/*.ts",
-        {
-          match: "../**/*.ts",
-          fn: (_, file) => {
-            const pkg = file.match(/^\.\.[\\/]([^\\/]+)[\\/]src/)?.[1];
-            if (pkg != null && pkg !== "app") {
-              console.log(`Building ${file}`);
-              exec(
-                `yarn workspace @web-art/${pkg} build`,
-                (err, stdout, stderr) => {
-                  if (stdout.trim().length > 0) console.log(stdout);
-                  if (stderr.trim().length > 0) console.error(stderr);
-                  if (err != null) console.error(err);
-                }
-              ).on("close", code => console.log(`Closed with code ${code}`));
-            }
-          },
-        },
-      ],
+      files: ["**/*.ts"],
     }),
   ],
 };
