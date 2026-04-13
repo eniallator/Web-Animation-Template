@@ -23,7 +23,7 @@ bundler.plugin("done", function (stats) {
     return sync.sockets.emit("fullscreen:message", {
       title: "Webpack Error:",
       body: stripAnsi(stats.toString()),
-      timeout: 100000,
+      timeout: 1e5,
     });
   }
   sync.reload();

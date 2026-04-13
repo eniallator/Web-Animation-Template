@@ -37,10 +37,8 @@ export default tslint.config(
       "@stylistic/quotes": "off",
       "@stylistic/quote-props": "off",
       "@stylistic/operator-linebreak": "off",
+
       // CORE
-      // According to https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/indent.md
-      // the default indentation rule can cause eslint to report erroneous style errors.
-      indent: "off",
       "no-console": "off",
       eqeqeq: ["warn", "smart"],
       "require-yield": "off",
