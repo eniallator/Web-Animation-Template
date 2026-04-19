@@ -1,10 +1,10 @@
+import { dom } from "niall-utils";
 import { Vector } from "vectyped";
 
 import { appMethods } from "./lib/index.ts";
 
 import type { Config } from "./config.ts";
 import type { AppContext, StatefulAppContext } from "./lib/index.ts";
-import { dom } from "niall-utils";
 
 const randomHue = () => Math.round(Math.random() * 360);
 
@@ -22,9 +22,7 @@ const init = (_appCtx: AppContext<Config>): State => ({
 
 const bounds = Vector.create(4, 3).normalise();
 const logo = dom.get<HTMLImageElement>("#credit img");
-const logoDim = Vector.create(logo.width, logo.height)
-  .normalise()
-  .multiply(100);
+const logoDim = Vector.create(logo.width, logo.height).setMagnitude(100);
 const logoPadding = 8;
 
 const animationFrame = (appCtx: StatefulAppContext<Config, State>) => {
@@ -59,15 +57,15 @@ const animationFrame = (appCtx: StatefulAppContext<Config, State>) => {
   const screenPos = pos.copy().multiply(scale);
 
   ctx.beginPath();
-  ctx.roundRect(...screenPos.toArray(), ...logoDim.toArray(), logoPadding);
+  ctx.roundRect(...screenPos.concat(logoDim).toArray(), logoPadding);
   ctx.fill();
 
   ctx.drawImage(
     logo,
-    ...screenPos.copy().add(logoPadding).toArray(),
-    ...logoDim
+    ...screenPos
       .copy()
-      .sub(logoPadding * 2)
+      .add(logoPadding)
+      .concat(logoDim.copy().sub(logoPadding * 2))
       .toArray()
   );
 };
