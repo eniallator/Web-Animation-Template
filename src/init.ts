@@ -1,5 +1,5 @@
-import { SeriForm } from "seriform";
 import { dom, raise } from "niall-utils";
+import { SeriForm } from "seriform";
 
 import { config, options } from "./config.ts";
 import { app } from "./index.ts";

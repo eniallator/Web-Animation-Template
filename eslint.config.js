@@ -1,7 +1,5 @@
-import typescriptParser from "@typescript-eslint/parser";
 import jslint from "@eslint/js";
 import tslint from "typescript-eslint";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
 import comments from "eslint-plugin-eslint-comments";
 import stylistic from "@stylistic/eslint-plugin";
 
@@ -18,14 +16,13 @@ export default tslint.config(
   }),
   {
     languageOptions: {
-      parser: typescriptParser,
       parserOptions: {
         project: ["./tsconfig.json", "./tsconfig.test.json"],
         tsconfigRootDir: import.meta.dirname,
       },
     },
 
-    plugins: { comments, tsPlugin },
+    plugins: { comments },
 
     rules: {
       "@typescript-eslint/consistent-type-imports": "error",
