@@ -1,12 +1,13 @@
 import { dom, raise } from "niall-utils";
 import { SeriForm } from "seriform";
 
-import { config, options } from "./config.ts";
+import { config, options, type Config } from "./config.ts";
 import { app } from "./index.ts";
-import { Mouse } from "./lib/index.ts";
-
-import type { Config } from "./config.ts";
-import type { AppContext, StatefulAppContext } from "./lib/index.ts";
+import {
+  Mouse,
+  type AppContext,
+  type StatefulAppContext,
+} from "./lib/index.ts";
 
 const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
   const { width, height } = canvas.getBoundingClientRect();
@@ -66,7 +67,7 @@ const appCtx: AppContext<Config> = {
   ctx,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-confusing-void-expression
+// oxlint-disable-next-line typescript/no-unnecessary-condition, typescript/no-confusing-void-expression
 let state = app.init(appCtx) ?? null;
 const statefulCtx: StatefulAppContext<Config, typeof state> = {
   ...appCtx,

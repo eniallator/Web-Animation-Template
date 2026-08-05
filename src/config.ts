@@ -11,9 +11,9 @@ import {
   selectParser,
   tableParser,
   textParser,
+  type InitParserObject,
+  type SeriFormOptions,
 } from "seriform";
-
-import type { InitParserObject, SeriFormOptions } from "seriform";
 
 export const options: SeriFormOptions = { query: location.search };
 export const config = createParsers({

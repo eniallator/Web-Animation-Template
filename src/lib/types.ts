@@ -1,4 +1,5 @@
 import type { SeriForm } from "seriform";
+
 import type { Mouse } from "./mouse.ts";
 
 export interface Time {

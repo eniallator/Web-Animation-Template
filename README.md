@@ -4,16 +4,16 @@ My template repository for creating web animations
 
 ## Installation
 
-This repository uses Node version `v18.17.1`. Once you have this installed, make sure you also install `yarn` globally, with
+This repository uses Node version `v18.17.1`. Once you have this installed, make sure you also install `pnpm` globally, with
 
 ```properties
-npm install yarn -G
+npm install -g pnpm
 ```
 
 Once you have this installed, run
 
 ```properties
-yarn
+pnpm install
 ```
 
 This will install the needed dependencies.
@@ -22,19 +22,19 @@ This will install the needed dependencies.
 
 In the project directory, you can run:
 
-### `yarn build`
+### `pnpm build`
 
 Builds the `src` directory into `dist/bundle.js` using webpack.
 
-### `yarn watch`
+### `pnpm watch`
 
 Watches for changes inside your src directory, and then rebuilds `dist/bundle.js` on change.\
 Also launches browser-sync, so your browser will update with any changes.
 
-### `yarn findissues`
+### `pnpm findissues`
 
-Runs both `yarn typecheck` (runs `tsc`) as well as `yarn lint` (runs eslint for any typescript files inside the `src` directory).
+Runs `pnpm typecheck` (runs `tsc`), `pnpm lint` (runs oxlint for any typescript files inside the `src` directory), and `pnpm format:check` (runs prettier).
 
-### `yarn deploy`
+### `pnpm run deploy`
 
 Deploys the project using the [gh-pages npm package](https://www.npmjs.com/package/gh-pages).

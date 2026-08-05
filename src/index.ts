@@ -1,10 +1,12 @@
 import { dom } from "niall-utils";
 import { Vector } from "vectyped";
 
-import { appMethods } from "./lib/index.ts";
-
 import type { Config } from "./config.ts";
-import type { AppContext, StatefulAppContext } from "./lib/index.ts";
+import {
+  appMethods,
+  type AppContext,
+  type StatefulAppContext,
+} from "./lib/index.ts";
 
 const randomHue = () => Math.round(Math.random() * 360);
 

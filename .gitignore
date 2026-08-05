@@ -1,7 +1,3 @@
 node_modules
 **/*bundle.js*
 dist
-.yarn/cache
-.yarn/install-state.gz
-.pnp.cjs
-.pnp.loader.mjs
