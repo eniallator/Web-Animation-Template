@@ -14,7 +14,7 @@
   "dependencies": {
     "deep-guards": "^1.4.0",
     "method-monitor": "^1.0.0",
-    "niall-utils": "^2.0.0",
+    "niall-utils": "^2.0.1",
     "seriform": "^1.3.1",
     "vectyped": "^1.1.0"
   },
@@ -26,7 +26,6 @@
     "babel-loader": "^10.1.1",
     "browser-sync": "^3.0.4",
     "browser-sync-webpack-plugin": "^2.4.0",
-    "gh-pages": "^6.3.0",
     "jsdom": "^30.0.1",
     "oxlint": "^1.77.0",
     "oxlint-tsgolint": "^7.0.2001",
@@ -46,7 +45,6 @@
     "format:check": "prettier --check .",
     "findissues": "pnpm typecheck && pnpm lint && pnpm format:check",
     "prepublish": "pnpm build && pnpm findissues",
-    "test": "vitest run --config vitest.config.js",
-    "deploy": "gh-pages -d public"
+    "test": "vitest run --config vitest.config.js"
   }
 }
