@@ -1,4 +1,4 @@
-import type { SeriForm } from "seriform";
+import type { AnyParserRecord, SeriForm } from "seriform";
 
 import type { Mouse } from "./mouse.ts";
 
@@ -9,7 +9,7 @@ export interface Time {
   now: number;
 }
 
-export interface AppContext<R extends Record<string, unknown>> {
+export interface AppContext<R extends AnyParserRecord> {
   seriform: SeriForm<R>;
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -18,7 +18,7 @@ export interface AppContext<R extends Record<string, unknown>> {
 }
 
 export interface StatefulAppContext<
-  R extends Record<string, unknown>,
+  R extends AnyParserRecord,
   S extends object | null,
 > extends AppContext<R> {
   getState: () => S;
@@ -26,7 +26,7 @@ export interface StatefulAppContext<
 }
 
 export interface AppMethods<
-  R extends Record<string, unknown>,
+  R extends AnyParserRecord,
   S extends object | null,
 > {
   init: S extends null
@@ -44,7 +44,7 @@ export interface AppMethods<
 }
 
 export const appMethods = <
-  R extends Record<string, unknown>,
+  R extends AnyParserRecord,
   const S extends object | null = null,
 >(
   methods: AppMethods<R, S>
