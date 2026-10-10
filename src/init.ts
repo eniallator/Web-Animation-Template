@@ -1,4 +1,10 @@
-import { dom, raise } from "niall-utils";
+import {
+  addListener,
+  getElement,
+  raise,
+  toAttrs,
+  toElement,
+} from "niall-utils";
 import { SeriForm } from "seriform";
 
 import { config, options, type Config } from "./config.ts";
@@ -15,10 +21,10 @@ const updateCanvasBounds = (canvas: HTMLCanvasElement) => {
   canvas.height = height;
 };
 
-const canvas = dom.get<HTMLCanvasElement>("canvas");
+const canvas = getElement<HTMLCanvasElement>("canvas");
 updateCanvasBounds(canvas);
 
-dom.addListener(dom.get("#download-btn"), "click", () => {
+addListener(getElement("#download-btn"), "click", () => {
   const title = document
     .getElementsByTagName("title")[0]
     ?.innerText.trim()
@@ -26,18 +32,18 @@ dom.addListener(dom.get("#download-btn"), "click", () => {
     .replace(/\s+/, "-");
   const download = `${title != null && title.length > 0 ? title : "download"}.png`;
 
-  const attrs = dom.toAttrs({ href: canvas.toDataURL(), download });
-  const anchor = dom.toHtml(`<a ${attrs}></a>`);
+  const attrs = toAttrs({ href: canvas.toDataURL(), download });
+  const anchor = toElement(`<a ${attrs}></a>`);
 
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
 });
 
-dom.addListener(dom.get("#fullscreen-btn"), "click", () => {
+addListener(getElement("#fullscreen-btn"), "click", () => {
   void (document.fullscreenElement != null
     ? document.exitFullscreen()
-    : dom.get("main").requestFullscreen());
+    : getElement("main").requestFullscreen());
 });
 
 const ctx =
@@ -48,16 +54,16 @@ const ctx =
     )
   );
 
-const modal = dom.get<HTMLDialogElement>("#config-modal");
-dom.addListener(dom.get("#config-dropdown-btn"), "click", () => {
+const modal = getElement<HTMLDialogElement>("#config-modal");
+addListener(getElement("#config-dropdown-btn"), "click", () => {
   modal.showModal();
 });
-dom.addListener(modal, "click", evt => {
+addListener(modal, "click", evt => {
   if (evt.target === modal) modal.close();
 });
 
 const now = Date.now() / 1000;
-const seriform = new SeriForm(config, dom.get("#cfg-outer"), options);
+const seriform = new SeriForm(config, getElement("#cfg-outer"), options);
 seriform.addCopyToClipboardHandler("#share-btn");
 const appCtx: AppContext<Config> = {
   time: { now, start: now, lastFrame: now, delta: 0 },

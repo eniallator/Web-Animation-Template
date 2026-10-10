@@ -1,4 +1,4 @@
-import { dom } from "niall-utils";
+import { getElement } from "niall-utils";
 import { Vector } from "vectyped";
 
 import type { Config } from "./config.ts";
@@ -23,7 +23,7 @@ const init = (_appCtx: AppContext<Config>): State => ({
 });
 
 const bounds = Vector.create(4, 3).normalise();
-const logo = dom.get<HTMLImageElement>("#credit img");
+const logo = getElement<HTMLImageElement>("#credit img");
 const logoDim = Vector.create(logo.width, logo.height).setMagnitude(100);
 const logoPadding = 8;
 

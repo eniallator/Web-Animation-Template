@@ -1,0 +1,3 @@
+minimumReleaseAgeExclude:
+  - niall-utils@4.0.0
+  - seriform@3.0.0

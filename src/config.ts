@@ -1,16 +1,24 @@
 import {
-  buttonParser,
+  buttonContent,
   checkboxParser,
   colorParser,
   createParsers,
   datetimeParser,
+  dependency,
+  derived,
+  dividerContent,
   equals,
   fileParser,
   groupParser,
+  headingContent,
   ifParser,
+  imageContent,
   listParser,
+  negate,
   numberParser,
+  paragraphContent,
   rangeParser,
+  rawHtmlContent,
   satisfies,
   selectParser,
   tableParser,
@@ -23,6 +31,17 @@ import {
 
 export const options: SeriFormOptions = { query: location.search };
 export const config = createParsers({
+  "example-heading": headingContent({ text: "Seriform Showcase", level: 3 }),
+  "example-paragraph": paragraphContent({
+    text: "Every parser and content element Seriform ships with is used below.",
+  }),
+  "example-divider": dividerContent({}),
+  "example-image": imageContent({
+    attrs: { src: "./logo.webp", alt: "Example image", width: 50 },
+  }),
+  "example-raw-html": rawHtmlContent({
+    html: "<em>Raw HTML</em> inside a wrapper <code>div</code>",
+  }),
   "example-checkbox": checkboxParser({
     label: "Example Checkbox",
     title: "Example title",
@@ -42,7 +61,7 @@ export const config = createParsers({
     label: "Example Colour",
     default: "ff5a5f",
   }),
-  "example-button": buttonParser({
+  "example-button": buttonContent({
     text: "Example Button",
     attrs: { class: "primary wrap-text" },
   }),
@@ -64,10 +83,33 @@ export const config = createParsers({
     label: "Example Select",
     default: "bar",
     options: ["foo", "bar", "baz", "another option"],
+    hashLength: 3,
+  }),
+  "example-derived-paragraph": paragraphContent({
+    text: derived(
+      (range, select) => `Range is ${range} and select is '${select}'.`,
+      dependency<number>()("example-range"),
+      dependency<string>()("example-select")
+    ),
+  }),
+  "example-derived-button": buttonContent({
+    text: derived(
+      checked => (checked ? "Checkbox is on" : "Checkbox is off"),
+      dependency<boolean>()("example-checkbox")
+    ),
+    attrs: { class: "primary wrap-text" },
+  }),
+  "example-derived-heading": headingContent({
+    level: 4,
+    text: derived(
+      text => `Text length: ${text.length}`,
+      dependency<string>()("example-text")
+    ),
   }),
   "example-table": tableParser({
     label: "Example Table",
     expandable: true,
+    initialCollapsed: true,
     fields: [
       rangeParser({
         label: "Range",
@@ -92,6 +134,7 @@ export const config = createParsers({
   "example-list": listParser({
     label: "Example List",
     expandable: true,
+    initialCollapsed: true,
     field: colorParser({ default: "ff0000" }),
     default: ["ff0000", "00ff00", "0000ff"],
   }),
@@ -118,6 +161,7 @@ export const config = createParsers({
     },
     label: "Example Group",
     title: "A few fields nested together",
+    hashLength: 3,
   }),
   "example-when": when({
     condition: equals(["example-select"], "bar"),
@@ -136,6 +180,29 @@ export const config = createParsers({
       attrs: { min: "0", max: "10" },
     }),
     label: "Example Unless",
+  }),
+  "example-negate": when({
+    condition: negate(equals(["example-select"], "bar")),
+    parser: textParser({
+      label: "Only Shown When Select Is Not 'bar'",
+      default: "",
+    }),
+    label: "Example Negate",
+    title:
+      "negate() inverts a condition, which is what unless() does internally",
+  }),
+  "example-derived-when": when({
+    condition: derived(
+      (range, checked) => range > 5 && checked,
+      dependency<number>()("example-range"),
+      dependency<boolean>()("example-checkbox")
+    ),
+    parser: textParser({
+      label: "Only Shown When Range > 5 And Checkbox Is Checked",
+      default: "",
+    }),
+    label: "Example Derived When",
+    title: "derived() builds a condition from more than one field",
   }),
   "example-if": ifParser({
     branches: [
